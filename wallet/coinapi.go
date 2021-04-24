@@ -43,7 +43,7 @@ func (api CoinAPI) GetExchangeRates(date time.Time, native string) (rates Exchan
 			return rates, errors.New("Need CoinAPI Key")
 		}
 		hour := 0
-		for len(rates.Rates) == 0 && hour < 30 {
+		for len(rates.Rates) == 0 && hour < 15 {
 			url := "http://rest.coinapi.io/v1/exchangerate/" + native + "?invert=true&time=" + date.Add(time.Duration(hour)*time.Hour).UTC().Format(time.RFC3339)
 			resp, err := resty.R().SetHeaders(map[string]string{
 				"Accept":        "application/json",
@@ -62,7 +62,7 @@ func (api CoinAPI) GetExchangeRates(date time.Time, native string) (rates Exchan
 			}
 			if len(rates.Rates) == 0 {
 				hour += 1
-				if hour == 10 {
+				if hour == 15 {
 					log.Println("CoinAPI Get void Rates:", url)
 				}
 			}

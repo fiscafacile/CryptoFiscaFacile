@@ -48,21 +48,23 @@ func (c *Currency) Println() {
 }
 
 func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decimal, err error) {
-	gecko, err := NewCoinGeckoAPI()
-	if err == nil {
-		ratesCG, err := gecko.GetExchangeRates(date, c.Code)
+	if !c.IsFiat() {
+		gecko, err := NewCoinGeckoAPI()
 		if err == nil {
-			// log.Println("ratesCG : ", ratesCG)
-			for _, r := range ratesCG.Rates {
-				if r.Quote == to {
-					return r.Rate, nil
+			ratesCG, err := gecko.GetExchangeRates(date, c.Code)
+			if err == nil {
+				// log.Println("ratesCG : ", ratesCG)
+				for _, r := range ratesCG.Rates {
+					if r.Quote == to {
+						return r.Rate, nil
+					}
 				}
+				// } else {
+				// 	log.Println("gecko.GetExchangeRates :", err)
 			}
 			// } else {
-			// 	log.Println("gecko.GetExchangeRates :", err)
+			// 	log.Println("NewCoinGeckoAPI :", err)
 		}
-		// } else {
-		// 	log.Println("NewCoinGeckoAPI :", err)
 	}
 	var api CoinAPI
 	rates, err := api.GetExchangeRates(date, to)
