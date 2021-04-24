@@ -35,7 +35,7 @@ func main() {
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
-	pCSVBtcCashInOut := flag.String("btc_cashinout", "", "Bitcoin CashIn/CashOut CSV file")
+	pCSVBtcCategorie := flag.String("btc_categ", "", "Bitcoin Categories CSV file")
 	pFloatBtcExclude := flag.Float64("btc_exclude", 0.0, "Exclude Bitcoin Amount")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
@@ -59,12 +59,12 @@ func main() {
 	}
 	btc := btc.New()
 	blkst := blockstream.New()
-	if *pCSVBtcCashInOut != "" {
-		recordFile, err := os.Open(*pCSVBtcCashInOut)
+	if *pCSVBtcCategorie != "" {
+		recordFile, err := os.Open(*pCSVBtcCategorie)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Payments file:", err)
 		}
-		btc.ParseCSVCashInOut(recordFile)
+		btc.ParseCSVCategorie(recordFile)
 	}
 	if *pCSVBtcAddress != "" {
 		recordFile, err := os.Open(*pCSVBtcAddress)

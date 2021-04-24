@@ -8,7 +8,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type csvCashInOut struct {
+type csvCategorie struct {
 	txID        string
 	kind        string
 	description string
@@ -21,22 +21,22 @@ type CSVAddress struct {
 	Description string
 }
 
-func (btc *BTC) ParseCSVCashInOut(reader io.Reader) {
+func (btc *BTC) ParseCSVCategorie(reader io.Reader) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		for _, r := range records {
 			if r[0] != "TxID" {
-				a := csvCashInOut{}
+				a := csvCategorie{}
 				a.txID = r[0]
 				a.kind = r[1]
 				a.description = r[2]
 				a.value, err = decimal.NewFromString(r[3])
 				if err != nil {
-					log.Println("BTC CashInOut CSV Error Parsing Value : ", r[3])
+					log.Println("BTC Categorie CSV Error Parsing Value : ", r[3])
 				}
 				a.currency = r[4]
-				btc.csvCashInOuts = append(btc.csvCashInOuts, a)
+				btc.csvCategories = append(btc.csvCategories, a)
 			}
 		}
 	}
