@@ -332,7 +332,9 @@ func main() {
 		// Consolidate all knowns TXs
 		var allTXs wallet.TXs
 		for k := range global {
-			allTXs = append(allTXs, global[k]...)
+			if k != "Transfers" { // Do not consider Transfers for initial prixTotalAcquisition
+				allTXs = append(allTXs, global[k]...)
+			}
 		}
 		allTXs.SortByDate(false)
 		for crypto, quantity := range globalWallet2019Jan1.Currencies {
