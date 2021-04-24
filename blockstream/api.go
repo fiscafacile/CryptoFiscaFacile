@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/fiscafacile/CryptoFiscaFacile/btc"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
@@ -53,40 +54,40 @@ type apiTX struct {
 	} `json:"status"`
 }
 
-func (blkst *Blockstream) apiGetAllTXs() (err error) {
+func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		useCache = false
 	}
-	for _, btc := range blkst.csvAddresses {
+	for _, btc := range b.CSVAddresses {
 		var apiTXs []apiTX
 		if useCache {
-			err = db.Read("BlockStream/address/txs", btc.address, &apiTXs)
+			err = db.Read("BlockStream/address/txs", btc.Address, &apiTXs)
 		}
 		if !useCache || err != nil {
 			resp, err := resty.R().SetHeaders(map[string]string{
 				"Accept": "application/json",
-			}).Get("https://blockstream.info/api/address/" + btc.address + "/txs")
+			}).Get("https://blockstream.info/api/address/" + btc.Address + "/txs")
 			if err != nil || resp.StatusCode() != http.StatusOK {
 				time.Sleep(6 * time.Second)
 				resp, err = resty.R().SetHeaders(map[string]string{
 					"Accept": "application/json",
-				}).Get("https://blockstream.info/api/address/" + btc.address + "/txs")
+				}).Get("https://blockstream.info/api/address/" + btc.Address + "/txs")
 			}
 			if err != nil || resp.StatusCode() != http.StatusOK {
-				log.Println("Blockstream API : Error Getting BTC TX for", btc.address)
+				log.Println("Blockstream API : Error Getting BTC TX for", btc.Address)
 				break
 			}
 			err = json.Unmarshal(resp.Body(), &apiTXs)
 			if err != nil {
-				log.Println("Blockstream API : Error Unmarshaling BTC TX for", btc.address)
+				log.Println("Blockstream API : Error Unmarshaling BTC TX for", btc.Address)
 				break
 			}
 			if useCache {
-				err = db.Write("BlockStream/address/txs", btc.address, apiTXs)
+				err = db.Write("BlockStream/address/txs", btc.Address, apiTXs)
 				if err != nil {
-					log.Println("Blockstream API : Error Caching", btc.address)
+					log.Println("Blockstream API : Error Caching", btc.Address)
 				}
 			}
 		}
@@ -110,7 +111,7 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 			isInVinPrevVout := false
 			missing := ""
 			for _, vin := range tx.Vin {
-				if blkst.ownAddress(vin.Prevout.ScriptpubkeyAddress) {
+				if b.OwnAddress(vin.Prevout.ScriptpubkeyAddress) {
 					valueIn -= vin.Prevout.Value
 					isInVinPrevVout = true
 				} else {
@@ -120,11 +121,14 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 					missing += " " + vin.Prevout.ScriptpubkeyAddress
 				}
 			}
+			if isInVinPrevVout && missing != "" {
+				log.Println("Blockstream API : found co-signed address", missing[11:])
+			}
 			valueOut := 0
 			isInVout := false
 			dest := ""
 			for _, vout := range tx.Vout {
-				if blkst.ownAddress(vout.ScriptpubkeyAddress) {
+				if b.OwnAddress(vout.ScriptpubkeyAddress) {
 					valueOut += vout.Value
 					isInVout = true
 				} else {
@@ -145,15 +149,15 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 				if isInVout && dest == "" {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
-					blkst.TXsByCategory["Transfers"] = append(blkst.TXsByCategory["Transfers"], t)
-				} else if is, desc, val, curr := blkst.isTxPayment(tx.Txid); is {
+					b.TXsByCategory["Transfers"] = append(b.TXsByCategory["Transfers"], t)
+				} else if is, desc, val, curr := b.IsTxCashOut(tx.Txid); is {
 					t.Note += " payment " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
-					blkst.TXsByCategory["CashOut"] = append(blkst.TXsByCategory["CashOut"], t)
+					b.TXsByCategory["CashOut"] = append(b.TXsByCategory["CashOut"], t)
 				} else {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
-					blkst.TXsByCategory["Withdrawals"] = append(blkst.TXsByCategory["Withdrawals"], t)
+					b.TXsByCategory["Withdrawals"] = append(b.TXsByCategory["Withdrawals"], t)
 				}
 				blkst.apiTXs[i].used = true
 			} else if isInVout {
@@ -161,7 +165,13 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 				t.Items = make(map[string][]wallet.Currency)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
-				blkst.TXsByCategory["Deposits"] = append(blkst.TXsByCategory["Deposits"], t)
+				if is, desc, val, curr := b.IsTxCashIn(tx.Txid); is {
+					t.Note += " crypto_purchase " + desc
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
+					b.TXsByCategory["CashIn"] = append(b.TXsByCategory["CashIn"], t)
+				} else {
+					b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
+				}
 				blkst.apiTXs[i].used = true
 			} else {
 				log.Println("Blockstream API : Unmanaged TX")
@@ -169,5 +179,5 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 			}
 		}
 	}
-	return
+	blkst.done <- err
 }

@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/btc"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -21,7 +22,7 @@ type CsvTX struct {
 	AccountXpub string
 }
 
-func (ll *LedgerLive) ParseCSV(reader io.Reader) (err error) {
+func (ll *LedgerLive) ParseCSV(reader io.Reader, b *btc.BTC) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -54,7 +55,13 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader) (err error) {
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-					ll.TXsByCategory["Deposits"] = append(ll.TXsByCategory["Deposits"], t)
+					if is, desc, val, curr := b.IsTxCashIn(tx.Hash); is {
+						t.Note += " crypto_purchase " + desc
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
+						ll.TXsByCategory["CashIn"] = append(ll.TXsByCategory["CashIn"], t)
+					} else {
+						ll.TXsByCategory["Deposits"] = append(ll.TXsByCategory["Deposits"], t)
+					}
 				} else if tx.Type == "OUT" {
 					t := wallet.TX{Timestamp: tx.Date, Note: "LedgerLive CSV " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
 					t.Items = make(map[string][]wallet.Currency)
@@ -63,7 +70,13 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader) (err error) {
 						ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)
 					} else {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Sub(tx.Fees)})
-						ll.TXsByCategory["Withdrawals"] = append(ll.TXsByCategory["Withdrawals"], t)
+						if is, desc, val, curr := b.IsTxCashOut(tx.Hash); is {
+							t.Note += " crypto_payment " + desc
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+							ll.TXsByCategory["CashOut"] = append(ll.TXsByCategory["CashOut"], t)
+						} else {
+							ll.TXsByCategory["Withdrawals"] = append(ll.TXsByCategory["Withdrawals"], t)
+						}
 					}
 				} else {
 					log.Println("Unmanaged ", tx)

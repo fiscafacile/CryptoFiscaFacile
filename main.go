@@ -7,10 +7,11 @@ import (
 	"os"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
+	// "github.com/davecgh/go-spew/spew"
 	"github.com/fiscafacile/CryptoFiscaFacile/binance"
 	"github.com/fiscafacile/CryptoFiscaFacile/bitfinex"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockstream"
+	"github.com/fiscafacile/CryptoFiscaFacile/btc"
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
@@ -28,13 +29,13 @@ func main() {
 	pDate := flag.String("date", "2021-01-01T00:00:00", "Date Filter")
 	pLocation := flag.String("location", "Europe/Paris", "Date Filter Location")
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
-	pAccount := flag.String("acc", "", "Display account : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pTXsCateg := flag.String("txscat", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
-	pCSVBtcPayment := flag.String("btc_payment", "", "Bitcoin Payments CSV file")
+	pCSVBtcCashInOut := flag.String("btc_cashinout", "", "Bitcoin CashIn/CashOut CSV file")
 	pFloatBtcExclude := flag.Float64("btc_exclude", 0.0, "Exclude Bitcoin Amount")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
@@ -56,20 +57,22 @@ func main() {
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
 	}
+	btc := btc.New()
 	blkst := blockstream.New()
-	if *pCSVBtcPayment != "" {
-		recordFile, err := os.Open(*pCSVBtcPayment)
+	if *pCSVBtcCashInOut != "" {
+		recordFile, err := os.Open(*pCSVBtcCashInOut)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Payments file:", err)
 		}
-		blkst.ParseCSVPayments(recordFile)
+		btc.ParseCSVCashInOut(recordFile)
 	}
 	if *pCSVBtcAddress != "" {
 		recordFile, err := os.Open(*pCSVBtcAddress)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Addresses file:", err)
 		}
-		go blkst.ParseCSVAddresses(recordFile)
+		btc.ParseCSVAddresses(recordFile)
+		go blkst.GetAllTXs(btc)
 	}
 	ethsc := etherscan.New()
 	if *pCSVEthAddress != "" {
@@ -164,7 +167,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening LedgerLive CSV file:", err)
 		}
-		err = ll.ParseCSV(recordFile)
+		err = ll.ParseCSV(recordFile, btc)
 		if err != nil {
 			log.Fatal("Error parsing LedgerLive CSV file:", err)
 		}
@@ -253,7 +256,7 @@ func main() {
 	global.Add(mc.TXsByCategory)
 	global.Add(revo.TXsByCategory)
 	global.Add(ethsc.TXsByCategory)
-	global.Add(blkst.TXsByCategory)
+	global.Add(btc.TXsByCategory)
 	global.FindTransfers()
 	global.FindCashInOut()
 	global.SortTXsByDate(true)
@@ -268,11 +271,11 @@ func main() {
 		global.CheckConsistency(loc)
 	}
 	// Debug
-	if *pAccount != "" {
-		if *pAccount == "Alls" {
-			spew.Dump(global)
+	if *pTXsCateg != "" {
+		if *pTXsCateg == "Alls" {
+			global.Println()
 		} else {
-			spew.Dump(global[*pAccount])
+			global[*pTXsCateg].Println("Category " + *pTXsCateg)
 		}
 	}
 	// Construct global wallet up to date
