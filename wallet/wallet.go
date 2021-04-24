@@ -165,10 +165,10 @@ func (txs TXs) SortByDate(chrono bool) {
 	}
 }
 
-func (acc TXsByCategory) GetWallets(date time.Time, includeFiat bool) (w Wallets) {
+func (txs TXsByCategory) GetWallets(date time.Time, includeFiat bool) (w Wallets) {
 	w.Date = date
 	w.Currencies = make(WalletCurrencies)
-	for _, a := range acc {
+	for _, a := range txs {
 		for _, tx := range a {
 			if tx.Timestamp.Before(date) {
 				for k, i := range tx.Items {
@@ -190,17 +190,17 @@ func (acc TXsByCategory) GetWallets(date time.Time, includeFiat bool) (w Wallets
 	return
 }
 
-func (acc TXsByCategory) Add(a TXsByCategory) {
+func (txs TXsByCategory) Add(a TXsByCategory) {
 	for k, v := range a {
-		acc[k] = append(acc[k], v...)
+		txs[k] = append(txs[k], v...)
 	}
 }
 
-func (acc TXsByCategory) FindTransfers() TXsByCategory {
+func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	var realDeposits TXs
 	var realWithdrawals TXs
 	similarTimeDelta := 12 * time.Hour
-	for _, depTX := range acc["Deposits"] {
+	for _, depTX := range txs["Deposits"] {
 		found := false
 		depFees := decimal.NewFromInt(0)
 		if _, ok := depTX.Items["Fee"]; ok {
@@ -208,7 +208,7 @@ func (acc TXsByCategory) FindTransfers() TXsByCategory {
 				depFees = depTX.Items["Fee"][0].Amount
 			}
 		}
-		for _, witTX := range acc["Withdrawals"] {
+		for _, witTX := range txs["Withdrawals"] {
 			if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
 				depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
 				strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
@@ -243,7 +243,7 @@ func (acc TXsByCategory) FindTransfers() TXsByCategory {
 							}
 						}
 					}
-					acc["Transfers"] = append(acc["Transfers"], t)
+					txs["Transfers"] = append(txs["Transfers"], t)
 					break
 					// } else {
 					// 	spew.Dump(depTX)
@@ -255,7 +255,7 @@ func (acc TXsByCategory) FindTransfers() TXsByCategory {
 			realDeposits = append(realDeposits, depTX)
 		}
 	}
-	for _, witTX := range acc["Withdrawals"] {
+	for _, witTX := range txs["Withdrawals"] {
 		found := false
 		witFees := decimal.NewFromInt(0)
 		if _, ok := witTX.Items["Fee"]; ok {
@@ -263,7 +263,7 @@ func (acc TXsByCategory) FindTransfers() TXsByCategory {
 				witFees = witTX.Items["Fee"][0].Amount
 			}
 		}
-		for _, depTX := range acc["Deposits"] {
+		for _, depTX := range txs["Deposits"] {
 			depFees := decimal.NewFromInt(0)
 			if _, ok := depTX.Items["Fee"]; ok {
 				if len(depTX.Items["Fee"]) == 1 {
@@ -285,14 +285,14 @@ func (acc TXsByCategory) FindTransfers() TXsByCategory {
 			realWithdrawals = append(realWithdrawals, witTX)
 		}
 	}
-	acc["Deposits"] = realDeposits
-	acc["Withdrawals"] = realWithdrawals
-	return acc
+	txs["Deposits"] = realDeposits
+	txs["Withdrawals"] = realWithdrawals
+	return txs
 }
 
-func (acc TXsByCategory) FindCashInOut() TXsByCategory {
+func (txs TXsByCategory) FindCashInOut() TXsByCategory {
 	var realExchanges TXs
-	for _, exTX := range acc["Exchanges"] {
+	for _, exTX := range txs["Exchanges"] {
 		fromHasFiat := false
 		for _, i := range exTX.Items["From"] {
 			if i.IsFiat() {
@@ -306,18 +306,18 @@ func (acc TXsByCategory) FindCashInOut() TXsByCategory {
 			}
 		}
 		if fromHasFiat {
-			acc["CashIn"] = append(acc["CashIn"], exTX)
+			txs["CashIn"] = append(txs["CashIn"], exTX)
 		} else if toHasFiat {
-			acc["CashOut"] = append(acc["CashOut"], exTX)
+			txs["CashOut"] = append(txs["CashOut"], exTX)
 		} else {
 			realExchanges = append(realExchanges, exTX)
 		}
 	}
 	if len(realExchanges) > 0 {
-		acc["Exchanges"] = realExchanges
+		txs["Exchanges"] = realExchanges
 	}
 	// var realDeposits TXs
-	// for _, depTX := range acc["Deposits"] {
+	// for _, depTX := range txs["Deposits"] {
 	// 	toHasFiat := false
 	// 	for _, i := range depTX.Items["To"] {
 	// 		if i.IsFiat() {
@@ -325,14 +325,14 @@ func (acc TXsByCategory) FindCashInOut() TXsByCategory {
 	// 		}
 	// 	}
 	// 	if toHasFiat {
-	// 		acc["CashIn"] = append(acc["CashIn"], depTX)
+	// 		txs["CashIn"] = append(txs["CashIn"], depTX)
 	// 	} else {
 	// 		realDeposits = append(realDeposits, depTX)
 	// 	}
 	// }
-	// acc["Deposits"] = realDeposits
+	// txs["Deposits"] = realDeposits
 	var realWithdrawals TXs
-	for _, witTX := range acc["Withdrawals"] {
+	for _, witTX := range txs["Withdrawals"] {
 		fromHasFiat := false
 		// for _, i := range witTX.Items["From"] {
 		// 	if i.IsFiat() {
@@ -340,40 +340,40 @@ func (acc TXsByCategory) FindCashInOut() TXsByCategory {
 		// 	}
 		// }
 		if fromHasFiat {
-			acc["CashOut"] = append(acc["CashOut"], witTX)
+			txs["CashOut"] = append(txs["CashOut"], witTX)
 		} else {
 			realWithdrawals = append(realWithdrawals, witTX)
 		}
 	}
 	if len(realWithdrawals) > 0 {
-		acc["Withdrawals"] = realWithdrawals
+		txs["Withdrawals"] = realWithdrawals
 	}
-	return acc
+	return txs
 }
 
-func (acc TXsByCategory) SortTXsByDate(chrono bool) {
-	for k := range acc {
-		acc[k].SortByDate(chrono)
+func (txs TXsByCategory) SortTXsByDate(chrono bool) {
+	for k := range txs {
+		txs[k].SortByDate(chrono)
 	}
 }
 
-func (acc TXsByCategory) PrintStats() {
+func (txs TXsByCategory) PrintStats() {
 	fmt.Println("---------------------------")
 	fmt.Println("| List of TXs By Category |")
 	fmt.Println("---------------------------")
-	keys := make([]string, 0, len(acc))
-	for k := range acc {
+	keys := make([]string, 0, len(txs))
+	for k := range txs {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		fmt.Println(k, ":", len(acc[k]), "TXs")
+		fmt.Println(k, ":", len(txs[k]), "TXs")
 	}
 }
 
-func (acc TXsByCategory) PrintUnjustifiedWithdrawals(loc *time.Location) {
+func (txs TXsByCategory) PrintUnjustifiedWithdrawals(loc *time.Location) {
 	have := false
-	for _, tx := range acc["Withdrawals"] {
+	for _, tx := range txs["Withdrawals"] {
 		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
 			if !have {
 				fmt.Println("-----------------------------------")
