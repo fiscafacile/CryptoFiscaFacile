@@ -30,7 +30,7 @@ func main() {
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
 	pAccount := flag.String("acc", "", "Display account : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
-	pUnjustifWithdrawals := flag.Bool("unjustifwithdrawals", false, "Display Unjustified Withdrawals")
+	pCheck := flag.Bool("check", false, "Check and Display consistency")
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
@@ -264,8 +264,8 @@ func main() {
 	if *pStats {
 		global.PrintStats()
 	}
-	if *pUnjustifWithdrawals {
-		global.PrintUnjustifiedWithdrawals(loc)
+	if *pCheck {
+		global.CheckConsistency(loc)
 	}
 	// Debug
 	if *pAccount != "" {
@@ -287,7 +287,7 @@ func main() {
 		log.Fatal("Error Calculating Global Wallet:", err)
 	} else {
 		globalWalletTotalValue.Amount = globalWalletTotalValue.Amount.RoundBank(0)
-		fmt.Print("Total Value :")
+		fmt.Print("Total Value : ")
 		globalWalletTotalValue.Println()
 	}
 	if *p2086 {

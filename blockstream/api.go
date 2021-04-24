@@ -143,7 +143,7 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 				t.Items = make(map[string][]wallet.Currency)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				if isInVout && dest == "" {
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn), -8)})
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
 					blkst.TXsByCategory["Transfers"] = append(blkst.TXsByCategory["Transfers"], t)
 				} else if is, desc, val, curr := blkst.isTxPayment(tx.Txid); is {

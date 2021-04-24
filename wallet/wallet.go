@@ -78,6 +78,30 @@ func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decim
 	return rate, errors.New("Cannot find rate for " + to + c.Code + " at " + date.String())
 }
 
+func (wc WalletCurrencies) Add(a WalletCurrencies) {
+	for k, v := range a {
+		wc[k] = wc[k].Add(v)
+	}
+}
+
+func (w Wallets) CalculateTotalValue(native string) (totalValue Currency, err error) {
+	totalValue.Code = native
+	for k, v := range w.Currencies {
+		if k == native {
+			totalValue.Amount = totalValue.Amount.Add(v)
+		} else {
+			c := Currency{Code: k, Amount: v}
+			rate, err := c.GetExchangeRate(w.Date, native)
+			if err != nil {
+				log.Println("Cannot find rate for", k, "at", w.Date)
+			} else {
+				totalValue.Amount = totalValue.Amount.Add(rate.Mul(v))
+			}
+		}
+	}
+	return
+}
+
 func (w Wallets) Round() {
 	for k, v := range w.Currencies {
 		if k == "BAB" {
@@ -98,24 +122,6 @@ func (w Wallets) Round() {
 			}
 		}
 	}
-}
-
-func (w Wallets) CalculateTotalValue(native string) (totalValue Currency, err error) {
-	totalValue.Code = native
-	for k, v := range w.Currencies {
-		if k == native {
-			totalValue.Amount = totalValue.Amount.Add(v)
-		} else {
-			c := Currency{Code: k, Amount: v}
-			rate, err := c.GetExchangeRate(w.Date, native)
-			if err != nil {
-				log.Println("Cannot find rate for", k, "at", w.Date)
-			} else {
-				totalValue.Amount = totalValue.Amount.Add(rate.Mul(v))
-			}
-		}
-	}
-	return
 }
 
 func (w Wallets) Println(name string) {
@@ -153,6 +159,23 @@ func (tx TX) Println() {
 	fmt.Println("Note :", tx.Note)
 }
 
+func (tx TX) GetCurrencies(includeFiat, includeFee bool) (cs WalletCurrencies) {
+	cs = make(WalletCurrencies)
+	for k, i := range tx.Items {
+		for _, c := range i {
+			if c.Code != "" &&
+				(includeFiat || !c.IsFiat()) {
+				if (k == "Fee" && includeFee) || k == "From" {
+					cs[c.Code] = cs[c.Code].Sub(c.Amount)
+				} else if k == "To" {
+					cs[c.Code] = cs[c.Code].Add(c.Amount)
+				}
+			}
+		}
+	}
+	return
+}
+
 func (txs TXs) SortByDate(chrono bool) {
 	if chrono {
 		sort.Slice(txs, func(i, j int) bool {
@@ -171,18 +194,8 @@ func (txs TXsByCategory) GetWallets(date time.Time, includeFiat bool) (w Wallets
 	for _, a := range txs {
 		for _, tx := range a {
 			if tx.Timestamp.Before(date) {
-				for k, i := range tx.Items {
-					for _, c := range i {
-						if c.Code != "" &&
-							(includeFiat || !c.IsFiat()) {
-							if k == "Fee" || k == "From" {
-								w.Currencies[c.Code] = w.Currencies[c.Code].Sub(c.Amount)
-							} else {
-								w.Currencies[c.Code] = w.Currencies[c.Code].Add(c.Amount)
-							}
-						}
-					}
-				}
+				txcs := tx.GetCurrencies(includeFiat, true)
+				w.Currencies.Add(txcs)
 			}
 		}
 	}
@@ -371,20 +384,25 @@ func (txs TXsByCategory) PrintStats() {
 	}
 }
 
-func (txs TXsByCategory) PrintUnjustifiedWithdrawals(loc *time.Location) {
-	have := false
+func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("| List of Unjustified Withdrawals (after 2019 Jan 1st) |")
 	for _, tx := range txs["Withdrawals"] {
 		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
-			if !have {
-				fmt.Println("-----------------------------------")
-				fmt.Println("| List of Unjustified Withdrawals |")
-			}
-			fmt.Println("-----------------------------------")
+			fmt.Println("--------------------------------------------------------")
 			tx.Println()
-			have = true
 		}
 	}
-	if !have {
-		fmt.Println("All Withdrawals are justified")
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("| List of Non-Zero balance Transfers                   |")
+	for _, tx := range txs["Transfers"] {
+		txcs := tx.GetCurrencies(false, false)
+		for _, v := range txcs {
+			if !v.IsZero() {
+				fmt.Println("--------------------------------------------------------")
+				tx.Println()
+			}
+		}
 	}
+	fmt.Println("--------------------------------------------------------")
 }
