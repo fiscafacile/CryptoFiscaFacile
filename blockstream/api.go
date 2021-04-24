@@ -145,15 +145,15 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 				if isInVout && dest == "" {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
-					blkst.Accounts["Transfers"] = append(blkst.Accounts["Transfers"], t)
+					blkst.TXsByCategory["Transfers"] = append(blkst.TXsByCategory["Transfers"], t)
 				} else if is, desc, val, curr := blkst.isTxPayment(tx.Txid); is {
 					t.Note += " payment " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
-					blkst.Accounts["CashOut"] = append(blkst.Accounts["CashOut"], t)
+					blkst.TXsByCategory["CashOut"] = append(blkst.TXsByCategory["CashOut"], t)
 				} else {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
-					blkst.Accounts["Withdrawals"] = append(blkst.Accounts["Withdrawals"], t)
+					blkst.TXsByCategory["Withdrawals"] = append(blkst.TXsByCategory["Withdrawals"], t)
 				}
 				blkst.apiTXs[i].used = true
 			} else if isInVout {
@@ -161,7 +161,7 @@ func (blkst *Blockstream) apiGetAllTXs() (err error) {
 				t.Items = make(map[string][]wallet.Currency)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
-				blkst.Accounts["Deposits"] = append(blkst.Accounts["Deposits"], t)
+				blkst.TXsByCategory["Deposits"] = append(blkst.TXsByCategory["Deposits"], t)
 				blkst.apiTXs[i].used = true
 			} else {
 				log.Println("Blockstream API : Unmanaged TX")

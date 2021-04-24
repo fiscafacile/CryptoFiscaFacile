@@ -23,7 +23,7 @@ func (ethsc *Etherscan) ParseCSV(reader io.Reader) {
 				ethsc.csvAddresses = append(ethsc.csvAddresses, a)
 			}
 		}
-		// Fill Accounts
+		// Fill TXsByCategory
 		err = ethsc.apiGetAllTXs()
 	}
 	ethsc.done <- err

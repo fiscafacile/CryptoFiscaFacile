@@ -220,11 +220,11 @@ func (ethsc *Etherscan) apiGetAllTXs() (err error) {
 			ethsc.apiERC20TXs = append(ethsc.apiERC20TXs, tx)
 		}
 	}
-	ethsc.apiFillAccounts()
+	ethsc.apiFillTXsByCategory()
 	return
 }
 
-func (ethsc *Etherscan) apiFillAccounts() {
+func (ethsc *Etherscan) apiFillTXsByCategory() {
 	for i, tx := range ethsc.apiERC20TXs {
 		if !tx.used {
 			if ethsc.ownAddress(tx.To) && ethsc.ownAddress(tx.From) {
@@ -235,7 +235,7 @@ func (ethsc *Etherscan) apiFillAccounts() {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if tx.From == "0x0000000000000000000000000000000000000000" {
-					ethsc.Accounts["Claims"] = append(ethsc.Accounts["Claims"], t)
+					ethsc.TXsByCategory["Claims"] = append(ethsc.TXsByCategory["Claims"], t)
 					ethsc.apiERC20TXs[i].used = true
 				} else {
 					found := false
@@ -245,10 +245,10 @@ func (ethsc *Etherscan) apiFillAccounts() {
 							ntx.Hash == tx.Hash {
 							found = true
 							if ntx.Value.IsZero() {
-								ethsc.Accounts["Deposits"] = append(ethsc.Accounts["Deposits"], t)
+								ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 							} else {
 								t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
-								ethsc.Accounts["Swaps"] = append(ethsc.Accounts["Swaps"], t)
+								ethsc.TXsByCategory["Swaps"] = append(ethsc.TXsByCategory["Swaps"], t)
 							}
 							ethsc.apiNormalTXs[j].used = true
 							ethsc.apiERC20TXs[i].used = true
@@ -256,7 +256,7 @@ func (ethsc *Etherscan) apiFillAccounts() {
 						}
 					}
 					if !found {
-						ethsc.Accounts["Deposits"] = append(ethsc.Accounts["Deposits"], t)
+						ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 						ethsc.apiERC20TXs[i].used = true
 					}
 				}
@@ -274,7 +274,7 @@ func (ethsc *Etherscan) apiFillAccounts() {
 				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if tx.To == "0x0000000000000000000000000000000000000000" {
-					ethsc.Accounts["Burns"] = append(ethsc.Accounts["Burns"], t)
+					ethsc.TXsByCategory["Burns"] = append(ethsc.TXsByCategory["Burns"], t)
 					ethsc.apiERC20TXs[i].used = true
 				} else {
 					found := false
@@ -284,14 +284,14 @@ func (ethsc *Etherscan) apiFillAccounts() {
 							itx.Hash == tx.Hash {
 							found = true
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: itx.Value})
-							ethsc.Accounts["Swaps"] = append(ethsc.Accounts["Swaps"], t)
+							ethsc.TXsByCategory["Swaps"] = append(ethsc.TXsByCategory["Swaps"], t)
 							ethsc.apiInternalTXs[j].used = true
 							ethsc.apiERC20TXs[i].used = true
 							break
 						}
 					}
 					if !found {
-						ethsc.Accounts["Withdrawals"] = append(ethsc.Accounts["Withdrawals"], t)
+						ethsc.TXsByCategory["Withdrawals"] = append(ethsc.TXsByCategory["Withdrawals"], t)
 						ethsc.apiERC20TXs[i].used = true
 					}
 				}
@@ -329,7 +329,7 @@ func (ethsc *Etherscan) apiFillAccounts() {
 						break
 					}
 				}
-				ethsc.Accounts["Deposits"] = append(ethsc.Accounts["Deposits"], t)
+				ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 				ethsc.apiInternalTXs[i].used = true
 			} else if ethsc.ownAddress(tx.From) {
 				log.Println("Detected Withdrawal Internal TX", tx)
@@ -349,12 +349,12 @@ func (ethsc *Etherscan) apiFillAccounts() {
 					if !tx.Value.IsZero() {
 						log.Println("Detected non zero Value Self TX", tx)
 					}
-					ethsc.Accounts["Selfs"] = append(ethsc.Accounts["Selfs"], t)
+					ethsc.TXsByCategory["Selfs"] = append(ethsc.TXsByCategory["Selfs"], t)
 					ethsc.apiNormalTXs[i].used = true
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})
-					ethsc.Accounts["Transfers"] = append(ethsc.Accounts["Transfers"], t)
+					ethsc.TXsByCategory["Transfers"] = append(ethsc.TXsByCategory["Transfers"], t)
 					ethsc.apiNormalTXs[i].used = true
 				}
 			} else if ethsc.ownAddress(tx.To) {
@@ -363,7 +363,7 @@ func (ethsc *Etherscan) apiFillAccounts() {
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
-					ethsc.Accounts["Deposits"] = append(ethsc.Accounts["Deposits"], t)
+					ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 					ethsc.apiNormalTXs[i].used = true
 				}
 			} else if ethsc.ownAddress(tx.From) {
@@ -372,10 +372,10 @@ func (ethsc *Etherscan) apiFillAccounts() {
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if !tx.Value.IsZero() {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})
-					ethsc.Accounts["Withdrawals"] = append(ethsc.Accounts["Withdrawals"], t)
+					ethsc.TXsByCategory["Withdrawals"] = append(ethsc.TXsByCategory["Withdrawals"], t)
 					ethsc.apiNormalTXs[i].used = true
 				} else {
-					ethsc.Accounts["Fees"] = append(ethsc.Accounts["Fees"], t)
+					ethsc.TXsByCategory["Fees"] = append(ethsc.TXsByCategory["Fees"], t)
 					ethsc.apiNormalTXs[i].used = true
 				}
 			} else {

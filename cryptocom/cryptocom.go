@@ -9,11 +9,11 @@ type CryptoCom struct {
 	CsvTXsExTransfer     []CsvTXExTransfer
 	CsvTXsExStake        []CsvTXExStake
 	CsvTXsExSupercharger []CsvTXExSupercharger
-	Accounts             wallet.Accounts
+	TXsByCategory        wallet.TXsByCategory
 }
 
 func New() *CryptoCom {
 	cdc := &CryptoCom{}
-	cdc.Accounts = make(map[string]wallet.TXs)
+	cdc.TXsByCategory = make(map[string]wallet.TXs)
 	return cdc
 }

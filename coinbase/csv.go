@@ -87,31 +87,31 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 				}
 				tx.Notes = r[8]
 				cb.CsvTXs = append(cb.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Type == "Receive" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
-					cb.Accounts["Deposits"] = append(cb.Accounts["Deposits"], t)
+					cb.TXsByCategory["Deposits"] = append(cb.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "Send" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
-					cb.Accounts["Withdrawals"] = append(cb.Accounts["Withdrawals"], t)
+					cb.TXsByCategory["Withdrawals"] = append(cb.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "Sell" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
-					cb.Accounts["Exchanges"] = append(cb.Accounts["Exchanges"], t)
+					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Buy" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
-					cb.Accounts["Exchanges"] = append(cb.Accounts["Exchanges"], t)
+					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else {
 					log.Println("Coinbase : Unmanaged ", tx)
 				}

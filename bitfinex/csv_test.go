@@ -142,16 +142,16 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Bitfinex.ParseCSV() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if len(bf.Accounts["Exchanges"]) != len(tt.wantExchanges) ||
-				!bf.Accounts["Exchanges"][0].Timestamp.Equal(tt.wantExchanges[0].Timestamp) ||
-				bf.Accounts["Exchanges"][0].Items["From"][0].Code != tt.wantExchanges[0].Items["From"][0].Code ||
-				bf.Accounts["Exchanges"][0].Items["From"][0].Amount != tt.wantExchanges[0].Items["From"][0].Amount ||
-				bf.Accounts["Exchanges"][0].Items["To"][0].Code != tt.wantExchanges[0].Items["To"][0].Code ||
-				bf.Accounts["Exchanges"][0].Items["To"][0].Amount != tt.wantExchanges[0].Items["To"][0].Amount ||
-				bf.Accounts["Exchanges"][0].Items["Fee"][0].Code != tt.wantExchanges[0].Items["Fee"][0].Code ||
-				bf.Accounts["Exchanges"][0].Items["Fee"][0].Amount != tt.wantExchanges[0].Items["Fee"][0].Amount ||
-				bf.Accounts["Exchanges"][0].Note != tt.wantExchanges[0].Note {
-				t.Errorf("Bitfinex.ParseCSV() bf.Accounts[\"Exchanges\"] = %v, wantExchanges %v", bf.Accounts["Exchanges"], tt.wantExchanges)
+			if len(bf.TXsByCategory["Exchanges"]) != len(tt.wantExchanges) ||
+				!bf.TXsByCategory["Exchanges"][0].Timestamp.Equal(tt.wantExchanges[0].Timestamp) ||
+				bf.TXsByCategory["Exchanges"][0].Items["From"][0].Code != tt.wantExchanges[0].Items["From"][0].Code ||
+				bf.TXsByCategory["Exchanges"][0].Items["From"][0].Amount != tt.wantExchanges[0].Items["From"][0].Amount ||
+				bf.TXsByCategory["Exchanges"][0].Items["To"][0].Code != tt.wantExchanges[0].Items["To"][0].Code ||
+				bf.TXsByCategory["Exchanges"][0].Items["To"][0].Amount != tt.wantExchanges[0].Items["To"][0].Amount ||
+				bf.TXsByCategory["Exchanges"][0].Items["Fee"][0].Code != tt.wantExchanges[0].Items["Fee"][0].Code ||
+				bf.TXsByCategory["Exchanges"][0].Items["Fee"][0].Amount != tt.wantExchanges[0].Items["Fee"][0].Amount ||
+				bf.TXsByCategory["Exchanges"][0].Note != tt.wantExchanges[0].Note {
+				t.Errorf("Bitfinex.ParseCSV() bf.TXsByCategory[\"Exchanges\"] = %v, wantExchanges %v", bf.TXsByCategory["Exchanges"], tt.wantExchanges)
 			}
 		})
 	}

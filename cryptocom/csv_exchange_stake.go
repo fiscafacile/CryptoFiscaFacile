@@ -45,7 +45,7 @@ func (cdc *CryptoCom) ParseCSVExStake(reader io.Reader) (err error) {
 				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Stake CSV : " + tx.Stake.Amount.String() + " " + tx.Stake.Code + " " + tx.Apr}
 				t.Items = make(map[string][]wallet.Currency)
 				t.Items["To"] = append(t.Items["To"], tx.Interest)
-				cdc.Accounts["Deposits"] = append(cdc.Accounts["Deposits"], t)
+				cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 			}
 		}
 	}

@@ -52,7 +52,7 @@ func (blkst *Blockstream) ParseCSVAddresses(reader io.Reader) {
 				blkst.csvAddresses = append(blkst.csvAddresses, a)
 			}
 		}
-		// Fill Accounts
+		// Fill TXsByCategory
 		err = blkst.apiGetAllTXs()
 	}
 	blkst.done <- err

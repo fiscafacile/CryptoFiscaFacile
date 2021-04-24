@@ -5,12 +5,12 @@ import (
 )
 
 type Coinbase struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *Coinbase {
 	cb := &Coinbase{}
-	cb.Accounts = make(map[string]wallet.TXs)
+	cb.TXsByCategory = make(map[string]wallet.TXs)
 	return cb
 }

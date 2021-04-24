@@ -236,24 +236,24 @@ func main() {
 		}
 	}
 	// create Global Wallet up to Date
-	global := make(wallet.Accounts)
+	global := make(wallet.TXsByCategory)
 	if *pFloatBtcExclude != 0.0 {
 		t := wallet.TX{Timestamp: time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC), Note: "Manual Exclusion"}
 		t.Items = make(map[string][]wallet.Currency)
 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.NewFromFloat(*pFloatBtcExclude)})
 		global["Excludes"] = append(global["Excludes"], t)
 	}
-	global.Add(b.Accounts)
-	global.Add(bf.Accounts)
-	global.Add(cb.Accounts)
-	global.Add(cdc.Accounts)
-	global.Add(ll.Accounts)
-	global.Add(lb.Accounts)
-	global.Add(mm.Accounts)
-	global.Add(mc.Accounts)
-	global.Add(revo.Accounts)
-	global.Add(ethsc.Accounts)
-	global.Add(blkst.Accounts)
+	global.Add(b.TXsByCategory)
+	global.Add(bf.TXsByCategory)
+	global.Add(cb.TXsByCategory)
+	global.Add(cdc.TXsByCategory)
+	global.Add(ll.TXsByCategory)
+	global.Add(lb.TXsByCategory)
+	global.Add(mm.TXsByCategory)
+	global.Add(mc.TXsByCategory)
+	global.Add(revo.TXsByCategory)
+	global.Add(ethsc.TXsByCategory)
+	global.Add(blkst.TXsByCategory)
 	global.FindTransfers()
 	global.FindCashInOut()
 	global.SortTXsByDate(true)

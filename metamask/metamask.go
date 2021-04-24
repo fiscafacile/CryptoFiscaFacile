@@ -5,12 +5,12 @@ import (
 )
 
 type MetaMask struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *MetaMask {
 	mm := &MetaMask{}
-	mm.Accounts = make(map[string]wallet.TXs)
+	mm.TXsByCategory = make(map[string]wallet.TXs)
 	return mm
 }

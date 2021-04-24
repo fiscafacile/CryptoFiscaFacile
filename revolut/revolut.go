@@ -5,12 +5,12 @@ import (
 )
 
 type Revolut struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *Revolut {
 	revo := &Revolut{}
-	revo.Accounts = make(map[string]wallet.TXs)
+	revo.TXsByCategory = make(map[string]wallet.TXs)
 	return revo
 }

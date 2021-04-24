@@ -43,13 +43,13 @@ func (mc *MyCelium) ParseCSV(reader io.Reader) (err error) {
 				tx.Currency = r[5]
 				tx.Label = r[6]
 				mc.CsvTXs = append(mc.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Value.IsPositive() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "MyCelium CSV : " + tx.ID + " from " + tx.DestAddress + " " + tx.Label}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ticker(tx.Currency), Amount: tx.Value})
 					// t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-					mc.Accounts["Deposits"] = append(mc.Accounts["Deposits"], t)
+					mc.TXsByCategory["Deposits"] = append(mc.TXsByCategory["Deposits"], t)
 				} else if tx.Value.IsNegative() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "MyCelium CSV : " + tx.ID + " to " + tx.DestAddress + " " + tx.Label}
 					t.Items = make(map[string][]wallet.Currency)
@@ -62,10 +62,10 @@ func (mc *MyCelium) ParseCSV(reader io.Reader) (err error) {
 								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: to})
 							}
 						}
-						mc.Accounts["CashOut"] = append(mc.Accounts["CashOut"], t)
+						mc.TXsByCategory["CashOut"] = append(mc.TXsByCategory["CashOut"], t)
 					} else {
 						// t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-						mc.Accounts["Withdrawals"] = append(mc.Accounts["Withdrawals"], t)
+						mc.TXsByCategory["Withdrawals"] = append(mc.TXsByCategory["Withdrawals"], t)
 					}
 				} else {
 					log.Println("Unmanaged ", tx)

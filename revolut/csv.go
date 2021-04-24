@@ -70,19 +70,19 @@ func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
 				tx.Category = r[7]
 				tx.Notes = r[8]
 				revo.CsvTXs = append(revo.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if !tx.PaidIn.IsZero() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.PaidIn})
 					t.Items["From"] = append(t.Items["From"], tx.ExchangeOut)
-					revo.Accounts["Exchanges"] = append(revo.Accounts["Exchanges"], t)
+					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else if !tx.PaidOut.IsZero() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.PaidOut})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: tx.PaidOut.Mul(tx.Rate)})
-					revo.Accounts["Exchanges"] = append(revo.Accounts["Exchanges"], t)
+					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else {
 					log.Println("Unmanaged ", tx)
 				}

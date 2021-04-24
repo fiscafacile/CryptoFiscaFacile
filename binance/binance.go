@@ -7,11 +7,11 @@ import (
 type Binance struct {
 	csvTXs         []csvTX
 	csvExtendedTXs []csvExtendedTX
-	Accounts       wallet.Accounts
+	TXsByCategory  wallet.TXsByCategory
 }
 
 func New() *Binance {
 	b := &Binance{}
-	b.Accounts = make(map[string]wallet.TXs)
+	b.TXsByCategory = make(map[string]wallet.TXs)
 	return b
 }

@@ -111,7 +111,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
 				tx.OnlineProvider = r[16]
 				tx.Reference = r[17]
 				lb.CsvTXsTrade = append(lb.CsvTXsTrade, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.TradeType == "ONLINE_SELL" {
 					t := wallet.TX{Timestamp: tx.TransactionReleasedAt, Note: "Local Bitcoin CSV : " + tx.Seller + " " + tx.Buyer + " " + tx.TradeType + " " + tx.OnlineProvider + " " + tx.Reference}
 					t.Items = make(map[string][]wallet.Currency)
@@ -123,7 +123,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
 					if !tx.FeeBTC.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.FeeBTC})
 					}
-					lb.Accounts["Exchanges"] = append(lb.Accounts["Exchanges"], t)
+					lb.TXsByCategory["Exchanges"] = append(lb.TXsByCategory["Exchanges"], t)
 				} else {
 					log.Println("Unmanaged ", tx)
 				}
@@ -169,26 +169,26 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
 				tx.Desc = r[5]
 				tx.Notes = r[6]
 				lb.CsvTXsTransfer = append(lb.CsvTXsTransfer, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Type == "Send to address" {
 					t := wallet.TX{Timestamp: tx.Created, Note: "Local Bitcoin CSV : " + tx.Type + " " + tx.Desc + " " + tx.Notes}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.Sent})
-					lb.Accounts["Withdrawals"] = append(lb.Accounts["Withdrawals"], t)
+					lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "Other" &&
 					tx.Desc == "fee" {
 					found := false
-					for i, ex := range lb.Accounts["Withdrawals"] {
+					for i, ex := range lb.TXsByCategory["Withdrawals"] {
 						if ex.SimilarDate(2*time.Second, tx.Created) {
 							found = true
-							lb.Accounts["Withdrawals"][i].Items["Fee"] = append(lb.Accounts["Withdrawals"][i].Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
+							lb.TXsByCategory["Withdrawals"][i].Items["Fee"] = append(lb.TXsByCategory["Withdrawals"][i].Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
 						}
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Created, Note: tx.Type + " " + tx.Desc + " " + tx.Notes}
 						t.Items = make(map[string][]wallet.Currency)
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
-						lb.Accounts["Withdrawals"] = append(lb.Accounts["Withdrawals"], t)
+						lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)
 					}
 				} else if tx.Type == "Other" {
 					// Do Nothing

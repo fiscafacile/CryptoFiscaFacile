@@ -6,16 +6,16 @@ import (
 )
 
 type Blockstream struct {
-	csvPayments  []csvPayment
-	csvAddresses []csvAddress
-	apiTXs       []apiTX
-	done         chan error
-	Accounts     wallet.Accounts
+	csvPayments   []csvPayment
+	csvAddresses  []csvAddress
+	apiTXs        []apiTX
+	done          chan error
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *Blockstream {
 	blkst := &Blockstream{}
-	blkst.Accounts = make(map[string]wallet.TXs)
+	blkst.TXsByCategory = make(map[string]wallet.TXs)
 	blkst.done = make(chan error)
 	return blkst
 }

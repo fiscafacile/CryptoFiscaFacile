@@ -5,12 +5,12 @@ import (
 )
 
 type MyCelium struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *MyCelium {
 	mc := &MyCelium{}
-	mc.Accounts = make(map[string]wallet.TXs)
+	mc.TXsByCategory = make(map[string]wallet.TXs)
 	return mc
 }

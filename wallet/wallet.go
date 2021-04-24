@@ -32,7 +32,7 @@ type TX struct {
 
 type TXs []TX
 
-type Accounts map[string]TXs
+type TXsByCategory map[string]TXs
 
 func (c *Currency) IsFiat() bool {
 	if c.Code == "EUR" ||
@@ -165,7 +165,7 @@ func (txs TXs) SortByDate(chrono bool) {
 	}
 }
 
-func (acc Accounts) GetWallets(date time.Time, includeFiat bool) (w Wallets) {
+func (acc TXsByCategory) GetWallets(date time.Time, includeFiat bool) (w Wallets) {
 	w.Date = date
 	w.Currencies = make(WalletCurrencies)
 	for _, a := range acc {
@@ -190,13 +190,13 @@ func (acc Accounts) GetWallets(date time.Time, includeFiat bool) (w Wallets) {
 	return
 }
 
-func (acc Accounts) Add(a Accounts) {
+func (acc TXsByCategory) Add(a TXsByCategory) {
 	for k, v := range a {
 		acc[k] = append(acc[k], v...)
 	}
 }
 
-func (acc Accounts) FindTransfers() Accounts {
+func (acc TXsByCategory) FindTransfers() TXsByCategory {
 	var realDeposits TXs
 	var realWithdrawals TXs
 	similarTimeDelta := 12 * time.Hour
@@ -290,7 +290,7 @@ func (acc Accounts) FindTransfers() Accounts {
 	return acc
 }
 
-func (acc Accounts) FindCashInOut() Accounts {
+func (acc TXsByCategory) FindCashInOut() TXsByCategory {
 	var realExchanges TXs
 	for _, exTX := range acc["Exchanges"] {
 		fromHasFiat := false
@@ -351,16 +351,16 @@ func (acc Accounts) FindCashInOut() Accounts {
 	return acc
 }
 
-func (acc Accounts) SortTXsByDate(chrono bool) {
+func (acc TXsByCategory) SortTXsByDate(chrono bool) {
 	for k := range acc {
 		acc[k].SortByDate(chrono)
 	}
 }
 
-func (acc Accounts) PrintStats() {
-	fmt.Println("--------------------")
-	fmt.Println("| List of Accounts |")
-	fmt.Println("--------------------")
+func (acc TXsByCategory) PrintStats() {
+	fmt.Println("---------------------------")
+	fmt.Println("| List of TXs By Category |")
+	fmt.Println("---------------------------")
 	keys := make([]string, 0, len(acc))
 	for k := range acc {
 		keys = append(keys, k)
@@ -371,7 +371,7 @@ func (acc Accounts) PrintStats() {
 	}
 }
 
-func (acc Accounts) PrintUnjustifiedWithdrawals(loc *time.Location) {
+func (acc TXsByCategory) PrintUnjustifiedWithdrawals(loc *time.Location) {
 	have := false
 	for _, tx := range acc["Withdrawals"] {
 		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {

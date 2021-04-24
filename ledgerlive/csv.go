@@ -48,22 +48,22 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader) (err error) {
 				tx.AccountName = r[6]
 				tx.AccountXpub = r[7]
 				ll.CsvTXs = append(ll.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Type == "IN" {
 					t := wallet.TX{Timestamp: tx.Date, Note: "LedgerLive CSV " + tx.AccountName + " : " + tx.Hash + " -> " + tx.AccountXpub}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-					ll.Accounts["Deposits"] = append(ll.Accounts["Deposits"], t)
+					ll.TXsByCategory["Deposits"] = append(ll.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "OUT" {
 					t := wallet.TX{Timestamp: tx.Date, Note: "LedgerLive CSV " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
 					if tx.Amount.Sub(tx.Fees).IsZero() {
-						ll.Accounts["Fees"] = append(ll.Accounts["Fees"], t)
+						ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)
 					} else {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Sub(tx.Fees)})
-						ll.Accounts["Withdrawals"] = append(ll.Accounts["Withdrawals"], t)
+						ll.TXsByCategory["Withdrawals"] = append(ll.TXsByCategory["Withdrawals"], t)
 					}
 				} else {
 					log.Println("Unmanaged ", tx)

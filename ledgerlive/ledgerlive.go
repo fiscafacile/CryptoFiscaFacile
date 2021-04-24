@@ -5,12 +5,12 @@ import (
 )
 
 type LedgerLive struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *LedgerLive {
 	ll := &LedgerLive{}
-	ll.Accounts = make(map[string]wallet.TXs)
+	ll.TXsByCategory = make(map[string]wallet.TXs)
 	return ll
 }

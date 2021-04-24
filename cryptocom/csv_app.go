@@ -53,7 +53,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 				}
 				tx.Kind = r[9]
 				cdc.CsvTXs = append(cdc.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Kind == "dust_conversion_credited" ||
 					tx.Kind == "dust_conversion_debited" ||
 					tx.Kind == "interest_swap_credited" ||
@@ -63,14 +63,14 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "crypto_wallet_swap_credited" ||
 					tx.Kind == "crypto_wallet_swap_debited" {
 					found := false
-					for i, ex := range cdc.Accounts["Exchanges"] {
+					for i, ex := range cdc.TXsByCategory["Exchanges"] {
 						if ex.SimilarDate(2*time.Second, tx.Timestamp) &&
 							ex.Note[:5] == tx.Kind[:5] {
 							found = true
 							if tx.Amount.IsPositive() {
-								cdc.Accounts["Exchanges"][i].Items["To"] = append(cdc.Accounts["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
+								cdc.TXsByCategory["Exchanges"][i].Items["To"] = append(cdc.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 							} else {
-								cdc.Accounts["Exchanges"][i].Items["From"] = append(cdc.Accounts["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
+								cdc.TXsByCategory["Exchanges"][i].Items["From"] = append(cdc.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 							}
 						}
 					}
@@ -79,10 +79,10 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 						t.Items = make(map[string][]wallet.Currency)
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-							cdc.Accounts["Exchanges"] = append(cdc.Accounts["Exchanges"], t)
+							cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
 						} else {
 							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
-							cdc.Accounts["Exchanges"] = append(cdc.Accounts["Exchanges"], t)
+							cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
 						}
 					}
 				} else if tx.Kind == "crypto_exchange" ||
@@ -91,7 +91,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToCurrency, Amount: tx.ToAmount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
-					cdc.Accounts["Exchanges"] = append(cdc.Accounts["Exchanges"], t)
+					cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
 				} else if tx.Kind == "crypto_deposit" ||
 					tx.Kind == "viban_deposit" ||
 					tx.Kind == "exchange_to_crypto_transfer" ||
@@ -110,12 +110,12 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					if tx.Kind == "referral_card_cashback" ||
 						tx.Kind == "reimbursement" {
-						cdc.Accounts["Cashbacks"] = append(cdc.Accounts["Cashbacks"], t)
+						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
 					} else if tx.Kind == "crypto_earn_interest_paid" ||
 						tx.Kind == "crypto_earn_extra_interest_paid" {
-						cdc.Accounts["Earns"] = append(cdc.Accounts["Earns"], t)
+						cdc.TXsByCategory["Earns"] = append(cdc.TXsByCategory["Earns"], t)
 					} else {
-						cdc.Accounts["Deposits"] = append(cdc.Accounts["Deposits"], t)
+						cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 					}
 				} else if tx.Kind == "crypto_payment" ||
 					tx.Kind == "crypto_withdrawal" ||
@@ -135,12 +135,12 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					}
 					if tx.Kind == "crypto_payment" {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
-						cdc.Accounts["CashOut"] = append(cdc.Accounts["CashOut"], t)
+						cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
 					} else if tx.Kind == "card_cashback_reverted" ||
 						tx.Kind == "reimbursement_reverted" {
-						cdc.Accounts["Cashbacks"] = append(cdc.Accounts["Cashbacks"], t)
+						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
 					} else {
-						cdc.Accounts["Withdrawals"] = append(cdc.Accounts["Withdrawals"], t)
+						cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 					}
 				} else if tx.Kind == "crypto_earn_program_created" ||
 					tx.Kind == "crypto_earn_program_withdrawn" ||

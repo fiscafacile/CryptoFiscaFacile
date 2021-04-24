@@ -6,14 +6,14 @@ import (
 )
 
 type BlueWallet struct {
-	CsvTXs   []CsvTX
-	Accounts wallet.Accounts
-	Wallets  wallet.Wallets
+	CsvTXs        []CsvTX
+	TXsByCategory wallet.TXsByCategory
+	Wallets       wallet.Wallets
 }
 
 func New() *BlueWallet {
 	bw := &BlueWallet{}
-	bw.Accounts = make(map[string]wallet.TXs)
+	bw.TXsByCategory = make(map[string]wallet.TXs)
 	bw.Wallets = make(map[string]decimal.Decimal)
 	return bw
 }

@@ -7,11 +7,11 @@ import (
 type LocalBitcoin struct {
 	CsvTXsTrade    []CsvTXTrade
 	CsvTXsTransfer []CsvTXTransfer
-	Accounts       wallet.Accounts
+	TXsByCategory  wallet.TXsByCategory
 }
 
 func New() *LocalBitcoin {
 	lb := &LocalBitcoin{}
-	lb.Accounts = make(map[string]wallet.TXs)
+	lb.TXsByCategory = make(map[string]wallet.TXs)
 	return lb
 }

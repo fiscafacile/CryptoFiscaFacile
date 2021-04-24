@@ -64,19 +64,19 @@ func (mm *MetaMask) ParseCSV(reader io.Reader) (err error) {
 					log.Println("Error Parsing GasPrice : ", r[10])
 				}
 				mm.CsvTXs = append(mm.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Type == "DEPOSIT" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: tx.Hash + " : " + tx.From + " -> " + tx.To}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Value})
 					// t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-					mm.Accounts["Deposits"] = append(mm.Accounts["Deposits"], t)
+					mm.TXsByCategory["Deposits"] = append(mm.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "WITHDRAWAL" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: tx.Hash + " : " + tx.From + " -> " + tx.To}
 					t.Items = make(map[string][]wallet.Currency)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Value})
 					// t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-					mm.Accounts["Withdrawals"] = append(mm.Accounts["Withdrawals"], t)
+					mm.TXsByCategory["Withdrawals"] = append(mm.TXsByCategory["Withdrawals"], t)
 				} else {
 					log.Println("Unmanaged ", tx)
 				}

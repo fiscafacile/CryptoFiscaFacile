@@ -11,12 +11,12 @@ type Etherscan struct {
 	apiInternalTXs []apiInternalTX
 	apiERC20TXs    []apiERC20TX
 	done           chan error
-	Accounts       wallet.Accounts
+	TXsByCategory  wallet.TXsByCategory
 }
 
 func New() *Etherscan {
 	ethsc := &Etherscan{}
-	ethsc.Accounts = make(map[string]wallet.TXs)
+	ethsc.TXsByCategory = make(map[string]wallet.TXs)
 	ethsc.done = make(chan error)
 	return ethsc
 }

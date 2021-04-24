@@ -48,13 +48,13 @@ func (bw *BlueWallet) ParseCSV(reader io.Reader) (err error) {
 					log.Println("Error Parsing Fees : ", r[5])
 				}
 				bw.CsvTXs = append(bw.CsvTXs, tx)
-				// Fill Accounts
+				// Fill TXsByCategory
 				if tx.Type == "DEPOSIT" {
 					bw.Wallets["BTC"] += tx.Amount
-					bw.Accounts["Deposits"] = append(bw.Accounts["Deposits"], wallet.TX{Timestamp: tx.Timestamp, Currency: wallet.Currency{Code: "BTC", Amount: tx.Amount}, Note: "BlueWallet CSV : " + tx.ID})
+					bw.TXsByCategory["Deposits"] = append(bw.TXsByCategory["Deposits"], wallet.TX{Timestamp: tx.Timestamp, Currency: wallet.Currency{Code: "BTC", Amount: tx.Amount}, Note: "BlueWallet CSV : " + tx.ID})
 				} else if tx.Type == "WITHDRAWAL" {
 					bw.Wallets["BTC"] -= tx.Amount
-					bw.Accounts["Withdrawals"] = append(bw.Accounts["Withdrawals"], wallet.TX{Timestamp: tx.Timestamp, Currency: wallet.Currency{Code: "BTC", Amount: tx.Amount}, Note: tx.ID})
+					bw.TXsByCategory["Withdrawals"] = append(bw.TXsByCategory["Withdrawals"], wallet.TX{Timestamp: tx.Timestamp, Currency: wallet.Currency{Code: "BTC", Amount: tx.Amount}, Note: tx.ID})
 				} else {
 					log.Println("Unmanaged ", tx)
 				}
