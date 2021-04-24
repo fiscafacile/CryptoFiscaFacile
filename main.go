@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -280,12 +281,15 @@ func main() {
 		log.Fatal("Error parsing Date:", err)
 	}
 	globalWallet := global.GetWallets(filterDate, false)
-	err = globalWallet.CalculateTotalValue(*pNative)
+	globalWallet.Println("Global Crypto")
+	globalWalletTotalValue, err := globalWallet.CalculateTotalValue(*pNative)
 	if err != nil {
 		log.Fatal("Error Calculating Global Wallet:", err)
+	} else {
+		globalWalletTotalValue.Amount = globalWalletTotalValue.Amount.RoundBank(0)
+		fmt.Print("Total Value :")
+		globalWalletTotalValue.Println()
 	}
-	globalWallet.TotalValue.Amount = globalWallet.TotalValue.Amount.RoundBank(0)
-	globalWallet.Println("Global Crypto")
 	if *p2086 {
 		var cessions Cessions
 		var fractionCapital decimal.Decimal
@@ -401,12 +405,12 @@ func main() {
 					// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
 					// imposable en application de l’article 150 VH bis du CGI.
 					globalWallet := global.GetWallets(tx.Timestamp, false)
-					err := globalWallet.CalculateTotalValue(*pNative)
+					globalWalletTotalValue, err := globalWallet.CalculateTotalValue(*pNative)
 					if err != nil {
 						log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
 					}
 					// spew.Dump(globalWallet)
-					c.ValeurPortefeuille212 = globalWallet.TotalValue.Amount
+					c.ValeurPortefeuille212 = globalWalletTotalValue.Amount
 					// Prix de cession
 					// Il correspond au prix réel perçu ou à la valeur de la contrepartie
 					// obtenue par le cédant lors de la cession.

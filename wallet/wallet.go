@@ -22,7 +22,6 @@ type WalletCurrencies map[string]decimal.Decimal
 type Wallets struct {
 	Date       time.Time
 	Currencies WalletCurrencies
-	TotalValue Currency
 }
 
 type TX struct {
@@ -42,6 +41,10 @@ func (c *Currency) IsFiat() bool {
 		return true
 	}
 	return false
+}
+
+func (c *Currency) Println() {
+	fmt.Println(c.Amount, c.Code)
 }
 
 func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decimal, err error) {
@@ -97,45 +100,18 @@ func (w Wallets) Round() {
 	}
 }
 
-func (w *Wallets) CalculateTotalValue(native string) (err error) {
-	w.TotalValue.Code = native
+func (w Wallets) CalculateTotalValue(native string) (totalValue Currency, err error) {
+	totalValue.Code = native
 	for k, v := range w.Currencies {
 		if k == native {
-			w.TotalValue.Amount = w.TotalValue.Amount.Add(v)
+			totalValue.Amount = totalValue.Amount.Add(v)
 		} else {
-			found := false
-			var api CoinAPI
-			rates, err := api.GetExchangeRates(w.Date, native)
-			if err == nil {
-				for _, r := range rates.Rates {
-					if r.Quote == strings.ToUpper(k) {
-						w.TotalValue.Amount = w.TotalValue.Amount.Add(r.Rate.Mul(v))
-						found = true
-						break
-					}
-				}
-			}
-			if !found {
-				gecko, err := NewCoinGeckoAPI()
-				if err != nil {
-					log.Println("CoinGecko Creating Error :", err)
-				} else {
-					ratesCG, err := gecko.GetExchangeRates(w.Date, strings.ReplaceAll(k, "DSH", "dash"))
-					if err != nil {
-						log.Println("CoinGecko Error :", err)
-					} else {
-						for _, r := range ratesCG.Rates {
-							if r.Quote == native {
-								w.TotalValue.Amount = w.TotalValue.Amount.Add(r.Rate.Mul(v))
-								found = true
-								break
-							}
-						}
-					}
-				}
-			}
-			if !found {
-				log.Println("Cannot find rate for", k, "in", w.Date)
+			c := Currency{Code: k, Amount: v}
+			rate, err := c.GetExchangeRate(w.Date, native)
+			if err != nil {
+				log.Println("Cannot find rate for", k, "at", w.Date)
+			} else {
+				totalValue.Amount = totalValue.Amount.Add(rate.Mul(v))
 			}
 		}
 	}
@@ -156,7 +132,6 @@ func (w Wallets) Println(name string) {
 	for _, k := range keys {
 		fmt.Println("  ", w.Currencies[k], k)
 	}
-	fmt.Println("Total Value :", w.TotalValue.Amount, w.TotalValue.Code)
 }
 
 func (tx *TX) SimilarDate(delta time.Duration, t time.Time) bool {
