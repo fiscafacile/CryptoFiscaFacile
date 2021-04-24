@@ -1,0 +1,202 @@
+package localbitcoin
+
+import (
+	"encoding/csv"
+	"io"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
+	"github.com/shopspring/decimal"
+)
+
+type CsvTXTrade struct {
+	ID                    int
+	CreatedAt             time.Time
+	Buyer                 string
+	Seller                string
+	TradeType             string
+	Amount                decimal.Decimal
+	Traded                decimal.Decimal
+	FeeBTC                decimal.Decimal
+	AmountLessFee         decimal.Decimal
+	Final                 decimal.Decimal
+	FiatAmount            decimal.Decimal
+	FiatFee               decimal.Decimal
+	FiatPerBTC            decimal.Decimal
+	FiatCurrency          string
+	ExchangeRate          decimal.Decimal
+	TransactionReleasedAt time.Time
+	OnlineProvider        string
+	Reference             string
+}
+
+type CsvTXTransfer struct {
+	ID       int
+	Created  time.Time
+	Received decimal.Decimal
+	Sent     decimal.Decimal
+	Type     string
+	Desc     string
+	Notes    string
+}
+
+func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
+	csvReader := csv.NewReader(reader)
+	records, err := csvReader.ReadAll()
+	if err == nil {
+		var curr string
+		for _, r := range records {
+			if r[0] == "id" {
+				curr = strings.Split(r[5], "_")[0]
+				curr = strings.ToUpper(curr)
+			} else {
+				tx := CsvTXTrade{}
+				id, err := strconv.Atoi(r[0])
+				if err != nil {
+					log.Println("Error Parsing ID : ", r[0])
+				} else {
+					tx.ID = id
+				}
+				tx.CreatedAt, err = time.Parse("2006-01-02 15:04:05+00:00", r[1])
+				if err != nil {
+					log.Println("Error Parsing CreatedAt : ", r[1])
+				}
+				tx.Buyer = r[2]
+				tx.Seller = r[3]
+				tx.TradeType = r[4]
+				tx.Amount, err = decimal.NewFromString(r[5])
+				if err != nil {
+					log.Println("Error Parsing Amount : ", r[5])
+				}
+				tx.Traded, err = decimal.NewFromString(r[6])
+				if err != nil {
+					log.Println("Error Parsing Traded : ", r[6])
+				}
+				tx.FeeBTC, err = decimal.NewFromString(r[7])
+				if err != nil {
+					log.Println("Error Parsing FeeBTC : ", r[7])
+				}
+				tx.AmountLessFee, err = decimal.NewFromString(r[8])
+				if err != nil {
+					log.Println("Error Parsing AmountLessFee : ", r[8])
+				}
+				tx.Final, err = decimal.NewFromString(r[9])
+				if err != nil {
+					log.Println("Error Parsing BTC_Final : ", r[9])
+				}
+				tx.FiatAmount, err = decimal.NewFromString(r[10])
+				if err != nil {
+					log.Println("Error Parsing FiatAmount : ", r[10])
+				}
+				tx.FiatFee, err = decimal.NewFromString(r[11])
+				if err != nil {
+					log.Println("Error Parsing FiatFee : ", r[11])
+				}
+				tx.FiatPerBTC, err = decimal.NewFromString(r[12])
+				if err != nil {
+					log.Println("Error Parsing FiatPerBTC : ", r[12])
+				}
+				tx.FiatCurrency = r[13]
+				tx.ExchangeRate, err = decimal.NewFromString(r[14])
+				if err != nil {
+					log.Println("Error Parsing ExchangeRate : ", r[14])
+				}
+				tx.TransactionReleasedAt, err = time.Parse("2006-01-02 15:04:05+00:00", r[15])
+				if err != nil {
+					log.Println("Error Parsing TransactionReleasedAt : ", r[15])
+				}
+				tx.OnlineProvider = r[16]
+				tx.Reference = r[17]
+				lb.CsvTXsTrade = append(lb.CsvTXsTrade, tx)
+				// Fill Accounts
+				if tx.TradeType == "ONLINE_SELL" {
+					t := wallet.TX{Timestamp: tx.TransactionReleasedAt, Note: "Local Bitcoin CSV : " + tx.Seller + " " + tx.Buyer + " " + tx.TradeType + " " + tx.OnlineProvider + " " + tx.Reference}
+					t.Items = make(map[string][]wallet.Currency)
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.Amount})
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FiatCurrency, Amount: tx.FiatAmount})
+					if !tx.FiatFee.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FiatCurrency, Amount: tx.FiatFee})
+					}
+					if !tx.FeeBTC.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.FeeBTC})
+					}
+					lb.Accounts["Exchanges"] = append(lb.Accounts["Exchanges"], t)
+				} else {
+					log.Println("Unmanaged ", tx)
+				}
+			}
+		}
+	}
+	return
+}
+
+func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
+	csvReader := csv.NewReader(reader)
+	records, err := csvReader.ReadAll()
+	if err == nil {
+		curr := "BTC"
+		for _, r := range records {
+			if r[0] != "TXID" {
+				tx := CsvTXTransfer{}
+				if r[0] != "" {
+					id, err := strconv.Atoi(r[0])
+					if err != nil {
+						log.Println("Error Parsing ID : ", r[0])
+					} else {
+						tx.ID = id
+					}
+				}
+				tx.Created, err = time.Parse("2006-01-02T15:04:05+00:00", r[1])
+				if err != nil {
+					log.Println("Error Parsing Created : ", r[1])
+				}
+				if r[2] != "" {
+					tx.Received, err = decimal.NewFromString(r[2])
+					if err != nil {
+						log.Println("Error Parsing Received : ", r[2])
+					}
+				}
+				if r[3] != "" {
+					tx.Sent, err = decimal.NewFromString(r[3])
+					if err != nil {
+						log.Println("Error Parsing Sent : ", r[3])
+					}
+				}
+				tx.Type = r[4]
+				tx.Desc = r[5]
+				tx.Notes = r[6]
+				lb.CsvTXsTransfer = append(lb.CsvTXsTransfer, tx)
+				// Fill Accounts
+				if tx.Type == "Send to address" {
+					t := wallet.TX{Timestamp: tx.Created, Note: "Local Bitcoin CSV : " + tx.Type + " " + tx.Desc + " " + tx.Notes}
+					t.Items = make(map[string][]wallet.Currency)
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.Sent})
+					lb.Accounts["Withdrawals"] = append(lb.Accounts["Withdrawals"], t)
+				} else if tx.Type == "Other" &&
+					tx.Desc == "fee" {
+					found := false
+					for i, ex := range lb.Accounts["Withdrawals"] {
+						if ex.SimilarDate(2*time.Second, tx.Created) {
+							found = true
+							lb.Accounts["Withdrawals"][i].Items["Fee"] = append(lb.Accounts["Withdrawals"][i].Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
+						}
+					}
+					if !found {
+						t := wallet.TX{Timestamp: tx.Created, Note: tx.Type + " " + tx.Desc + " " + tx.Notes}
+						t.Items = make(map[string][]wallet.Currency)
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
+						lb.Accounts["Withdrawals"] = append(lb.Accounts["Withdrawals"], t)
+					}
+				} else if tx.Type == "Other" {
+					// Do Nothing
+				} else {
+					log.Println("Unmanaged ", tx)
+				}
+			}
+		}
+	}
+	return
+}
