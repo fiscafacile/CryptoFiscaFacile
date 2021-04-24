@@ -95,23 +95,12 @@ func (cs *Cessions) CalculatePVMV(global wallet.TXsByCategory, native string, lo
 				if tx.Items["To"][0].Code == native {
 					c.Prix213 = tx.Items["To"][0].Amount
 				} else {
-					var api wallet.CoinAPI
-					rates, err := api.GetExchangeRates(tx.Timestamp, native)
-					if err != nil {
-						log.Println("Error Getting Rates for", tx.Timestamp, err)
+					rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
+					if err == nil {
+						c.Prix213 = tx.Items["To"][0].Amount.Mul(rate)
 					} else {
-						found := false
-						for _, r := range rates.Rates {
-							if r.Quote == tx.Items["To"][0].Code {
-								c.Prix213 = tx.Items["To"][0].Amount.Mul(r.Rate)
-								found = true
-								break
-							}
-						}
-						if !found {
-							log.Println("Rate missing : CashOut integration into Prix213")
-							spew.Dump(tx, c)
-						}
+						log.Println("Rate missing : CashOut integration into Prix213")
+						spew.Dump(tx, c)
 					}
 				}
 				// Prix de cession - Frais
@@ -137,23 +126,12 @@ func (cs *Cessions) CalculatePVMV(global wallet.TXsByCategory, native string, lo
 					if f.Code == native {
 						c.Frais214 = c.Frais214.Add(f.Amount)
 					} else {
-						var api wallet.CoinAPI
-						rates, err := api.GetExchangeRates(tx.Timestamp, native)
-						if err != nil {
-							log.Println("Error Getting Rates for", tx.Timestamp, err)
+						rate, err := f.GetExchangeRate(tx.Timestamp, native)
+						if err == nil {
+							c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
 						} else {
-							found := false
-							for _, r := range rates.Rates {
-								if r.Quote == f.Code {
-									c.Frais214 = c.Frais214.Add(f.Amount.Mul(r.Rate))
-									found = true
-									break
-								}
-							}
-							if !found {
-								log.Println("Rate missing : CashOut integration into Frais214")
-								spew.Dump(tx, c)
-							}
+							log.Println("Rate missing : CashOut integration into Frais214")
+							spew.Dump(tx, c)
 						}
 					}
 				}
@@ -198,23 +176,12 @@ func (cs *Cessions) CalculatePVMV(global wallet.TXsByCategory, native string, lo
 				if tx.Items["From"][0].Code == native {
 					prixTotalAcquisition = prixTotalAcquisition.Add(tx.Items["From"][0].Amount)
 				} else {
-					var api wallet.CoinAPI
-					rates, err := api.GetExchangeRates(tx.Timestamp, native)
-					if err != nil {
-						log.Println("Error Getting Rates for", tx.Timestamp, err)
+					rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
+					if err == nil {
+						prixTotalAcquisition = prixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
 					} else {
-						found := false
-						for _, r := range rates.Rates {
-							if r.Quote == tx.Items["From"][0].Code {
-								prixTotalAcquisition = prixTotalAcquisition.Add(r.Rate.Mul(tx.Items["From"][0].Amount))
-								found = true
-								break
-							}
-						}
-						if !found {
-							log.Println("Rate missing : CashIn integration into prixTotalAcquisition")
-							spew.Dump(tx)
-						}
+						log.Println("Rate missing : CashIn integration into prixTotalAcquisition")
+						spew.Dump(tx)
 					}
 				}
 			}
