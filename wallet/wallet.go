@@ -176,6 +176,21 @@ func (tx TX) GetCurrencies(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	return
 }
 
+func (txs TXs) Println(name string) {
+	fmt.Println(strings.Repeat("-", len(name)+11))
+	fmt.Println("| TXs in " + name + " |")
+	fmt.Println(strings.Repeat("-", len(name)+11))
+	first := true
+	for _, tx := range txs {
+		if first {
+			first = false
+		} else {
+			fmt.Println(strings.Repeat("-", len(name)+11))
+		}
+		tx.Println()
+	}
+}
+
 func (txs TXs) SortByDate(chrono bool) {
 	if chrono {
 		sort.Slice(txs, func(i, j int) bool {
@@ -185,6 +200,12 @@ func (txs TXs) SortByDate(chrono bool) {
 		sort.Slice(txs, func(i, j int) bool {
 			return txs[i].Timestamp.After(txs[j].Timestamp)
 		})
+	}
+}
+
+func (txs TXsByCategory) Println() {
+	for k, v := range txs {
+		v.Println("Category " + k)
 	}
 }
 
@@ -371,9 +392,9 @@ func (txs TXsByCategory) SortTXsByDate(chrono bool) {
 }
 
 func (txs TXsByCategory) PrintStats() {
-	fmt.Println("---------------------------")
-	fmt.Println("| List of TXs By Category |")
-	fmt.Println("---------------------------")
+	fmt.Println("-------------------------------")
+	fmt.Println("| Quantity of TXs By Category |")
+	fmt.Println("-------------------------------")
 	keys := make([]string, 0, len(txs))
 	for k := range txs {
 		keys = append(keys, k)
