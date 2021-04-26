@@ -1,6 +1,7 @@
 package wallet
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 	"time"
@@ -73,11 +74,15 @@ func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Exc
 				return rates, err
 			}
 			rates.Base = coin
-			for k, v := range hist.MarketData.CurrentPrice {
-				r := Rate{Time: date, Quote: strings.ToUpper(k), Rate: decimal.NewFromFloat(v)}
-				rates.Rates = append(rates.Rates, r)
+			if hist.MarketData == nil {
+				err = errors.New("CoinGecko API replyed a null MarketData")
+			} else {
+				for k, v := range hist.MarketData.CurrentPrice {
+					r := Rate{Time: date, Quote: strings.ToUpper(k), Rate: decimal.NewFromFloat(v)}
+					rates.Rates = append(rates.Rates, r)
+				}
+				err = db.Write("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), rates)
 			}
-			err = db.Write("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), rates)
 			return rates, err
 		}
 	}
