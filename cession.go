@@ -31,7 +31,7 @@ type Cession struct {
 type Cessions []Cession
 
 func (c *Cession) Calculate() {
-	c.PrixNetDeFrais215 = c.Prix213.Sub(c.Frais214)
+	c.Prix213 = c.PrixNetDeFrais215.Add(c.Frais214)
 	c.PrixNetDeSoulte217 = c.Prix213.Sub(c.SoulteRecueOuVersee216)
 	// c.PrixNetDeSoulte217 = c.Prix213.Add(c.SoulteRecueOuVersee216)
 	c.PrixNet218 = c.Prix213.Sub(c.Frais214).Sub(c.SoulteRecueOuVersee216)
@@ -93,11 +93,11 @@ func (cs *Cessions) CalculatePVMV(global wallet.TXsByCategory, native string, lo
 				// Il correspond au prix réel perçu ou à la valeur de la contrepartie
 				// obtenue par le cédant lors de la cession.
 				if tx.Items["To"][0].Code == native {
-					c.Prix213 = tx.Items["To"][0].Amount
+					c.PrixNetDeFrais215 = tx.Items["To"][0].Amount
 				} else {
 					rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
 					if err == nil {
-						c.Prix213 = tx.Items["To"][0].Amount.Mul(rate)
+						c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
 					} else {
 						log.Println("Rate missing : CashOut integration into Prix213")
 						spew.Dump(tx, c)
@@ -248,6 +248,7 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 	// plus-values réalisées, quelle que soit leur date de réalisation.
 	date2019Jan1 := time.Date(2019, time.January, 1, 0, 0, 0, 0, loc)
 	globalWallet2019Jan1 := global.GetWallets(date2019Jan1, false)
+	// globalWallet2019Jan1.Println("2019 Jan 1st Global")
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs
 	for k := range global {
@@ -263,7 +264,7 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 		}
 		var amountToFind decimal.Decimal
 		amountToFind = quantity
-		// spew.Dump(crypto)
+		// log.Println("Amount to Find :", amountToFind, crypto)
 		var fifoValue decimal.Decimal
 		for _, tx := range allTXs {
 			// Find all Tx before 2019 Jan 1st ...
@@ -271,7 +272,7 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 				// ... that have the wanted crypto into Items["To"]
 				for _, c := range tx.Items["To"] {
 					if c.Code == crypto {
-						// spew.Dump(tx)
+						// tx.Println()
 						rate, err := c.GetExchangeRate(tx.Timestamp, native)
 						if err != nil {
 							log.Println(err)
@@ -281,24 +282,33 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 							} else {
 								fifoValue = fifoValue.Add(rate.Mul(c.Amount))
 							}
+							// log.Println("Fifo :", fifoValue)
 						}
 						amountToFind = amountToFind.Sub(c.Amount)
+						// log.Println("Amount to Find :", amountToFind, crypto)
+						// log.Println("/////////////////////////////")
 					}
 				}
-				// ... and the ones consoming the wanted crypto
+				// ... and the ones consumpting the wanted crypto
 				for _, c := range tx.Items["From"] {
 					if c.Code == crypto {
+						// tx.Println()
 						amountToFind = amountToFind.Add(c.Amount)
+						// log.Println("Amount to Find :", amountToFind, crypto)
+						// log.Println("/////////////////////////////")
 					}
 				}
 				for _, c := range tx.Items["Fee"] {
 					if c.Code == crypto {
+						// tx.Println()
 						amountToFind = amountToFind.Add(c.Amount)
+						// log.Println("Amount to Find :", amountToFind, crypto)
+						// log.Println("/////////////////////////////")
 					}
 				}
 				if !amountToFind.IsPositive() {
 					pta = pta.Add(fifoValue)
-					// spew.Dump(pta)
+					// log.Println("prixTotalAcquisition :", pta)
 					break
 				}
 			}
