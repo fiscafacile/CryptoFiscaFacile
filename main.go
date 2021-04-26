@@ -36,6 +36,7 @@ func main() {
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
 	pCSVBtcCategorie := flag.String("btc_categ", "", "Bitcoin Categories CSV file")
+	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
 	pFloatBtcExclude := flag.Float64("btc_exclude", 0.0, "Exclude Bitcoin Amount")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
@@ -236,6 +237,9 @@ func main() {
 		err := blkst.WaitFinish()
 		if err != nil {
 			log.Fatal("Error parsing Bitcoin CSV file:", err)
+		}
+		if *pBCD {
+			blkst.PrintBCDStatus(btc)
 		}
 	}
 	// create Global Wallet up to Date

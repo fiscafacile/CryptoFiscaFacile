@@ -2,8 +2,10 @@ package blockstream
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -14,6 +16,13 @@ import (
 	"github.com/shopspring/decimal"
 	"gopkg.in/resty.v0"
 )
+
+type apiTXStatus struct {
+	Confirmed   bool   `json:"confirmed"`
+	BlockHeight int    `json:"block_height"`
+	BlockHash   string `json:"block_hash"`
+	BlockTime   int    `json:"block_time"`
+}
 
 type apiTX struct {
 	used     bool   `json:-`
@@ -43,55 +52,92 @@ type apiTX struct {
 		ScriptpubkeyAddress string `json:"scriptpubkey_address"`
 		Value               int    `json:"value"`
 	} `json:"vout"`
-	Size   int `json:"size"`
-	Weight int `json:"weight"`
-	Fee    int `json:"fee"`
-	Status struct {
-		Confirmed   bool   `json:"confirmed"`
-		BlockHeight int    `json:"block_height"`
-		BlockHash   string `json:"block_hash"`
-		BlockTime   int    `json:"block_time"`
-	} `json:"status"`
+	Size   int         `json:"size"`
+	Weight int         `json:"weight"`
+	Fee    int         `json:"fee"`
+	Status apiTXStatus `json:"status"`
 }
 
-func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
+type apiTXs []apiTX
+
+func (txs apiTXs) SortByHeight(asc bool) {
+	if asc {
+		sort.Slice(txs, func(i, j int) bool {
+			return txs[i].Status.BlockHeight < txs[j].Status.BlockHeight
+		})
+	} else {
+		sort.Slice(txs, func(i, j int) bool {
+			return txs[i].Status.BlockHeight > txs[j].Status.BlockHeight
+		})
+	}
+}
+
+func (blkst *Blockstream) GetAddressTXs(add string) (txs apiTXs, err error) {
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		useCache = false
 	}
-	for _, btc := range b.CSVAddresses {
-		var apiTXs []apiTX
-		if useCache {
-			err = db.Read("BlockStream/address/txs", btc.Address, &apiTXs)
-		}
-		if !useCache || err != nil {
-			resp, err := resty.R().SetHeaders(map[string]string{
+	if useCache {
+		err = db.Read("BlockStream/address/txs", add, &txs)
+	}
+	if !useCache || err != nil {
+		resp, err := resty.R().SetHeaders(map[string]string{
+			"Accept": "application/json",
+		}).Get("https://blockstream.info/api/address/" + add + "/txs")
+		if err != nil || resp.StatusCode() != http.StatusOK {
+			time.Sleep(6 * time.Second)
+			resp, err = resty.R().SetHeaders(map[string]string{
 				"Accept": "application/json",
-			}).Get("https://blockstream.info/api/address/" + btc.Address + "/txs")
-			if err != nil || resp.StatusCode() != http.StatusOK {
-				time.Sleep(6 * time.Second)
-				resp, err = resty.R().SetHeaders(map[string]string{
-					"Accept": "application/json",
-				}).Get("https://blockstream.info/api/address/" + btc.Address + "/txs")
-			}
-			if err != nil || resp.StatusCode() != http.StatusOK {
-				log.Println("Blockstream API : Error Getting BTC TX for", btc.Address)
-				break
-			}
-			err = json.Unmarshal(resp.Body(), &apiTXs)
+			}).Get("https://blockstream.info/api/address/" + add + "/txs")
+		}
+		if err != nil || resp.StatusCode() != http.StatusOK {
+			return txs, errors.New("Blockstream API : Error Getting BTC TX for " + add)
+		}
+		err = json.Unmarshal(resp.Body(), &txs)
+		if err != nil {
+			return txs, errors.New("Blockstream API : Error Unmarshaling BTC TX for " + add)
+		}
+		if useCache {
+			err = db.Write("BlockStream/address/txs", add, txs)
 			if err != nil {
-				log.Println("Blockstream API : Error Unmarshaling BTC TX for", btc.Address)
-				break
-			}
-			if useCache {
-				err = db.Write("BlockStream/address/txs", btc.Address, apiTXs)
-				if err != nil {
-					log.Println("Blockstream API : Error Caching", btc.Address)
-				}
+				return txs, errors.New("Blockstream API : Error Caching" + add)
 			}
 		}
-		err = nil
+	}
+	return txs, nil
+}
+
+func (blkst *Blockstream) GetAddressBalanceAtDate(add string, date time.Time) (bal decimal.Decimal, err error) {
+	apiTXs, err := blkst.GetAddressTXs(add)
+	if err != nil {
+		return
+	}
+	apiTXs.SortByHeight(true)
+	for _, tx := range apiTXs {
+		if time.Unix(int64(tx.Status.BlockTime), 0).After(date) {
+			break
+		}
+		for _, vin := range tx.Vin {
+			if add == vin.Prevout.ScriptpubkeyAddress {
+				bal = bal.Sub(decimal.New(int64(vin.Prevout.Value), -8))
+			}
+		}
+		for _, vout := range tx.Vout {
+			if add == vout.ScriptpubkeyAddress {
+				bal = bal.Add(decimal.New(int64(vout.Value), -8))
+			}
+		}
+	}
+	return
+}
+
+func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
+	for _, btc := range b.CSVAddresses {
+		apiTXs, err := blkst.GetAddressTXs(btc.Address)
+		if err != nil {
+			log.Println(err)
+		}
 		for _, tx := range apiTXs {
 			found := false
 			for _, have := range blkst.apiTXs {
@@ -199,5 +245,5 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 			}
 		}
 	}
-	blkst.done <- err
+	blkst.done <- nil
 }
