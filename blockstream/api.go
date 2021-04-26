@@ -200,8 +200,16 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 					b.TXsByCategory["Transfers"] = append(b.TXsByCategory["Transfers"], t)
 				} else if is, desc, val, curr := b.IsTxCashOut(tx.Txid); is {
 					t.Note += " crypto_payment " + desc
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
-					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+					from := wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)}
+					t.Items["From"] = append(t.Items["From"], from)
+					if val.IsZero() {
+						rate, err := from.GetExchangeRate(t.Timestamp, "EUR")
+						if err == nil {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: from.Amount.Mul(rate)})
+						}
+					} else {
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+					}
 					b.TXsByCategory["CashOut"] = append(b.TXsByCategory["CashOut"], t)
 				} else if is, desc, val, curr := b.IsTxExchange(tx.Txid); is {
 					t.Note += " crypto_exchange " + desc
