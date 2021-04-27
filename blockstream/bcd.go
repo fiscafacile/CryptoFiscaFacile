@@ -25,7 +25,7 @@ func (blkst *Blockstream) PrintBCDStatus(b *btc.BTC) {
 			bal = bal.Mul(decimal.NewFromInt(int64(10)))
 			fmt.Println("  ", a.Address, "balance", bal)
 			t := wallet.TX{Timestamp: bcdForkDate, Note: "Blockstream API : 495866 Bitcoin Diamond Fork on " + a.Address}
-			t.Items = make(map[string][]wallet.Currency)
+			t.Items = make(map[string]wallet.Currencies)
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BCD", Amount: bal})
 			b.TXsByCategory["Forks"] = append(b.TXsByCategory["Forks"], t)
 		}

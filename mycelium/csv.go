@@ -46,13 +46,13 @@ func (mc *MyCelium) ParseCSV(reader io.Reader) (err error) {
 				// Fill TXsByCategory
 				if tx.Value.IsPositive() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "MyCelium CSV : " + tx.ID + " from " + tx.DestAddress + " " + tx.Label}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ticker(tx.Currency), Amount: tx.Value})
 					// t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
 					mc.TXsByCategory["Deposits"] = append(mc.TXsByCategory["Deposits"], t)
 				} else if tx.Value.IsNegative() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "MyCelium CSV : " + tx.ID + " to " + tx.DestAddress + " " + tx.Label}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: ticker(tx.Currency), Amount: tx.Value.Neg()})
 					if strings.Contains(tx.Label, "crypto_payment") {
 						r := regexp.MustCompile(`\(([+-]?([0-9]*[.,])?[0-9]+)€\)`)

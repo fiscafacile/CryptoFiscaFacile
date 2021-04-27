@@ -67,7 +67,7 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 								bf.TXsByCategory["Exchanges"][i].Note = "Bitfinex CSV : " + tx.Description
 							}
 							if bf.TXsByCategory["Exchanges"][i].Items == nil {
-								bf.TXsByCategory["Exchanges"][i].Items = make(map[string][]wallet.Currency)
+								bf.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
 							}
 							if tx.Amount.IsPositive() {
 								bf.TXsByCategory["Exchanges"][i].Items["To"] = append(bf.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -78,7 +78,7 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
-						t.Items = make(map[string][]wallet.Currency)
+						t.Items = make(map[string]wallet.Currencies)
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 							bf.TXsByCategory["Exchanges"] = append(bf.TXsByCategory["Exchanges"], t)
@@ -96,21 +96,21 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 							strings.Split(strings.Split(ex.Note, " ")[4], ".")[0] == strings.Split(strings.Split(tx.Description, " ")[3], ".")[0] {
 							found = true
 							if bf.TXsByCategory["Exchanges"][i].Items == nil {
-								bf.TXsByCategory["Exchanges"][i].Items = make(map[string][]wallet.Currency)
+								bf.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
 							}
 							bf.TXsByCategory["Exchanges"][i].Items["Fee"] = append(bf.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 						}
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
-						t.Items = make(map[string][]wallet.Currency)
+						t.Items = make(map[string]wallet.Currencies)
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 						bf.TXsByCategory["Exchanges"] = append(bf.TXsByCategory["Exchanges"], t)
 					}
 				} else if strings.Contains(tx.Description, "Deposit") ||
 					strings.Contains(tx.Description, "fork credit") {
 					t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					bf.TXsByCategory["Deposits"] = append(bf.TXsByCategory["Deposits"], t)
 				} else if strings.Contains(tx.Description, "Withdrawal") ||
@@ -121,14 +121,14 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 							if ex.SimilarDate(2*time.Second, tx.Date) {
 								found = true
 								if bf.TXsByCategory["Withdrawals"][i].Items == nil {
-									bf.TXsByCategory["Withdrawals"][i].Items = make(map[string][]wallet.Currency)
+									bf.TXsByCategory["Withdrawals"][i].Items = make(map[string]wallet.Currencies)
 								}
 								bf.TXsByCategory["Withdrawals"][i].Items["Fee"] = append(bf.TXsByCategory["Withdrawals"][i].Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 							}
 						}
 						if !found {
 							t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
-							t.Items = make(map[string][]wallet.Currency)
+							t.Items = make(map[string]wallet.Currencies)
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 							bf.TXsByCategory["Withdrawals"] = append(bf.TXsByCategory["Withdrawals"], t)
 						}
@@ -138,7 +138,7 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 							if ex.SimilarDate(2*time.Second, tx.Date) {
 								found = true
 								if bf.TXsByCategory["Withdrawals"][i].Items == nil {
-									bf.TXsByCategory["Withdrawals"][i].Items = make(map[string][]wallet.Currency)
+									bf.TXsByCategory["Withdrawals"][i].Items = make(map[string]wallet.Currencies)
 								}
 								bf.TXsByCategory["Withdrawals"][i].Items["From"] = append(bf.TXsByCategory["Withdrawals"][i].Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 								bf.TXsByCategory["Withdrawals"][i].Note = "Bitfinex CSV : " + tx.Description
@@ -146,7 +146,7 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 						}
 						if !found {
 							t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
-							t.Items = make(map[string][]wallet.Currency)
+							t.Items = make(map[string]wallet.Currencies)
 							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 							bf.TXsByCategory["Withdrawals"] = append(bf.TXsByCategory["Withdrawals"], t)
 						}

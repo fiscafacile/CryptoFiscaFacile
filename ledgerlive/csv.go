@@ -52,7 +52,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, b *btc.BTC) (err error) {
 				// Fill TXsByCategory
 				if tx.Type == "IN" {
 					t := wallet.TX{Timestamp: tx.Date, Note: "LedgerLive CSV " + tx.AccountName + " : " + tx.Hash + " -> " + tx.AccountXpub}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
 					if is, desc, val, curr := b.IsTxCashIn(tx.Hash); is {
@@ -64,7 +64,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, b *btc.BTC) (err error) {
 					}
 				} else if tx.Type == "OUT" {
 					t := wallet.TX{Timestamp: tx.Date, Note: "LedgerLive CSV " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
 					if tx.Amount.Sub(tx.Fees).IsZero() {
 						ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)

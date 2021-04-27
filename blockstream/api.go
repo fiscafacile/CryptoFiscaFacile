@@ -192,7 +192,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 			}
 			if isInVinPrevVout {
 				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid + dest + missing}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				if isInVout && dest == "" {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn-tx.Fee), -8)})
@@ -227,7 +227,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 				blkst.apiTXs[i].used = true
 			} else if isInVout {
 				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				if is, desc, val := b.HasCustody(tx.Txid); is {
 					t.Note += " crypto_custody " + desc

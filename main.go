@@ -34,6 +34,7 @@ func main() {
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
+	pCoinLayerKey := flag.String("coinlayer_key", "", "CoinLayer Key (https://coinlayer.com/product)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
 	pCSVBtcCategorie := flag.String("btc_categ", "", "Bitcoin Categories CSV file")
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
@@ -57,6 +58,9 @@ func main() {
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
+	}
+	if *pCoinLayerKey != "" {
+		wallet.CoinLayerSetKey(*pCoinLayerKey)
 	}
 	btc := btc.New()
 	blkst := blockstream.New()
@@ -246,7 +250,7 @@ func main() {
 	global := make(wallet.TXsByCategory)
 	if *pFloatBtcExclude != 0.0 {
 		t := wallet.TX{Timestamp: time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC), Note: "Manual Exclusion"}
-		t.Items = make(map[string][]wallet.Currency)
+		t.Items = make(map[string]wallet.Currencies)
 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.NewFromFloat(*pFloatBtcExclude)})
 		global["Excludes"] = append(global["Excludes"], t)
 	}
@@ -262,7 +266,7 @@ func main() {
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)
 	global.FindTransfers()
-	global.FindCashInOut()
+	global.FindCashInOut(*pNative)
 	global.SortTXsByDate(true)
 	loc, err := time.LoadLocation(*pLocation)
 	if err != nil {

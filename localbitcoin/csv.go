@@ -114,7 +114,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
 				// Fill TXsByCategory
 				if tx.TradeType == "ONLINE_SELL" {
 					t := wallet.TX{Timestamp: tx.TransactionReleasedAt, Note: "Local Bitcoin CSV : " + tx.Seller + " " + tx.Buyer + " " + tx.TradeType + " " + tx.OnlineProvider + " " + tx.Reference}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.Amount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FiatCurrency, Amount: tx.FiatAmount})
 					if !tx.FiatFee.IsZero() {
@@ -172,7 +172,7 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
 				// Fill TXsByCategory
 				if tx.Type == "Send to address" {
 					t := wallet.TX{Timestamp: tx.Created, Note: "Local Bitcoin CSV : " + tx.Type + " " + tx.Desc + " " + tx.Notes}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.Sent})
 					lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "Other" &&
@@ -186,7 +186,7 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Created, Note: tx.Type + " " + tx.Desc + " " + tx.Notes}
-						t.Items = make(map[string][]wallet.Currency)
+						t.Items = make(map[string]wallet.Currencies)
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
 						lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)
 					}

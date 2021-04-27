@@ -48,7 +48,7 @@ func (b *Binance) ParseCSV(reader io.Reader) (err error) {
 						if ex.SimilarDate(2*time.Second, tx.Time) {
 							found = true
 							if b.TXsByCategory["Exchanges"][i].Items == nil {
-								b.TXsByCategory["Exchanges"][i].Items = make(map[string][]wallet.Currency)
+								b.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
 							}
 							if tx.Change.IsPositive() {
 								b.TXsByCategory["Exchanges"][i].Items["To"] = append(b.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
@@ -59,7 +59,7 @@ func (b *Binance) ParseCSV(reader io.Reader) (err error) {
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : Buy Sell Fee " + tx.Remark}
-						t.Items = make(map[string][]wallet.Currency)
+						t.Items = make(map[string]wallet.Currencies)
 						if tx.Change.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
 							b.TXsByCategory["Exchanges"] = append(b.TXsByCategory["Exchanges"], t)
@@ -71,12 +71,12 @@ func (b *Binance) ParseCSV(reader io.Reader) (err error) {
 				} else if tx.Operation == "Deposit" ||
 					tx.Operation == "Distribution" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
 					b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
 				} else if tx.Operation == "Withdraw" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
 					b.TXsByCategory["Withdrawals"] = append(b.TXsByCategory["Withdrawals"], t)
 				} else {

@@ -45,13 +45,13 @@ func (cdc *CryptoCom) ParseCSVExTransfer(reader io.Reader) (err error) {
 					tx.Address == "INTERNAL_DEPOSIT" {
 					cdc.CsvTXsExTransfer = append(cdc.CsvTXsExTransfer, tx)
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 				} else {
 					cdc.CsvTXsExTransfer = append(cdc.CsvTXsExTransfer, tx)
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 				}

@@ -76,7 +76,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
-						t.Items = make(map[string][]wallet.Currency)
+						t.Items = make(map[string]wallet.Currencies)
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 							cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
@@ -88,7 +88,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 				} else if tx.Kind == "crypto_exchange" ||
 					tx.Kind == "viban_purchase" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToCurrency, Amount: tx.ToAmount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 					cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
@@ -97,6 +97,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "exchange_to_crypto_transfer" ||
 					tx.Kind == "admin_wallet_credited" ||
 					tx.Kind == "referral_card_cashback" ||
+					tx.Kind == "transfer_cashback" ||
 					tx.Kind == "reimbursement" ||
 					tx.Kind == "crypto_earn_interest_paid" ||
 					tx.Kind == "crypto_earn_extra_interest_paid" ||
@@ -106,10 +107,13 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "mco_stake_reward" ||
 					tx.Kind == "referral_bonus" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					if tx.Kind == "referral_card_cashback" ||
-						tx.Kind == "reimbursement" {
+						tx.Kind == "transfer_cashback" ||
+						tx.Kind == "reimbursement" ||
+						tx.Kind == "gift_card_reward" ||
+						tx.Kind == "pay_checkout_reward" {
 						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
 					} else if tx.Kind == "crypto_earn_interest_paid" ||
 						tx.Kind == "crypto_earn_extra_interest_paid" {
@@ -121,10 +125,11 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "crypto_withdrawal" ||
 					tx.Kind == "crypto_transfer" ||
 					tx.Kind == "card_cashback_reverted" ||
+					tx.Kind == "transfer_cashback_reverted" ||
 					tx.Kind == "reimbursement_reverted" ||
 					tx.Kind == "crypto_to_exchange_transfer" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					if tx.Kind == "crypto_withdrawal" &&
 						tx.Description == "Withdraw BTC" {
 						fee := decimal.New(3, -4) // 0.0003, is it always the case ? I have only one occurence
@@ -133,10 +138,16 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					} else {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 					}
-					if tx.Kind == "crypto_payment" {
-						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
+					if tx.Kind == "crypto_payment" ||
+						tx.Kind == "crypto_viban_exchange" {
+						if tx.Kind == "crypto_payment" {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
+						} else {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount})
+						}
 						cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
 					} else if tx.Kind == "card_cashback_reverted" ||
+						tx.Kind == "transfer_cashback_reverted" ||
 						tx.Kind == "reimbursement_reverted" {
 						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
 					} else {

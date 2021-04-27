@@ -45,7 +45,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},
@@ -61,7 +61,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},
@@ -77,7 +77,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},
@@ -93,7 +93,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},
@@ -109,7 +109,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},
@@ -125,7 +125,7 @@ func Test_CSVParseExchangeExemple(t *testing.T) {
 			wantExchanges: wallet.TXs{
 				{
 					Timestamp: time.Date(2017, time.December, 10, 19, 50, 8, 0, time.UTC),
-					Items: map[string][]wallet.Currency{
+					Items: map[string]wallet.Currencies{
 						"From": {{Code: "BTC", Amount: 0.16683656}},
 						"To":   {{Code: "XMR", Amount: 10.481}},
 						"Fee":  {{Code: "XMR", Amount: 0.020962}},

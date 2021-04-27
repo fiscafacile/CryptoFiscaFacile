@@ -73,13 +73,13 @@ func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
 				// Fill TXsByCategory
 				if !tx.PaidIn.IsZero() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.PaidIn})
 					t.Items["From"] = append(t.Items["From"], tx.ExchangeOut)
 					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else if !tx.PaidOut.IsZero() {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.PaidOut})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: tx.PaidOut.Mul(tx.Rate)})
 					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)

@@ -36,7 +36,7 @@ func (cdc *CryptoCom) ParseCSVExSupercharger(reader io.Reader) (err error) {
 				tx.Description = r[3]
 				cdc.CsvTXsExSupercharger = append(cdc.CsvTXsExSupercharger, tx)
 				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange SuperCharger CSV : " + tx.Description}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 				cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 			}

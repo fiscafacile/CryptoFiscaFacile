@@ -231,7 +231,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 				log.Println("Detected Self ERC20 TX", tx)
 			} else if ethsc.ownAddress(tx.To) {
 				t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if tx.From == "0x0000000000000000000000000000000000000000" {
@@ -270,7 +270,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 				}
 			} else if ethsc.ownAddress(tx.From) {
 				t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if tx.To == "0x0000000000000000000000000000000000000000" {
@@ -315,7 +315,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 				log.Println("Detected Self Internal TX", tx)
 			} else if ethsc.ownAddress(tx.To) {
 				t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 				for j, ntx := range ethsc.apiNormalTXs {
 					if ntx.TimeStamp.Equal(tx.TimeStamp) &&
@@ -343,7 +343,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 		if !tx.used {
 			if ethsc.ownAddress(tx.To) && ethsc.ownAddress(tx.From) {
 				t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " "}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if tx.To == tx.From {
 					if !tx.Value.IsZero() {
@@ -360,7 +360,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 			} else if ethsc.ownAddress(tx.To) {
 				if !tx.Value.IsZero() {
 					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
-					t.Items = make(map[string][]wallet.Currency)
+					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
@@ -368,7 +368,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory() {
 				}
 			} else if ethsc.ownAddress(tx.From) {
 				t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
-				t.Items = make(map[string][]wallet.Currency)
+				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 				if !tx.Value.IsZero() {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})

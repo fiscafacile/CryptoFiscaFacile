@@ -17,6 +17,8 @@ type Currency struct {
 	Amount decimal.Decimal
 }
 
+type Currencies []Currency
+
 type WalletCurrencies map[string]decimal.Decimal
 
 type Wallets struct {
@@ -26,7 +28,7 @@ type Wallets struct {
 
 type TX struct {
 	Timestamp time.Time
-	Items     map[string][]Currency
+	Items     map[string]Currencies
 	Note      string
 }
 
@@ -65,6 +67,13 @@ func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decim
 			// } else {
 			// 	log.Println("NewCoinGeckoAPI :", err)
 		}
+	}
+	var layer CoinLayer
+	ratesCL, err := layer.GetExchangeRates(date, to)
+	if err == nil {
+		return decimal.NewFromFloat(ratesCL.Rates[c.Code]), nil
+		// } else {
+		// 	log.Println("CoinLayer.GetExchangeRates :", err)
 	}
 	var api CoinAPI
 	rates, err := api.GetExchangeRates(date, to)
@@ -259,7 +268,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
 					found = true
 					t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
-					t.Items = make(map[string][]Currency)
+					t.Items = make(map[string]Currencies)
 					t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
 					t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
 					if _, ok := witTX.Items["Fee"]; ok {
@@ -326,7 +335,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	return txs
 }
 
-func (txs TXsByCategory) FindCashInOut() TXsByCategory {
+func (txs TXsByCategory) FindCashInOut(native string) TXsByCategory {
 	var realExchanges TXs
 	for _, exTX := range txs["Exchanges"] {
 		fromHasFiat := false
@@ -336,8 +345,8 @@ func (txs TXsByCategory) FindCashInOut() TXsByCategory {
 			}
 		}
 		toHasFiat := false
-		for _, i := range exTX.Items["To"] {
-			if i.IsFiat() {
+		for _, c := range exTX.Items["To"] {
+			if c.IsFiat() {
 				toHasFiat = true
 			}
 		}
@@ -351,39 +360,95 @@ func (txs TXsByCategory) FindCashInOut() TXsByCategory {
 	}
 	if len(realExchanges) > 0 {
 		txs["Exchanges"] = realExchanges
+	} else {
+		delete(txs, "Exchanges")
 	}
-	// var realDeposits TXs
-	// for _, depTX := range txs["Deposits"] {
-	// 	toHasFiat := false
-	// 	for _, i := range depTX.Items["To"] {
-	// 		if i.IsFiat() {
-	// 			toHasFiat = true
-	// 		}
-	// 	}
-	// 	if toHasFiat {
-	// 		txs["CashIn"] = append(txs["CashIn"], depTX)
-	// 	} else {
-	// 		realDeposits = append(realDeposits, depTX)
-	// 	}
-	// }
-	// txs["Deposits"] = realDeposits
-	var realWithdrawals TXs
-	for _, witTX := range txs["Withdrawals"] {
-		fromHasFiat := false
-		// for _, i := range witTX.Items["From"] {
-		// 	if i.IsFiat() {
-		// 		fromHasFiat = true
-		// 	}
-		// }
-		if fromHasFiat {
-			txs["CashOut"] = append(txs["CashOut"], witTX)
-		} else {
-			realWithdrawals = append(realWithdrawals, witTX)
+	// Integrate CashBacks into CashIn with Reversal cancelation
+	var realCashBacks TXs
+	var toCancel Currencies
+	txs["Cashbacks"].SortByDate(false)
+	// txs["Cashbacks"].Println("Cashbacks")
+	for _, cbTX := range txs["Cashbacks"] {
+		// cbTX.Println()
+		isReversal := false
+		for _, c := range cbTX.Items["From"] {
+			toCancel = append(toCancel, c)
+			isReversal = true
+			// log.Println("isReversal, toCancel", toCancel)
+		}
+		if !isReversal {
+			// log.Println("!isReversal, toCancel", toCancel)
+			for _, c := range cbTX.Items["To"] {
+				canceled := false
+				// c.Println()
+				var toCancelNew Currencies
+				for _, tc := range toCancel {
+					if c.Amount.Equal(tc.Amount) {
+						// log.Println("!isReversal, canceled", tc)
+						canceled = true
+					} else {
+						toCancelNew = append(toCancelNew, tc)
+					}
+				}
+				// log.Println("toCancelNew", toCancelNew)
+				if canceled {
+					toCancel = toCancelNew
+					// log.Println("!isReversal, canceled, toCancel", toCancel)
+				} else {
+					rate, err := c.GetExchangeRate(cbTX.Timestamp, native)
+					if err != nil {
+						log.Println(err)
+						realCashBacks = append(realCashBacks, cbTX)
+					} else {
+						cbTX.Items["From"] = append(cbTX.Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
+						txs["CashIn"] = append(txs["CashIn"], cbTX)
+					}
+				}
+			}
 		}
 	}
-	if len(realWithdrawals) > 0 {
-		txs["Withdrawals"] = realWithdrawals
+	if len(realCashBacks) > 0 {
+		txs["Cashbacks"] = realCashBacks
+	} else {
+		delete(txs, "Cashbacks")
 	}
+	/*
+		var realDeposits TXs
+		for _, depTX := range txs["Deposits"] {
+			toHasFiat := false
+			for _, i := range depTX.Items["To"] {
+				if i.IsFiat() {
+					toHasFiat = true
+				}
+			}
+			if toHasFiat {
+				txs["CashIn"] = append(txs["CashIn"], depTX)
+			} else {
+				realDeposits = append(realDeposits, depTX)
+			}
+		}
+		txs["Deposits"] = realDeposits
+	*/
+	/*
+		var realWithdrawals TXs
+		for _, witTX := range txs["Withdrawals"] {
+			fromHasFiat := false
+			for _, i := range witTX.Items["From"] {
+				if i.IsFiat() {
+					fromHasFiat = true
+				}
+			}
+			if fromHasFiat {
+				txs["CashOut"] = append(txs["CashOut"], witTX)
+				log.Println("Found")
+			} else {
+				realWithdrawals = append(realWithdrawals, witTX)
+			}
+		}
+		if len(realWithdrawals) > 0 {
+			txs["Withdrawals"] = realWithdrawals
+		}
+	*/
 	return txs
 }
 
