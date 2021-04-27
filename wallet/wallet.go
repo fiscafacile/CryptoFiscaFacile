@@ -428,4 +428,18 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 		}
 	}
 	fmt.Println("--------------------------------------------------------")
+	fmt.Println("| List of Negative Amounts TXs                         |")
+	for _, v := range txs {
+		for _, tx := range v {
+			for _, i := range tx.Items {
+				for _, c := range i {
+					if c.Amount.IsNegative() {
+						fmt.Println("--------------------------------------------------------")
+						tx.Println()
+					}
+				}
+			}
+		}
+	}
+	fmt.Println("--------------------------------------------------------")
 }
