@@ -148,10 +148,11 @@ Usage of CryptoFiscaFacile:
   -txscat string
         Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
 ```
+
 ### Options de base
 
 ```bash
-	-date string
+  -date string
         Date Filter (default "2021-01-01T00:00:00")
 ```
 Permet d'afficher votre protefeuille global valorisé en Fiat à une date donnée.
@@ -161,9 +162,10 @@ Utile pour vérifier l'état du stock et estimer s'il manque des sources.
   -location string
         Date Filter Location (default "Europe/Paris")
 ```
+Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déclarer aux impôts français, il faut laisser "Europe/Paris".
 
 ```bash
-	-stats
+  -stats
         Display accounts stats
 ```
 Permet d'afficher le nombre de transactions par catégorie (toutes crypto confondues).
@@ -174,15 +176,18 @@ Permet d'afficher le nombre de transactions par catégorie (toutes crypto confon
 ```
 Choix de la Fiat pour consolidataion. Si vous voulez déclarer aux impôts français, il faut laisser "EUR".
 
+### Options de "Sources"
+
 
 ## Donation
 
 Si vous voulez faire un don a l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
 [![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)](https://en.cryptobadges.io/donate/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)
+
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)](https://en.cryptobadges.io/donate/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)
 
-## Credits
+## Remerciements
 
 Merci au channel [Fiscalité crypto FR](t.me/fiscalitecryptofr) sur Telegram qui est une mine d'or d'information pour essayer de comprendre comment cela fonctionne.
 
