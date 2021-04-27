@@ -45,8 +45,11 @@ func (c *Currency) IsFiat() bool {
 	return false
 }
 
-func (c *Currency) Println() {
-	fmt.Println(c.Amount, c.Code)
+func (c *Currency) Println(filter string) {
+	if strings.Contains(filter, c.Code) ||
+		filter == "" {
+		fmt.Println(c.Amount, c.Code)
+	}
 }
 
 func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decimal, err error) {
@@ -135,7 +138,7 @@ func (w Wallets) Round() {
 	}
 }
 
-func (w Wallets) Println(name string) {
+func (w Wallets) Println(name string, filter string) {
 	fmt.Println(strings.Repeat("-", len(name)+11))
 	fmt.Println("| " + name + " Wallet |")
 	fmt.Println(strings.Repeat("-", len(name)+11))
@@ -143,7 +146,9 @@ func (w Wallets) Println(name string) {
 	fmt.Println("Amounts :")
 	keys := make([]string, 0, len(w.Currencies))
 	for k := range w.Currencies {
-		keys = append(keys, k)
+		if filter == "" || strings.Contains(filter, k) {
+			keys = append(keys, k)
+		}
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
@@ -159,15 +164,27 @@ func (tx *TX) SimilarDate(delta time.Duration, t time.Time) bool {
 	return false
 }
 
-func (tx TX) Println() {
-	fmt.Println("Time :", tx.Timestamp.UTC())
+func (tx TX) Println(filter string) (printed bool) {
+	if filter == "" {
+		printed = true
+	} else {
+		printed = false
+	}
+	toPrint := fmt.Sprintln("Time :", tx.Timestamp.UTC())
 	for k, v := range tx.Items {
-		fmt.Println(k, ":")
+		toPrint += fmt.Sprintln(k, ":")
 		for _, i := range v {
-			fmt.Println("  ", i.Amount.String(), i.Code)
+			toPrint += fmt.Sprintln("  ", i.Amount.String(), i.Code)
+			if strings.Contains(filter, i.Code) {
+				printed = true
+			}
 		}
 	}
-	fmt.Println("Note :", tx.Note)
+	toPrint += fmt.Sprintln("Note :", tx.Note)
+	if printed {
+		fmt.Print(toPrint)
+	}
+	return
 }
 
 func (tx TX) GetCurrencies(includeFiat, includeFee bool) (cs WalletCurrencies) {
@@ -187,18 +204,16 @@ func (tx TX) GetCurrencies(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	return
 }
 
-func (txs TXs) Println(name string) {
+func (txs TXs) Println(name string, filter string) {
 	fmt.Println(strings.Repeat("-", len(name)+11))
 	fmt.Println("| TXs in " + name + " |")
 	fmt.Println(strings.Repeat("-", len(name)+11))
-	first := true
+	printed := false
 	for _, tx := range txs {
-		if first {
-			first = false
-		} else {
+		if printed {
 			fmt.Println(strings.Repeat("-", len(name)+11))
 		}
-		tx.Println()
+		printed = tx.Println(filter)
 	}
 }
 
@@ -214,9 +229,9 @@ func (txs TXs) SortByDate(chrono bool) {
 	}
 }
 
-func (txs TXsByCategory) Println() {
+func (txs TXsByCategory) Println(filter string) {
 	for k, v := range txs {
-		v.Println("Category " + k)
+		v.Println("Category "+k, filter)
 	}
 }
 
@@ -478,7 +493,7 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 	for _, tx := range txs["Withdrawals"] {
 		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
 			fmt.Println("--------------------------------------------------------")
-			tx.Println()
+			tx.Println("")
 		}
 	}
 	fmt.Println("--------------------------------------------------------")
@@ -488,7 +503,7 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 		for _, v := range txcs {
 			if !v.IsZero() {
 				fmt.Println("--------------------------------------------------------")
-				tx.Println()
+				tx.Println("")
 			}
 		}
 	}
@@ -500,7 +515,7 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 				for _, c := range i {
 					if c.Amount.IsNegative() {
 						fmt.Println("--------------------------------------------------------")
-						tx.Println()
+						tx.Println("")
 					}
 				}
 			}

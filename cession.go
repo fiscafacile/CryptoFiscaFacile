@@ -259,7 +259,7 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 	allTXs.SortByDate(false)
 	for crypto, quantity := range globalWallet2019Jan1.Currencies {
 		if quantity.IsNegative() {
-			globalWallet2019Jan1.Println("2019 Jan 1st Global")
+			globalWallet2019Jan1.Println("2019 Jan 1st Global", "")
 			return pta, errors.New("Error Initial stock have a negative stock, some TXs are missing !")
 		}
 		var amountToFind decimal.Decimal

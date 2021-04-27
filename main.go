@@ -10,6 +10,7 @@ import (
 	// "github.com/davecgh/go-spew/spew"
 	"github.com/fiscafacile/CryptoFiscaFacile/binance"
 	"github.com/fiscafacile/CryptoFiscaFacile/bitfinex"
+	"github.com/fiscafacile/CryptoFiscaFacile/blockchain"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockstream"
 	"github.com/fiscafacile/CryptoFiscaFacile/btc"
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
@@ -30,6 +31,7 @@ func main() {
 	pLocation := flag.String("location", "Europe/Paris", "Date Filter Location")
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
 	pTXsCateg := flag.String("txscat", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pCurrFilter := flag.String("curr_filter", "", "Currencies to be filtered in Transactions Display (comma separated list)")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
@@ -38,6 +40,9 @@ func main() {
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
 	pCSVBtcCategorie := flag.String("btc_categ", "", "Bitcoin Categories CSV file")
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
+	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
+	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
+	pJsonBtgTXs := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
 	pFloatBtcExclude := flag.Float64("btc_exclude", 0.0, "Exclude Bitcoin Amount")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
@@ -78,6 +83,17 @@ func main() {
 		}
 		btc.ParseCSVAddresses(recordFile)
 		go blkst.GetAllTXs(btc)
+	}
+	bc := blockchain.New()
+	if *pJsonBtgTXs != "" {
+		jsonFile, err := os.Open(*pJsonBtgTXs)
+		if err != nil {
+			log.Fatal("Error opening Bitcoin Gold JSON Transactions file:", err)
+		}
+		err = bc.ParseTXsJSON(jsonFile, "BTG")
+		if err != nil {
+			log.Fatal("Error parsing Bitcoin Gold JSON Transactions file:", err)
+		}
 	}
 	ethsc := etherscan.New()
 	if *pCSVEthAddress != "" {
@@ -243,7 +259,13 @@ func main() {
 			log.Fatal("Error parsing Bitcoin CSV file:", err)
 		}
 		if *pBCD {
-			blkst.PrintBCDStatus(btc)
+			blkst.DetectBCD(btc)
+		}
+		if *pBCH {
+			blkst.DetectBCH(btc)
+		}
+		if *pBTG {
+			blkst.DetectBTG(btc)
 		}
 	}
 	// create Global Wallet up to Date
@@ -265,6 +287,7 @@ func main() {
 	global.Add(revo.TXsByCategory)
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)
+	global.Add(bc.TXsByCategory)
 	global.FindTransfers()
 	global.FindCashInOut(*pNative)
 	global.SortTXsByDate(true)
@@ -281,9 +304,9 @@ func main() {
 	// Debug
 	if *pTXsCateg != "" {
 		if *pTXsCateg == "Alls" {
-			global.Println()
+			global.Println(*pCurrFilter)
 		} else {
-			global[*pTXsCateg].Println("Category " + *pTXsCateg)
+			global[*pTXsCateg].Println("Category "+*pTXsCateg, *pCurrFilter)
 		}
 	}
 	// Construct global wallet up to date
@@ -292,14 +315,14 @@ func main() {
 		log.Fatal("Error parsing Date:", err)
 	}
 	globalWallet := global.GetWallets(filterDate, false)
-	globalWallet.Println("Global Crypto")
+	globalWallet.Println("Global Crypto", "")
 	globalWalletTotalValue, err := globalWallet.CalculateTotalValue(*pNative)
 	if err != nil {
 		log.Fatal("Error Calculating Global Wallet:", err)
 	} else {
 		globalWalletTotalValue.Amount = globalWalletTotalValue.Amount.RoundBank(0)
 		fmt.Print("Total Value : ")
-		globalWalletTotalValue.Println()
+		globalWalletTotalValue.Println("")
 	}
 	if *p2086 {
 		var cessions Cessions

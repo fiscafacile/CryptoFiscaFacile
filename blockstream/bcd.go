@@ -10,10 +10,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-func (blkst *Blockstream) PrintBCDStatus(b *btc.BTC) {
+func (blkst *Blockstream) DetectBCD(b *btc.BTC) {
 	bcdForkDate := time.Date(2017, time.November, 24, 10, 20, 0, 0, time.UTC)
 	w := b.TXsByCategory.GetWallets(bcdForkDate, false)
-	w.Println("BTC (at time of BCD Fork)")
+	w.Println("BTC (at time of BCD Fork)", "BTC")
 	fmt.Println("Addresses :")
 	for _, a := range b.CSVAddresses {
 		bal, err := blkst.GetAddressBalanceAtDate(a.Address, bcdForkDate)
