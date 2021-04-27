@@ -179,7 +179,8 @@ Choix de la Fiat pour consolidataion. Si vous voulez déclarer aux impôts fran�
 
 Si vous voulez faire un don a l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/1MTLN9ce9KG3pEWFdhPYxkRjQH2F72oqfU)](https://en.cryptobadges.io/donate/1MTLN9ce9KG3pEWFdhPYxkRjQH2F72oqfU)
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)](https://en.cryptobadges.io/donate/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)
+[![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)](https://en.cryptobadges.io/donate/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)
 
 ## Credits
 
