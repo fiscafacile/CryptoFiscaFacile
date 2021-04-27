@@ -6,9 +6,11 @@ Gardez en tête que la loi n'étant pas encore définie sur tous les points, cet
 
 Tout comme le fait qu'il ne supporte pas toutes les plateformes existantes, mais un guide vous est fourni pour vous aider à développer votre propre module.
 
-Enfin, tout pull request est le bienvenu, j'essayerai de les intégrer le pus vite possible.
+Enfin, tout pull request est le bienvenu, j'essayerai de les intégrer le plus vite possible.
 
-### Installation
+Aussi, le code actuel est en constante évolution, il se peut donc que la documentation ci dessous ne soit pas précise, mais il vous fournira une bonne base pour utiliser cet outil.
+
+## Installation
 
 ```bash
 $ go get github.com/fiscafacile/CryptoFiscaFacile
@@ -16,7 +18,65 @@ $ cd $GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile
 $ go build
 ```
 
-### Utilisation
+## Utilisation
+
+### Principe de focntionnement
+
+Cet outil a besoin de "Sources" pour établir une liste de transactions qui constituent votre protefeuille global.
+
+Ces "Sources" peuvent être :
+
+- des fichiers CSV (souvent exportés depuis une plateforme ou établis manuellement)
+
+- des fichiers JSON (autre formalisme de données structuées)
+
+- des API de plateforme
+
+Toutes les APIs utilisés par ce outils sont mis en cache dans des fichiers JSON rangés dans le répertoire `Cache` créé à coté de l'exécutable. Vous pouvez donc vérifier/exporter/modifier ces informations pour rendre votre utilisation cohérente. Pensez aussi à supprimer/déplacer/renommer les fichiers de cache si vous voulez récupérer les dernières informations de la plateforme.
+
+Chaque transaction est composé d'une `Date`, d'une `Note` (donnant des informations pour la comprendre), optionellement d'une liste de frais `Fee`, optionellement d'une liste de sources `From` et optionellement d'une liste de destinations `To`.
+
+Les `Fee`, `From` et `To` sont des "Actifs" composé d'un `Code` et d'un montant `Amount`.
+
+Tous les montant dans l'outils sont des chiffres décimaux avec précision arbitraire : aucun arrondis n'est fait dans les calculs, seuls à l'affichage à la fin pour plus de claretée.
+
+Une fois toutes les transactions récupérées de toutes les "Sources" que vous avez fournies à l'outil, il va essayer de catégoriser ces TXs
+
+#### Catégories de TXs relatifs à une "Source"
+
+- "Dépots" `Deposits` : ce sont des TXs qui ont un ou plusieurs `To` mais n'ont pas de `From` et possiblement des `Fee`.
+
+- "Retraits" `Withdrawals` : c'est l'inverse des "Dépots".
+
+- "Frais" `Fees` : les TXs qui n'ont que des `Fee`.
+
+- "Echanges" `Exchanges` : des TXs qui ont des `From` et des `To`, et possiblement des `Fee`.
+
+##### Catégories manuelles et semi-automatiques
+
+Vous pourrez fournir une "Source" particulière pour rediriger certaines TXs dans des catégories manuelles comme des "Dons" `Gifts` et autres `AirDrops`.
+
+Vous pourrez aussi activer la détection de `Forks` sur certaines crypto.
+
+##### Catégories spécifiques à certaines plateforme
+
+Sur certaines plateformes comme Crypto.com il existe aussi des `Cashbacks`, `Earns` et autres `Rewards`. Certaines TXs sont directement catégorisées en `CashOut` comme les paiements en crypto.
+
+##### Catégories spécifiques ETH
+
+Pour les sources ETH, il y a d'autre catégories spécificques : `Burns`, `Claims`, `Selfs` et `Swaps`.
+
+#### Catégories de TXs relatifs au portefeuille global
+
+Une fois toutes les TXs rangées dans des catégories, l'outils va essayer de rapprocher des TXs de différentes "Sources" pour synthétiser et recatégoriser au niveau du portefeuille global :
+
+- "Transferts" `Transfers` : par fusion d'un `Deposits` avec un `Withdrawals` si les `Date` et `Amount` correspondent.
+
+- `CashIn` et `CashOut` : ce sont respectivement des `Deposits` et `Withdrawals` ou des `Exchanges` donc l'"Actif" source ou destination sont des Fiats.
+
+- les `Cashbacks` sont transformés en `CashIn` si aucun "reversal" n'est venu les annuler.
+
+## Options
 
 ```bash
 $ CryptoFiscaFacile -h
@@ -88,14 +148,45 @@ Usage of CryptoFiscaFacile:
   -txscat string
         Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
 ```
-
-### Options
-
-#### Options de base
+### Options de base
 
 ```bash
--date string
+	-date string
         Date Filter (default "2021-01-01T00:00:00")
 ```
 Permet d'afficher votre protefeuille global valorisé en Fiat à une date donnée.
 Utile pour vérifier l'état du stock et estimer s'il manque des sources.
+
+```bash
+  -location string
+        Date Filter Location (default "Europe/Paris")
+```
+
+```bash
+	-stats
+        Display accounts stats
+```
+Permet d'afficher le nombre de transactions par catégorie (toutes crypto confondues).
+
+```bash
+  -native string
+        Native Currency for consolidation (default "EUR")
+```
+Choix de la Fiat pour consolidataion. Si vous voulez déclarer aux impôts français, il faut laisser "EUR".
+
+
+## Donation
+
+Si vous voulez faire un don a l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
+
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/1MTLN9ce9KG3pEWFdhPYxkRjQH2F72oqfU)](https://en.cryptobadges.io/donate/1MTLN9ce9KG3pEWFdhPYxkRjQH2F72oqfU)
+
+## Credits
+
+Merci au channel [Fiscalité crypto FR](t.me/fiscalitecryptofr) sur Telegram qui est une mine d'or d'information pour essayer de comprendre comment cela fonctionne.
+
+## Copyright & License
+
+Copyright (c) 2021-present FiscaFacile.
+
+Released under the terms of the MIT license. See LICENSE for details.
