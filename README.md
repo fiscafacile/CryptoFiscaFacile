@@ -144,15 +144,39 @@ Lance des vérifications d'intégrité sur les TXs du portefeuille globale et af
 #### Display
 
 ```
-  -txscat string
+  -txs_display string
         Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
   -curr_filter string
         Currencies to be filtered in Transactions Display (comma separated list)
 ```
+Affiche toutes les TXs d'une Catégorie (attention ceci peut être très long...).
+
+Vous pouvez afficher toutes les Catégories avec `-txs_display Alls`.
+
+Vous pouvez aussi afficher que les TXs concernant certaines cryptos, par exemple pour n'afficher que le BTC et le BCH : `-curr_filter BTC,BCH`.
 
 ### Options de "Sources"
 
 Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exactitude de l'analyse pour cette Source). Si ce taux de support n'est pas bon, c'est sûrement parce que je n'ai pas assez d'exemples de transactions pour bien les analyser. Vous pouvez ouvrir un Ticket Github pour ajouter votre cas qui ne fontionne pas, j'essayerai de faire évoluer l'outil pour le rendre compatible.
+
+#### Catégorisation Manuelle [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#catC3%A9gorisation-manuelle-)
+
+```
+  -txs_categ string
+        Transactions Categories CSV file
+```
+
+Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH, ou autre) et donne un `Type`. Les différents `Type` supportés sont :
+
+- IN : va transformer la TX en `CashIn` même si ses `From` ne sont pas en Fiat. Utile pour simuler des plateformes qui ne proposent pas de CSV (comme DigyCode).
+
+- OUT : va transformer la TX en `CashOut` même si ses `To` ne sont pas en Fiat. Utile pour les achats de bien ou service en crypto. Cela va transformer le `To` avec les infos `Value` et `Currency` de ce CSV.
+
+- GIFT : va catégoriser la TX en don `Gifts`. Utile si vous offrez des cryptos à un ami pour lui montrer comment cela fonctionne lors de son anniversaire.
+
+- CUS : va retrancher une partie du montant de `From` ou `To` comme si vous en aviez la gestion mais qu'ils ne vous appartenaient pas (Custody), ils ne seront donc pas consiédérés dans votre portefeuille global. Utile si vous avez acheté des cryptos pour votre grand-père, mais attention, il devra lui aussi les déclarer.
+
+Les colones du CSV doivent être : `TxID,Type,Description,Value,Currency`
 
 #### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#binance-)
 
@@ -183,8 +207,6 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
 ```
   -btc_address string
         Bitcoin Addresses CSV file
-  -btc_categ string
-        Bitcoin Categories CSV file
   -bcd
         Detect Bitcoin Diamond Fork
   -bch
@@ -214,8 +236,11 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
 ```
 
 Les colones du CSV de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
+
 Les colones du CSV de l'Exchange Stake doivent être : `create_time_utc,stake_currency,stake_amount,apr,interest_currency,interest_amount,status`
+
 Les colones du CSV de l'Exchange Supercharger doivent être : `create_time_utc,supercharger_currency,reward_mount,description`
+
 Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
 
 #### Coinbase [![Support bon](https://img.shields.io/badge/support-bon-blue)](#coinbase-)
@@ -245,7 +270,9 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
         Local Bitcoin Transfer CSV file
 ```
 
-Les colones du CSV doivent être : ``
+Les colones du CSV de Trade doivent être : `id,created_at,buyer,seller,trade_type,btc_amount,btc_traded,fee_btc,btc_amount_less_fee,btc_final,fiat_amount,fiat_fee,fiat_per_btc,currency,exchange_rate,transaction_released_at,online_provider,reference`
+
+Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, TXtype, TXdesc, TXNotes`
 
 #### Ledger Live
 
@@ -254,7 +281,7 @@ Les colones du CSV doivent être : ``
         LedgerLive CSV file
 ```
 
-Les colones du CSV doivent être : ``
+Les colones du CSV doivent être : `Operation Date,Currency Ticker,Operation Type,Operation Amount,Operation Fees,Operation Hash,Account Name,Account xpub`
 
 #### MyCelium [![Support déprécié](https://img.shields.io/badge/support-d%C3%A9pr%C3%A9ci%C3%A9-red)](#mycelium-)
 

@@ -29,7 +29,7 @@ func main() {
 	pDate := flag.String("date", "2021-01-01T00:00:00", "Date Filter")
 	pLocation := flag.String("location", "Europe/Paris", "Date Filter Location")
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
-	pTXsCateg := flag.String("txscat", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pTXsDisplayCat := flag.String("txs_display", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	pCurrFilter := flag.String("curr_filter", "", "Currencies to be filtered in Transactions Display (comma separated list)")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
@@ -37,7 +37,7 @@ func main() {
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCoinLayerKey := flag.String("coinlayer_key", "", "CoinLayer Key (https://coinlayer.com/product)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
-	pCSVBtcCategorie := flag.String("btc_categ", "", "Bitcoin Categories CSV file")
+	pCSVTXsCateg := flag.String("txs_categ", "", "Transactions Categories CSV file")
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
 	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
 	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
@@ -67,10 +67,10 @@ func main() {
 	}
 	btc := btc.New()
 	blkst := blockstream.New()
-	if *pCSVBtcCategorie != "" {
-		recordFile, err := os.Open(*pCSVBtcCategorie)
+	if *pCSVTXsCateg != "" {
+		recordFile, err := os.Open(*pCSVTXsCateg)
 		if err != nil {
-			log.Fatal("Error opening Bitcoin CSV Payments file:", err)
+			log.Fatal("Error opening Transactions CSV Category file:", err)
 		}
 		btc.ParseCSVCategorie(recordFile)
 	}
@@ -294,11 +294,11 @@ func main() {
 		global.CheckConsistency(loc)
 	}
 	// Debug
-	if *pTXsCateg != "" {
-		if *pTXsCateg == "Alls" {
+	if *pTXsDisplayCat != "" {
+		if *pTXsDisplayCat == "Alls" {
 			global.Println(*pCurrFilter)
 		} else {
-			global[*pTXsCateg].Println("Category "+*pTXsCateg, *pCurrFilter)
+			global[*pTXsDisplayCat].Println("Category "+*pTXsDisplayCat, *pCurrFilter)
 		}
 	}
 	// Construct global wallet up to date
