@@ -58,7 +58,7 @@ Une fois toutes les transactions récupérées de toutes les "Sources" que vous 
 
 ##### Catégories manuelles et semi-automatiques
 
-Vous pourrez fournir une "Source" particulière pour rediriger certaines TXs dans des catégories manuelles comme des "Dons" `Gifts` et autres `AirDrops`.
+Vous pourrez fournir une [Source](#catégorisation-manuelle-) particulière pour rediriger certaines TXs dans des catégories manuelles comme des "Dons" `Gifts` et autres `AirDrops`.
 
 Vous pourrez aussi activer la détection de `Forks` sur certaines cryptos.
 
@@ -159,7 +159,7 @@ Vous pouvez aussi afficher que les TXs concernant certaines cryptos, par exemple
 
 Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exactitude de l'analyse pour cette Source). Si ce taux de support n'est pas bon, c'est sûrement parce que je n'ai pas assez d'exemples de transactions pour bien les analyser. Vous pouvez ouvrir un Ticket Github pour ajouter votre cas qui ne fontionne pas, j'essayerai de faire évoluer l'outil pour le rendre compatible.
 
-#### Catégorisation Manuelle [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#catC3%A9gorisation-manuelle-)
+#### Catégorisation Manuelle [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#catégorisation-manuelle-)
 
 ```
   -txs_categ string
