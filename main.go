@@ -22,7 +22,6 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
-	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -43,7 +42,6 @@ func main() {
 	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
 	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
 	pJsonBtgTXs := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
-	pFloatBtcExclude := flag.Float64("btc_exclude", 0.0, "Exclude Bitcoin Amount")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
 	pCSVBinance := flag.String("binance", "", "Binance CSV file")
@@ -270,12 +268,6 @@ func main() {
 	}
 	// create Global Wallet up to Date
 	global := make(wallet.TXsByCategory)
-	if *pFloatBtcExclude != 0.0 {
-		t := wallet.TX{Timestamp: time.Date(2010, 1, 1, 0, 0, 0, 0, time.UTC), Note: "Manual Exclusion"}
-		t.Items = make(map[string]wallet.Currencies)
-		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.NewFromFloat(*pFloatBtcExclude)})
-		global["Excludes"] = append(global["Excludes"], t)
-	}
 	global.Add(b.TXsByCategory)
 	global.Add(bf.TXsByCategory)
 	global.Add(cb.TXsByCategory)

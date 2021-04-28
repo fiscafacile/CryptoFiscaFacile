@@ -14,7 +14,7 @@ Tout pull request est le bienvenu, j'essayerai de les intégrer le plus vite pos
 
 Enfin, le code actuel est en constante évolution, il se peut donc que la documentation ci dessous ne soit pas précise, mais elle vous fournira une bonne base pour utiliser cet outil.
 
-## Installation
+## Installation / Compilation
 
 ```bash
 $ go get github.com/fiscafacile/CryptoFiscaFacile
@@ -80,80 +80,35 @@ Une fois toutes les TXs rangées dans des catégories, l'outil va essayer de rap
 
 - les `Cashbacks` sont transformés en `CashIn` si aucun "reversal" n'est venu les annuler.
 
-## Options
-
-```bash
-$ CryptoFiscaFacile -h
-Usage of CryptoFiscaFacile:
-  -2086
-        Display Cerfa 2086
-  -bcd
-        Detect Bitcoin Diamond Fork
-  -bch
-        Detect Bitcoin Cash Fork
-  -binance string
-        Binance CSV file
-  -binance_extended
-        Use Binance CSV file extended format
-  -bitfinex string
-        Bitfinex CSV file
-  -btc_address string
-        Bitcoin Addresses CSV file
-  -btc_categ string
-        Bitcoin Categories CSV file
-  -btc_exclude float
-        Exclude Bitcoin Amount
-  -btg
-        Detect Bitcoin Gold Fork
-  -btg_txs string
-        Bitcoin Gold Transactions JSON file
-  -cdc_app string
-        Crypto.com App CSV file
-  -cdc_ex_stake string
-        Crypto.com Exchange Stake CSV file
-  -cdc_ex_supercharger string
-        Crypto.com Exchange Supercharger CSV file
-  -cdc_ex_transfer string
-        Crypto.com Exchange Deposit/Withdrawal CSV file
-  -check
-        Check and Display consistency
-  -coinapi_key string
-        CoinAPI Key (https://www.coinapi.io/pricing?apikey)
-  -coinbase string
-        Coinbase CSV file
-  -coinlayer_key string
-        CoinLayer Key (https://coinlayer.com/product)
-  -curr_filter string
-        Currencies to be filtered in Transactions Display (comma separated list)
-  -date string
-        Date Filter (default "2021-01-01T00:00:00")
-  -eth_address string
-        Ethereum Addresses CSV file
-  -etherscan_apikey string
-        Etherscan API Key (https://etherscan.io/myapikey)
-  -lb_trade string
-        Local Bitcoin Trade CSV file
-  -lb_transfer string
-        Local Bitcoin Transfer CSV file
-  -ledgerlive string
-        LedgerLive CSV file
-  -location string
-        Date Filter Location (default "Europe/Paris")
-  -metamask string
-        MetaMask CSV file
-  -mycelium string
-        MyCelium CSV file
-  -native string
-        Native Currency for consolidation (default "EUR")
-  -revolut string
-        Revolut CSV file
-  -stats
-        Display accounts stats
-  -txscat string
-        Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
-```
+## Configuration
 
 ### Options de base
+
+#### Help
+
+```
+  -h
+        Display all available arguments
+```
+Permet d'afficher toutes les options possibles.
+
+#### Native Currency
+
+```
+  -native string
+        Native Currency for consolidation (default "EUR")
+```
+Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts français, il faut laisser "EUR".
+
+#### Location
+
+```
+  -location string
+        Date Filter Location (default "Europe/Paris")
+```
+Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déclarer aux impôts français, il faut laisser "Europe/Paris".
+
+#### Date
 
 ```
   -date string
@@ -162,11 +117,9 @@ Usage of CryptoFiscaFacile:
 Permet d'afficher votre protefeuille global valorisé en Fiat à une date donnée.
 Utile pour vérifier l'état du stock et estimer s'il manque des sources.
 
-```
-  -location string
-        Date Filter Location (default "Europe/Paris")
-```
-Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déclarer aux impôts français, il faut laisser "Europe/Paris".
+### Options d'aide à l'établissement d'un portefeuille global cohérent
+
+#### Stats
 
 ```
   -stats
@@ -174,11 +127,28 @@ Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déc
 ```
 Permet d'afficher le nombre de transactions par catégorie (toutes cryptos confondues).
 
+#### Check
+
 ```
-  -native string
-        Native Currency for consolidation (default "EUR")
+  -check
+        Check and Display consistency
 ```
-Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts français, il faut laisser "EUR".
+Lance des vérifications d'intégrité sur les TXs du portefeuille globale et affiche les TXs KO. Les vérifications sont :
+
+- tous les `Withdrawals` postérieurs au 1 Janvier 2019 doivent être justifiés, donc catégorisés ailleurs (`CashOut`, `Gifts`,...).
+
+- tous les `Transfers` doivent avoir une balance nulle (la balance est la somme des `To` moins la somme des `From` moins la somme des `Fee`). Note pour pouvoir aditioner ces montant, ils faut qu'ils soient dans la même devise, ce qui est le cas pour les `Transfers` (normalement).
+
+- toutes les TXs doivent avoir des montants positifs. Les montants de `From` et de `Fee` seront consédérés négativement par l'outil mais ils doivent être enregistré positivement dans leur TX par la "Source" qui les a produites.
+
+#### Display
+
+```
+  -txscat string
+        Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
+  -curr_filter string
+        Currencies to be filtered in Transactions Display (comma separated list)
+```
 
 ### Options de "Sources"
 
@@ -195,13 +165,129 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
 Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `-binance_extended`.
 
+Les colones du CSV d'origine doivent être : `UTC_Time,Account,Operation,Coin,Change,Remark`
+Les colones du CSV étendu doivent être : `UTC_Time,Account,Operation,Coin,Change,Fee,Remark`
+
 #### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bitfinex-)
 
-```bash
+```
   -bitfinex string
         Bitfinex CSV file
 ```
+Il faut fournir le fichier CSV récupéré dans Bitfinex (https://report.bitfinex.com/ledgers puis choisissez les dates et "Export", choisissez Date Format : DD-MM-YY).
 
+Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALANCE,DATE,WALLET`
+
+#### BTC [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#btc-)
+
+```
+  -btc_address string
+        Bitcoin Addresses CSV file
+  -btc_categ string
+        Bitcoin Categories CSV file
+  -bcd
+        Detect Bitcoin Diamond Fork
+  -bch
+        Detect Bitcoin Cash Fork
+  -btg
+        Detect Bitcoin Gold Fork
+```
+
+#### BTG [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#btg-)
+
+```
+  -btg_txs string
+        Bitcoin Gold Transactions JSON file
+```
+
+#### Crypto.com [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#crypto.com-)
+
+```
+  -cdc_app string
+        Crypto.com App CSV file
+  -cdc_ex_stake string
+        Crypto.com Exchange Stake CSV file
+  -cdc_ex_supercharger string
+        Crypto.com Exchange Supercharger CSV file
+  -cdc_ex_transfer string
+        Crypto.com Exchange Deposit/Withdrawal CSV file
+```
+
+#### Coinbase
+
+```
+  -coinbase string
+        Coinbase CSV file
+```
+
+#### ETH
+
+```
+  -eth_address string
+        Ethereum Addresses CSV file
+```
+
+#### Local Bitcoin
+
+```
+  -lb_trade string
+        Local Bitcoin Trade CSV file
+  -lb_transfer string
+        Local Bitcoin Transfer CSV file
+```
+
+#### Ledger Live
+
+```
+  -ledgerlive string
+        LedgerLive CSV file
+```
+
+#### MyCelium
+
+```
+  -mycelium string
+        MyCelium CSV file
+```
+
+#### Revolut
+
+```
+  -revolut string
+        Revolut CSV file
+```
+
+### Options de "Providers"
+
+Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux de changes (CoinGecko, CoinLayer et CoinAPI), soit des transactions sur une blockchain particulière (Blockstream pour BTC et Etherscan pour ETH). Certaines de ces APIs ont besoins d'une clé.
+
+#### CoinAPI.io
+
+```
+  -coinapi_key string
+        CoinAPI Key (https://www.coinapi.io/pricing?apikey)
+```
+
+#### CoinLayer.com
+
+```
+  -coinlayer_key string
+        CoinLayer Key (https://coinlayer.com/product)
+```
+
+#### Etherscan.io
+
+```
+  -etherscan_apikey string
+        Etherscan API Key (https://etherscan.io/myapikey)
+```
+
+### Options de sortie
+
+```
+  -2086
+        Display Cerfa 2086
+```
 
 ## Donation
 
