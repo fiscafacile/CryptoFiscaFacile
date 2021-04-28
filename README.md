@@ -184,7 +184,7 @@ Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts franç
 
 Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exactitude de l'analyse pour cette Source). Si ce taux de support n'est pas bon, c'est sûrement parce que je n'ai pas assez d'exemples de transactions pour bien les analyser. Vous pouvez ouvrir un Ticket Github pour ajouter votre cas qui ne fontionne pas, j'essayerai de faire évoluer l'outil pour le rendre compatible.
 
-#### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](binance-)
+#### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#binance-)
 
 ```
   -binance string
@@ -195,7 +195,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
 Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `-binance_extended`.
 
-#### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)](bitfinex-)
+#### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bitfinex-)
 
 ```bash
   -bitfinex string
