@@ -187,7 +187,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 
 #### Binance
 
-[Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)
+[![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)]
 
 ```bash
   -binance string
@@ -200,7 +200,7 @@ Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change`
 
 #### Bitfinex
 
-[Support bon](https://img.shields.io/badge/support-bon-blue)
+[![Support bon](https://img.shields.io/badge/support-bon-blue)]
 
 ```bash
   -bitfinex string
