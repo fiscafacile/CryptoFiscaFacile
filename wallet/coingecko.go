@@ -54,6 +54,7 @@ func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Exc
 	}
 	coin = strings.ReplaceAll(coin, "DSH", "dash")
 	coin = strings.ReplaceAll(coin, "IOT", "miota")
+	coin = strings.ReplaceAll(coin, "MEET.ONE", "meetone")
 	err = db.Read("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), &rates)
 	if err != nil {
 		coinID := ""

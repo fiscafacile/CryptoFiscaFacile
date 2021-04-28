@@ -11,6 +11,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/fiscafacile/CryptoFiscaFacile/btc"
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
@@ -132,7 +133,7 @@ func (blkst *Blockstream) GetAddressBalanceAtDate(add string, date time.Time) (b
 	return
 }
 
-func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
+func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 	for _, btc := range b.CSVAddresses {
 		apiTXs, err := blkst.GetAddressTXs(btc.Address)
 		if err != nil {
@@ -198,7 +199,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
 					b.TXsByCategory["Transfers"] = append(b.TXsByCategory["Transfers"], t)
-				} else if is, desc, val, curr := b.IsTxCashOut(tx.Txid); is {
+				} else if is, desc, val, curr := cat.IsTxCashOut(tx.Txid); is {
 					t.Note += " crypto_payment " + desc
 					from := wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)}
 					t.Items["From"] = append(t.Items["From"], from)
@@ -211,12 +212,12 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
 					}
 					b.TXsByCategory["CashOut"] = append(b.TXsByCategory["CashOut"], t)
-				} else if is, desc, val, curr := b.IsTxExchange(tx.Txid); is {
+				} else if is, desc, val, curr := cat.IsTxExchange(tx.Txid); is {
 					t.Note += " crypto_exchange " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
 					b.TXsByCategory["Exchanges"] = append(b.TXsByCategory["Exchanges"], t)
-				} else if is, desc := b.IsTxGift(tx.Txid); is {
+				} else if is, desc := cat.IsTxGift(tx.Txid); is {
 					t.Note += " gift " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(-valueOut-valueIn-tx.Fee), -8)})
 					b.TXsByCategory["Gifts"] = append(b.TXsByCategory["Gifts"], t)
@@ -229,17 +230,17 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC) {
 				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
-				if is, desc, val := b.HasCustody(tx.Txid); is {
+				if is, desc, val := cat.HasCustody(tx.Txid); is {
 					t.Note += " crypto_custody " + desc
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8).Sub(val)})
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(valueOut), -8)})
 				}
-				if is, desc, val, curr := b.IsTxCashIn(tx.Txid); is {
+				if is, desc, val, curr := cat.IsTxCashIn(tx.Txid); is {
 					t.Note += " crypto_purchase " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
 					b.TXsByCategory["CashIn"] = append(b.TXsByCategory["CashIn"], t)
-				} else if is, desc, val, curr := b.IsTxExchange(tx.Txid); is {
+				} else if is, desc, val, curr := cat.IsTxExchange(tx.Txid); is {
 					t.Note += " crypto_exchange " + desc
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
 					b.TXsByCategory["Exchanges"] = append(b.TXsByCategory["Exchanges"], t)

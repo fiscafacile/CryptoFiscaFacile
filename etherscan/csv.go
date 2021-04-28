@@ -4,6 +4,8 @@ import (
 	"encoding/csv"
 	"io"
 	"strings"
+
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 )
 
 type csvAddress struct {
@@ -11,7 +13,7 @@ type csvAddress struct {
 	description string
 }
 
-func (ethsc *Etherscan) ParseCSV(reader io.Reader) {
+func (ethsc *Etherscan) ParseCSV(reader io.Reader, cat category.Category) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -24,7 +26,7 @@ func (ethsc *Etherscan) ParseCSV(reader io.Reader) {
 			}
 		}
 		// Fill TXsByCategory
-		err = ethsc.apiGetAllTXs()
+		err = ethsc.apiGetAllTXs(cat)
 	}
 	ethsc.done <- err
 }

@@ -174,6 +174,8 @@ Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH,
 
 - GIFT : va catégoriser la TX en don `Gifts`. Utile si vous offrez des cryptos à un ami pour lui montrer comment cela fonctionne lors de son anniversaire.
 
+- SHIT : va ignorer la TX donc aucune catégorisation. Utile si vous avez des Shitcoins dont vous ne voulez pas.
+
 - CUS : va retrancher une partie du montant de `From` ou `To` comme si vous en aviez la gestion mais qu'ils ne vous appartenaient pas (Custody), ils ne seront donc pas consiédérés dans votre portefeuille global. Utile si vous avez acheté des cryptos pour votre grand-père, mais attention, il devra lui aussi les déclarer.
 
 Les colones du CSV doivent être : `TxID,Type,Description,Value,Currency`

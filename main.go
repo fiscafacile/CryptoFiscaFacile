@@ -13,6 +13,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/blockchain"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockstream"
 	"github.com/fiscafacile/CryptoFiscaFacile/btc"
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
@@ -34,10 +35,10 @@ func main() {
 	pStats := flag.Bool("stats", false, "Display accounts stats")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
+	pCSVTXsCateg := flag.String("txs_categ", "", "Transactions Categories CSV file")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCoinLayerKey := flag.String("coinlayer_key", "", "CoinLayer Key (https://coinlayer.com/product)")
 	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
-	pCSVTXsCateg := flag.String("txs_categ", "", "Transactions Categories CSV file")
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
 	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
 	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
@@ -65,22 +66,23 @@ func main() {
 	if *pCoinLayerKey != "" {
 		wallet.CoinLayerSetKey(*pCoinLayerKey)
 	}
-	btc := btc.New()
-	blkst := blockstream.New()
+	categ := category.New()
 	if *pCSVTXsCateg != "" {
 		recordFile, err := os.Open(*pCSVTXsCateg)
 		if err != nil {
 			log.Fatal("Error opening Transactions CSV Category file:", err)
 		}
-		btc.ParseCSVCategorie(recordFile)
+		categ.ParseCSVCategory(recordFile)
 	}
+	btc := btc.New()
+	blkst := blockstream.New()
 	if *pCSVBtcAddress != "" {
 		recordFile, err := os.Open(*pCSVBtcAddress)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Addresses file:", err)
 		}
 		btc.ParseCSVAddresses(recordFile)
-		go blkst.GetAllTXs(btc)
+		go blkst.GetAllTXs(btc, *categ)
 	}
 	bc := blockchain.New()
 	if *pJsonBtgTXs != "" {
@@ -100,7 +102,7 @@ func main() {
 			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
 		}
 		ethsc.APIConnect(*pEtherscanAPIKey)
-		go ethsc.ParseCSV(recordFile)
+		go ethsc.ParseCSV(recordFile, *categ)
 	}
 	b := binance.New()
 	if *pCSVBinance != "" {
@@ -186,7 +188,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening LedgerLive CSV file:", err)
 		}
-		err = ll.ParseCSV(recordFile, btc)
+		err = ll.ParseCSV(recordFile, *categ)
 		if err != nil {
 			log.Fatal("Error parsing LedgerLive CSV file:", err)
 		}
