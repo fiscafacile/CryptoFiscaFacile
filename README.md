@@ -184,7 +184,7 @@ Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts franç
 
 Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exactitude de l'analyse pour cette Source). Si ce taux de support n'est pas bon, c'est sûrement parce que je n'ai pas assez d'exemples de transactions pour bien les analyser. Vous pouvez ouvrir un Ticket Github pour ajouter votre cas qui ne fontionne pas, j'essayerai de faire évoluer l'outil pour le rendre compatible.
 
-#### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)]()
+#### Binance ![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)
 
 ```bash
   -binance string
@@ -195,7 +195,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
 Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `-binance_extended`.
 
-#### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)]()
+#### Bitfinex ![Support bon](https://img.shields.io/badge/support-bon-blue)
 
 ```bash
   -bitfinex string
@@ -213,7 +213,7 @@ Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un
 
 ## Remerciements
 
-Merci au canal [Fiscalité crypto FR](t.me/fiscalitecryptofr) sur Telegram qui est une mine d'or d'informations pour essayer de comprendre comment cela fonctionne.
+Merci au canal [![Fiscalité crypto FR](https://img.shields.io/badge/Join-Telegram-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNCAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS40MTcgMTUuMTgxLS4zOTcgNS41ODRjLjU2OCAwIC44MTQtLjI0NCAxLjEwOS0uNTM3bDIuNjYzLTIuNTQ1IDUuNTE4IDQuMDQxYzEuMDEyLjU2NCAxLjcyNS4yNjcgMS45OTgtLjkzMWwzLjYyMi0xNi45NzIuMDAxLS4wMDFjLjMyMS0xLjQ5Ni0uNTQxLTIuMDgxLTEuNTI3LTEuNzE0bC0yMS4yOSA4LjE1MWMtMS40NTMuNTY0LTEuNDMxIDEuMzc0LS4yNDcgMS43NDFsNS40NDMgMS42OTMgMTIuNjQzLTcuOTExYy41OTUtLjM5NCAxLjEzNi0uMTc2LjY5MS4yMTh6IiBmaWxsPSIjMDM5YmU1Ii8+PC9zdmc+)](https://telegram.me/fiscalitecryptofr) sur Telegram qui est une mine d'or d'informations pour essayer de comprendre comment cela fonctionne.
 
 ## Copyright & License
 
