@@ -3,6 +3,7 @@ package etherscan
 import (
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
@@ -237,32 +238,54 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
-					if tx.From == "0x0000000000000000000000000000000000000000" {
-						ethsc.TXsByCategory["Claims"] = append(ethsc.TXsByCategory["Claims"], t)
-						ethsc.apiERC20TXs[i].used = true
-					} else {
-						found := false
-						for j, ntx := range ethsc.apiNormalTXs {
-							if ntx.TimeStamp.Equal(tx.TimeStamp) &&
-								ntx.BlockNumber == tx.BlockNumber &&
-								ntx.Hash == tx.Hash {
-								found = true
+					if is, feeHash := cat.IsTxFee(tx.Hash); is {
+						for k, ntx2 := range ethsc.apiNormalTXs {
+							for _, fee := range strings.Split(feeHash, ";") {
+								if ntx2.Hash == fee {
+									ethsc.apiNormalTXs[k].used = true
+									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
+								}
+							}
+						}
+					}
+					found := false
+					for j, ntx := range ethsc.apiNormalTXs {
+						if ntx.Hash == tx.Hash {
+							found = true
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+							if tx.From == "0x0000000000000000000000000000000000000000" {
+								found2 := false
+								if is, buyHash := cat.IsTxTokenSale(tx.Hash); is {
+									for k, ntx2 := range ethsc.apiNormalTXs {
+										if ntx2.Hash == buyHash {
+											found2 = true
+											ethsc.apiNormalTXs[k].used = true
+											t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx2.Value})
+											t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
+										}
+									}
+								}
+								if found2 {
+									ethsc.TXsByCategory["TokenBuys"] = append(ethsc.TXsByCategory["TokenBuys"], t)
+								} else {
+									ethsc.TXsByCategory["Claims"] = append(ethsc.TXsByCategory["Claims"], t)
+								}
+							} else {
 								if ntx.Value.IsZero() {
 									ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 								} else {
-									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 									t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
 									ethsc.TXsByCategory["Swaps"] = append(ethsc.TXsByCategory["Swaps"], t)
 								}
-								ethsc.apiNormalTXs[j].used = true
-								ethsc.apiERC20TXs[i].used = true
-								break
 							}
-						}
-						if !found {
-							ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
+							ethsc.apiNormalTXs[j].used = true
 							ethsc.apiERC20TXs[i].used = true
+							break
 						}
+					}
+					if !found {
+						ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
+						ethsc.apiERC20TXs[i].used = true
 					}
 					for k, ntx := range ethsc.apiNormalTXs {
 						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
@@ -277,6 +300,16 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+					if is, feeHash := cat.IsTxFee(tx.Hash); is {
+						for k, ntx2 := range ethsc.apiNormalTXs {
+							for _, fee := range strings.Split(feeHash, ";") {
+								if ntx2.Hash == fee {
+									ethsc.apiNormalTXs[k].used = true
+									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
+								}
+							}
+						}
+					}
 					if tx.To == "0x0000000000000000000000000000000000000000" {
 						ethsc.TXsByCategory["Burns"] = append(ethsc.TXsByCategory["Burns"], t)
 						ethsc.apiERC20TXs[i].used = true
@@ -325,6 +358,16 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
+					if is, feeHash := cat.IsTxFee(tx.Hash); is {
+						for k, ntx2 := range ethsc.apiNormalTXs {
+							for _, fee := range strings.Split(feeHash, ";") {
+								if ntx2.Hash == fee {
+									ethsc.apiNormalTXs[k].used = true
+									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
+								}
+							}
+						}
+					}
 					for j, ntx := range ethsc.apiNormalTXs {
 						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
 							ntx.BlockNumber == tx.BlockNumber &&
@@ -361,7 +404,7 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 						if !tx.Value.IsZero() {
 							log.Println("Detected non zero Value Self TX", tx)
 						}
-						ethsc.TXsByCategory["Selfs"] = append(ethsc.TXsByCategory["Selfs"], t)
+						ethsc.TXsByCategory["Fees"] = append(ethsc.TXsByCategory["Fees"], t)
 						ethsc.apiNormalTXs[i].used = true
 					} else {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
@@ -374,7 +417,6 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 						t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 						ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
 						ethsc.apiNormalTXs[i].used = true
 					}

@@ -91,3 +91,27 @@ func (cat Category) IsTxShit(txid string) (is bool, desc string) {
 	}
 	return
 }
+
+func (cat Category) IsTxTokenSale(txid string) (is bool, buy string) {
+	is = false
+	for _, a := range cat.csvCategories {
+		if a.txID == txid && a.kind == "TOK" {
+			is = true
+			buy = a.description
+			return
+		}
+	}
+	return
+}
+
+func (cat Category) IsTxFee(txid string) (is bool, fee string) {
+	is = false
+	for _, a := range cat.csvCategories {
+		if a.txID == txid && a.kind == "FEE" {
+			is = true
+			fee = a.description
+			return
+		}
+	}
+	return
+}
