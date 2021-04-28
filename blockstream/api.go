@@ -14,7 +14,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
-	"gopkg.in/resty.v0"
+	"gopkg.in/resty.v1"
 )
 
 type apiTXStatus struct {
