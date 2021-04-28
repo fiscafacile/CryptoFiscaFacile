@@ -155,26 +155,26 @@ Usage of CryptoFiscaFacile:
 
 ### Options de base
 
-```bash
+```
   -date string
         Date Filter (default "2021-01-01T00:00:00")
 ```
 Permet d'afficher votre protefeuille global valorisé en Fiat à une date donnée.
 Utile pour vérifier l'état du stock et estimer s'il manque des sources.
 
-```bash
+```
   -location string
         Date Filter Location (default "Europe/Paris")
 ```
 Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déclarer aux impôts français, il faut laisser "Europe/Paris".
 
-```bash
+```
   -stats
         Display accounts stats
 ```
 Permet d'afficher le nombre de transactions par catégorie (toutes cryptos confondues).
 
-```bash
+```
   -native string
         Native Currency for consolidation (default "EUR")
 ```
@@ -184,9 +184,9 @@ Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts franç
 
 Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exactitude de l'analyse pour cette Source). Si ce taux de support n'est pas bon, c'est sûrement parce que je n'ai pas assez d'exemples de transactions pour bien les analyser. Vous pouvez ouvrir un Ticket Github pour ajouter votre cas qui ne fontionne pas, j'essayerai de faire évoluer l'outil pour le rendre compatible.
 
-#### Binance ![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)
+#### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](binance-)
 
-```bash
+```
   -binance string
         Binance CSV file
   -binance_extended
@@ -195,7 +195,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
 Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `-binance_extended`.
 
-#### Bitfinex ![Support bon](https://img.shields.io/badge/support-bon-blue)
+#### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)](bitfinex-)
 
 ```bash
   -bitfinex string
