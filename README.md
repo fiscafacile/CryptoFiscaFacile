@@ -14,10 +14,12 @@ Tout pull request est le bienvenu, j'essayerai de les intégrer le plus vite pos
 
 Enfin, le code actuel est en constante évolution, il se peut donc que la documentation ci dessous ne soit pas précise, mais elle vous fournira une bonne base pour utiliser cet outil.
 
-## Installation / Compilation
+## Installation / Compilation / Mise à jour
+
+Vous aurez besoin de Go dont voici la [doc officelle d'installation](https://golang.org/doc/install).
 
 ```bash
-$ go get github.com/fiscafacile/CryptoFiscaFacile
+$ go get -u github.com/fiscafacile/CryptoFiscaFacile
 $ cd $GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile
 $ go build
 ```
