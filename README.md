@@ -24,6 +24,8 @@ $ cd $GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile
 $ go build
 ```
 
+Le binaire de l'outil sera généré dans le répertoire `$GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile`, vous pourrez le lancer en ligne de commande avec les [Options](#configuration) nécessaires à vos besoins.
+
 ## Utilisation
 
 ### Principe de fonctionnement
