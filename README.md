@@ -213,21 +213,30 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
 
-#### Coinbase
+Les colones du CSV de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
+Les colones du CSV de l'Exchange Stake doivent être : `create_time_utc,stake_currency,stake_amount,apr,interest_currency,interest_amount,status`
+Les colones du CSV de l'Exchange Supercharger doivent être : `create_time_utc,supercharger_currency,reward_mount,description`
+Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
+
+#### Coinbase [![Support bon](https://img.shields.io/badge/support-bon-blue)](#coinbase-)
 
 ```
   -coinbase string
         Coinbase CSV file
 ```
 
-#### ETH
+Le CSV contient une entête qui sera ignorée par l'outil.
+
+Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Transacted,EUR Spot Price at Transaction,EUR Subtotal,EUR Total (inclusive of fees),EUR Fees,Notes`
+
+#### ETH [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#eth-)
 
 ```
   -eth_address string
         Ethereum Addresses CSV file
 ```
 
-#### Local Bitcoin
+#### Local Bitcoin [![Support bon](https://img.shields.io/badge/support-bon-blue)](#local-bitcoin-)
 
 ```
   -lb_trade string
@@ -236,6 +245,8 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
         Local Bitcoin Transfer CSV file
 ```
 
+Les colones du CSV doivent être : ``
+
 #### Ledger Live
 
 ```
@@ -243,19 +254,27 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
         LedgerLive CSV file
 ```
 
-#### MyCelium
+Les colones du CSV doivent être : ``
+
+#### MyCelium [![Support déprécié](https://img.shields.io/badge/support-d%C3%A9pr%C3%A9ci%C3%A9-red)](#mycelium-)
+
+Vous devriez exporter les clés publiques de votre wallet et utiliser la "Source" [BTC](#btc-).
 
 ```
   -mycelium string
         MyCelium CSV file
 ```
 
-#### Revolut
+Les colones du CSV doivent être : `Account,Transaction ID,Destination Address,Timestamp,Value,Currency,Transaction Label`
+
+#### Revolut [![Support bon](https://img.shields.io/badge/support-bon-blue)](#revolut-)
 
 ```
   -revolut string
         Revolut CSV file
 ```
+
+Les colones du CSV doivent être : `Completed Date,Description,Paid Out (BTC),Paid In (BTC),Exchange Out, Exchange In, Balance (BTC), Category, Notes`
 
 ### Options de "Providers"
 
