@@ -94,11 +94,13 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 						// log.Println(strings.Split(tx.Description, " ")[3], strings.Split(ex.Note, " ")[4])
 						if ex.SimilarDate(2*time.Second, tx.Date) &&
 							strings.Split(strings.Split(ex.Note, " ")[4], ".")[0] == strings.Split(strings.Split(tx.Description, " ")[3], ".")[0] {
+							// strings.Split(strings.Split(ex.Note, " ")[4], ".")[1][:1] == strings.Split(strings.Split(tx.Description, " ")[3], ".")[1][:1] {
 							found = true
 							if bf.TXsByCategory["Exchanges"][i].Items == nil {
 								bf.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
 							}
 							bf.TXsByCategory["Exchanges"][i].Items["Fee"] = append(bf.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
+							break
 						}
 					}
 					if !found {

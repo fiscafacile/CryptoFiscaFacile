@@ -31,6 +31,7 @@ func main() {
 	pLocation := flag.String("location", "Europe/Paris", "Date Filter Location")
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
 	pTXsDisplayCat := flag.String("txs_display", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pExact := flag.Bool("exact", false, "Display exact amount (no rounding)")
 	pCurrFilter := flag.String("curr_filter", "", "Currencies to be filtered in Transactions Display (comma separated list)")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
@@ -308,7 +309,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error parsing Date:", err)
 	}
-	globalWallet := global.GetWallets(filterDate, false)
+	globalWallet := global.GetWallets(filterDate, false, !*pExact)
 	globalWallet.Println("Global Crypto", "")
 	globalWalletTotalValue, err := globalWallet.CalculateTotalValue(*pNative)
 	if err != nil {

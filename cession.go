@@ -82,7 +82,7 @@ func (cs *Cessions) CalculatePVMV(global wallet.TXsByCategory, native string, lo
 				// étrangères, serveurs personnels, dispositif de stockage hors-ligne,
 				// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
 				// imposable en application de l’article 150 VH bis du CGI.
-				globalWallet := global.GetWallets(tx.Timestamp, false)
+				globalWallet := global.GetWallets(tx.Timestamp, false, true)
 				globalWalletTotalValue, err := globalWallet.CalculateTotalValue(native)
 				if err != nil {
 					log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
@@ -247,7 +247,7 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 	// antérieurement au 1er janvier 2019 ne peuvent être imputées sur d'éventuelles
 	// plus-values réalisées, quelle que soit leur date de réalisation.
 	date2019Jan1 := time.Date(2019, time.January, 1, 0, 0, 0, 0, loc)
-	globalWallet2019Jan1 := global.GetWallets(date2019Jan1, false)
+	globalWallet2019Jan1 := global.GetWallets(date2019Jan1, false, true)
 	// globalWallet2019Jan1.Println("2019 Jan 1st Global")
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs

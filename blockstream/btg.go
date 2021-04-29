@@ -12,7 +12,7 @@ import (
 
 func (blkst *Blockstream) DetectBTG(b *btc.BTC) {
 	btgForkDate := time.Date(2017, time.August, 1, 15, 16, 0, 0, time.UTC)
-	w := b.TXsByCategory.GetWallets(btgForkDate, false)
+	w := b.TXsByCategory.GetWallets(btgForkDate, false, false)
 	w.Println("BTC (at time of BTG Fork)", "BTC")
 	fmt.Println("Addresses :")
 	for _, a := range b.CSVAddresses {
