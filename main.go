@@ -136,7 +136,7 @@ func main() {
 	}
 	btrx := bittrex.New()
 	if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
-		go btrx.GetAllTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
+		go btrx.GetAllTransferTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
 	}
 	cb := coinbase.New()
 	if *pCSVCoinbase != "" {
