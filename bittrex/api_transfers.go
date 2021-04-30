@@ -84,17 +84,17 @@ func (btrx *Bittrex) getWithdrawals(apiKey string, apiSecret string) (withdrawal
 
 func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat category.Category) {
 	useCache := true
-	var depositTx []TransferResponse
-	var withdrawalTx []TransferResponse
+	var transferTx []TransferResponse
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Bittrex", "deposit", &depositTx)
+		err = db.Read("Bittrex", "transfers", &transferTx)
 	}
 	if !useCache || err != nil {
-		// Retrieve and cache deposit transfers
+		// Retrieve and cache transfers
+		var depositTx []TransferResponse
 		deposit, err := btrx.getDeposits(apiKey, apiSecret)
 		if err != nil {
 			time.Sleep(6 * time.Second)
@@ -104,13 +104,8 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat cate
 			}
 		}
 		json.Unmarshal(deposit.Body(), &depositTx)
-		if useCache {
-			err = db.Write("Bittrex", "deposit", depositTx)
-			if err != nil {
-				log.Println("Bittrex API : Error while caching deposits", err)
-			}
-		}
 		// Retrieve and cache withdrawals transfers
+		var withdrawalTx []TransferResponse
 		withdrawal, err := btrx.getWithdrawals(apiKey, apiSecret)
 		if err != nil {
 			time.Sleep(6 * time.Second)
@@ -120,15 +115,16 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat cate
 			}
 		}
 		json.Unmarshal(withdrawal.Body(), &withdrawalTx)
+		transferTx = append(depositTx, withdrawalTx...)
 		if useCache {
-			err = db.Write("Bittrex", "deposit", withdrawalTx)
+			err = db.Write("Bittrex", "transfers", transferTx)
 			if err != nil {
-				log.Println("Bittrex API : Error while caching withdrawals", err)
+				log.Println("Bittrex API : Error while caching transfers", err)
 			}
 		}
 	}
 	// Process transfer transactions
-	for _, trf := range append(depositTx, withdrawalTx...) {
+	for _, trf := range transferTx {
 		tx := ApiTXTransfer{}
 		tx.Time, err = time.Parse("2006-01-02T15:04:05.99Z", trf.Completedat)
 		if err != nil {
