@@ -5,7 +5,9 @@ import (
 )
 
 type Bittrex struct {
-	api           API
+	api           api
+	apiTradeTX    []apiTradeTX
+	apiTransferTX []apiTransferTX
 	TXsByCategory wallet.TXsByCategory
 	done          chan error
 }

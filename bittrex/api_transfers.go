@@ -2,7 +2,6 @@ package bittrex
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"time"
 
@@ -13,11 +12,11 @@ import (
 	"gopkg.in/resty.v1"
 )
 
-type API struct {
+type api struct {
 	client *resty.Client
 }
 
-type ApiTXTransfer struct {
+type apiTransferTX struct {
 	Time     time.Time
 	Currency string
 	Amount   decimal.Decimal
@@ -26,12 +25,12 @@ type ApiTXTransfer struct {
 	Status   string
 }
 
-type TransferRequestParams struct {
+type transferRequestParams struct {
 	Status   string `json:"status,omitempty"`
 	PageSize int    `json:"pageSize,omitempty"`
 }
 
-type TransferResponse struct {
+type transferResponse struct {
 	ID               string `json:"id"`
 	Currencysymbol   string `json:"currencySymbol"`
 	Quantity         string `json:"quantity"`
@@ -48,13 +47,12 @@ type TransferResponse struct {
 
 func (btrx *Bittrex) getDeposits(apiKey string, apiSecret string) (depositTx *resty.Response, err error) {
 	btrx.api.client = resty.New()
-	requestParams := &TransferRequestParams{
+	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
 		PageSize: 200,
 	}
 	// Convert params struct to json
 	jsonParams, _ := json.Marshal(requestParams)
-	// fmt.Print(string(jsonParams))
 	// Convert json to map
 	map_data := make(map[string]string)
 	json.Unmarshal([]byte(jsonParams), &map_data)
@@ -66,13 +64,12 @@ func (btrx *Bittrex) getDeposits(apiKey string, apiSecret string) (depositTx *re
 
 func (btrx *Bittrex) getWithdrawals(apiKey string, apiSecret string) (withdrawalTx *resty.Response, err error) {
 	btrx.api.client = resty.New()
-	requestParams := &TransferRequestParams{
+	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
 		PageSize: 200,
 	}
 	// Convert params struct to json
 	jsonParams, _ := json.Marshal(requestParams)
-	fmt.Print(string(jsonParams))
 	// Convert json to map
 	map_data := make(map[string]string)
 	json.Unmarshal([]byte(jsonParams), &map_data)
@@ -84,7 +81,7 @@ func (btrx *Bittrex) getWithdrawals(apiKey string, apiSecret string) (withdrawal
 
 func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat category.Category) {
 	useCache := true
-	var transferTx []TransferResponse
+	var transferTx []transferResponse
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		useCache = false
@@ -94,7 +91,7 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat cate
 	}
 	if !useCache || err != nil {
 		// Retrieve and cache transfers
-		var depositTx []TransferResponse
+		var depositTx []transferResponse
 		deposit, err := btrx.getDeposits(apiKey, apiSecret)
 		if err != nil {
 			time.Sleep(6 * time.Second)
@@ -105,7 +102,7 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat cate
 		}
 		json.Unmarshal(deposit.Body(), &depositTx)
 		// Retrieve and cache withdrawals transfers
-		var withdrawalTx []TransferResponse
+		var withdrawalTx []transferResponse
 		withdrawal, err := btrx.getWithdrawals(apiKey, apiSecret)
 		if err != nil {
 			time.Sleep(6 * time.Second)
@@ -125,7 +122,7 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat cate
 	}
 	// Process transfer transactions
 	for _, trf := range transferTx {
-		tx := ApiTXTransfer{}
+		tx := apiTransferTX{}
 		tx.Time, err = time.Parse("2006-01-02T15:04:05.99Z", trf.Completedat)
 		if err != nil {
 			log.Println("Error Parsing Time : ", trf.Completedat)
