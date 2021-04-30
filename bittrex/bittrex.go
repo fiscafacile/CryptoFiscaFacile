@@ -19,6 +19,6 @@ func New() *Bittrex {
 	return btrx
 }
 
-func (btrx *Bittrex) WaitFinish() error {
-	return <-btrx.done
+func (btrx *Bittrex) WaitFinish() (error, error) {
+	return <-btrx.done, <-btrx.done
 }

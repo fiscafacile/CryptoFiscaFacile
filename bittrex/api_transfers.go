@@ -45,7 +45,7 @@ type transferResponse struct {
 	Accountid        string `json:"accountId"`
 }
 
-func (btrx *Bittrex) getDeposits(apiKey string, apiSecret string) (depositTx *resty.Response, err error) {
+func (btrx *Bittrex) getDeposits(apiKey, apiSecret string) (depositTx *resty.Response, err error) {
 	btrx.api.client = resty.New()
 	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
@@ -62,7 +62,7 @@ func (btrx *Bittrex) getDeposits(apiKey string, apiSecret string) (depositTx *re
 	return response, err
 }
 
-func (btrx *Bittrex) getWithdrawals(apiKey string, apiSecret string) (withdrawalTx *resty.Response, err error) {
+func (btrx *Bittrex) getWithdrawals(apiKey, apiSecret string) (withdrawalTx *resty.Response, err error) {
 	btrx.api.client = resty.New()
 	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
@@ -79,7 +79,7 @@ func (btrx *Bittrex) getWithdrawals(apiKey string, apiSecret string) (withdrawal
 	return response, err
 }
 
-func (btrx *Bittrex) GetAllTransferTXs(apiKey string, apiSecret string, cat category.Category) {
+func (btrx *Bittrex) GetAllTransferTXs(apiKey, apiSecret string, cat category.Category) {
 	useCache := true
 	var transferTx []transferResponse
 	db, err := scribble.New("./Cache", nil)
