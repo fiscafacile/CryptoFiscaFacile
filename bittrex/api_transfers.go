@@ -27,7 +27,7 @@ type apiTransferTX struct {
 
 type transferRequestParams struct {
 	Status   string `json:"status,omitempty"`
-	PageSize int    `json:"pageSize,omitempty"`
+	PageSize string `json:"pageSize,omitempty"`
 }
 
 type transferResponse struct {
@@ -49,7 +49,7 @@ func (btrx *Bittrex) getDeposits(apiKey, apiSecret string) (depositTx *resty.Res
 	btrx.api.client = resty.New()
 	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
-		PageSize: 200,
+		PageSize: "200",
 	}
 	// Convert params struct to json
 	jsonParams, _ := json.Marshal(requestParams)
@@ -66,7 +66,7 @@ func (btrx *Bittrex) getWithdrawals(apiKey, apiSecret string) (withdrawalTx *res
 	btrx.api.client = resty.New()
 	requestParams := &transferRequestParams{
 		Status:   "COMPLETED",
-		PageSize: 200,
+		PageSize: "200",
 	}
 	// Convert params struct to json
 	jsonParams, _ := json.Marshal(requestParams)
@@ -144,5 +144,5 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey, apiSecret string, cat category.Ca
 			btrx.TXsByCategory["Deposits"] = append(btrx.TXsByCategory["Deposits"], t)
 		}
 	}
-	btrx.done <- err
+	btrx.transferDone <- err
 }

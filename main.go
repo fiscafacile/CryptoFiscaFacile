@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/binance"
@@ -136,9 +135,7 @@ func main() {
 		}
 	}
 	btrx := bittrex.New()
-	var wgBtrx sync.WaitGroup
 	if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
-		wgBtrx.Add(2)
 		go btrx.GetAllTransferTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
 		go btrx.GetAllTradeTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
 	}
@@ -266,10 +263,11 @@ func main() {
 		}
 	}
 	if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
-		errTransfer, errTrades := btrx.WaitFinish()
+		errTransfer := btrx.WaitTransfersFinish()
 		if errTransfer != nil {
 			log.Fatalln("Error parsing Bittrex API transfers:", errTransfer)
 		}
+		errTrades := btrx.WaitTradesFinish()
 		if errTrades != nil {
 			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
 		}
