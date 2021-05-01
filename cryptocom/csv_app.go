@@ -60,7 +60,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "interest_swap_credited" ||
 					tx.Kind == "interest_swap_debited" ||
 					tx.Kind == "lockup_swap_credited" ||
-					// tx.Kind == "lockup_swap_debited" ||
+					tx.Kind == "lockup_swap_debited" ||
 					tx.Kind == "crypto_wallet_swap_credited" ||
 					tx.Kind == "crypto_wallet_swap_debited" {
 					found := false
