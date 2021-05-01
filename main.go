@@ -43,6 +43,7 @@ func main() {
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
 	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
 	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
+	pLBTC := flag.Bool("lbtc", false, "Detect Lightning Bitcoin Fork")
 	pJsonBtgTXs := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
 	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
@@ -267,6 +268,9 @@ func main() {
 		}
 		if *pBTG {
 			blkst.DetectBTG(btc)
+		}
+		if *pLBTC {
+			blkst.DetectLBTC(btc)
 		}
 	}
 	// create Global Wallet up to Date
