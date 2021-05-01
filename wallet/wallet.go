@@ -1,9 +1,7 @@
 package wallet
 
 import (
-	"bytes"
 	"encoding/base64"
-	"encoding/binary"
 	"errors"
 	"fmt"
 	"log"
@@ -11,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	// "github.com/davecgh/go-spew/spew"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/shopspring/decimal"
 )
 
@@ -38,6 +36,10 @@ type TX struct {
 type TXs []TX
 
 type TXsByCategory map[string]TXs
+
+func Base64String(i interface{}) string {
+	return base64.StdEncoding.EncodeToString([]byte(spew.Sdump(i)))
+}
 
 func (c *Currency) IsFiat() bool {
 	if c.Code == "EUR" ||
@@ -171,12 +173,6 @@ func (tx *TX) SimilarDate(delta time.Duration, t time.Time) bool {
 		return true
 	}
 	return false
-}
-
-func (tx TX) Base64String(anonymous bool) string {
-	var temp bytes.Buffer
-	binary.Write(&temp, binary.LittleEndian, tx)
-	return base64.StdEncoding.EncodeToString(append([]byte("TX"), temp.Bytes()...))
 }
 
 func (tx TX) Println(filter string) (printed bool) {

@@ -1,9 +1,6 @@
 package cryptocom
 
 import (
-	"bytes"
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/csv"
 	"io"
 	"log"
@@ -26,16 +23,11 @@ type CsvTX struct {
 	Kind            string
 }
 
-func (tx CsvTX) base64String(anonymous bool) string {
-	var temp bytes.Buffer
-	binary.Write(&temp, binary.LittleEndian, tx)
-	return base64.StdEncoding.EncodeToString(append([]byte("TX"), temp.Bytes()...))
-}
-
 func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		for _, r := range records {
 			if r[0] != "Timestamp (UTC)" {
 				tx := CsvTX{}
@@ -68,7 +60,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "interest_swap_credited" ||
 					tx.Kind == "interest_swap_debited" ||
 					tx.Kind == "lockup_swap_credited" ||
-					tx.Kind == "lockup_swap_debited" ||
+					// tx.Kind == "lockup_swap_debited" ||
 					tx.Kind == "crypto_wallet_swap_credited" ||
 					tx.Kind == "crypto_wallet_swap_debited" {
 					found := false
@@ -175,7 +167,16 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "dynamic_coin_swap_debited" {
 					// Do nothing
 				} else {
-					log.Println("Unmanaged ", tx.Kind, "please copy this into t.me/cryptofiscafacile so we can add support for it :", tx.base64String(true))
+					found := false
+					for _, k := range alreadyAsked {
+						if k == tx.Kind {
+							found = true
+						}
+					}
+					if !found {
+						log.Println("Unmanaged", tx.Kind, "please copy this into t.me/cryptofiscafacile so we can add support for it :", wallet.Base64String(tx))
+						alreadyAsked = append(alreadyAsked, tx.Kind)
+					}
 				}
 			}
 		}
