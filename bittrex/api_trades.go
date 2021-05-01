@@ -146,25 +146,23 @@ func (btrx *Bittrex) GetAllTradeTXs(apiKey, apiSecret string, cat category.Categ
 				}
 			}
 			found := false
-			for i, ex := range btrx.TXsByCategory["Exchanges"] {
-				if ex.SimilarDate(2*time.Second, tx.Time) {
+			for i := range btrx.TXsByCategory["Exchanges"] {
+				if tx.ID == btrx.TXsByCategory["Exchanges"][i].ID {
 					found = true
-					if btrx.TXsByCategory["Exchanges"][i].Items == nil {
-						btrx.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
-					}
-					btrx.TXsByCategory["Exchanges"][i].Items["From"] = append(btrx.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
-					btrx.TXsByCategory["Exchanges"][i].Items["To"] = append(btrx.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
-					btrx.TXsByCategory["Exchanges"][i].Items["Fee"] = append(btrx.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.Fee})
 				}
 			}
 			if !found {
+				// fmt.Println("Nouvelle transaction :", tx)
 				// fmt.Println(tx.Time, "\t", tx.Operation, "\t", "FROM", tx.FromAmount, tx.FromSymbol, "TO", tx.ToAmount, tx.ToSymbol)
-				t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex API : " + tx.Operation + " TxID " + tx.ID}
+				t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex API : " + tx.Operation + " TxID " + tx.ID, ID: tx.ID}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.Fee})
 				btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
+			} else {
+				// fmt.Println("Transaction déjà enregistrée : ", tx.ID)
+
 			}
 		} else {
 			log.Println("Bittrex API : Unmanaged operation -> ", tx.Operation)

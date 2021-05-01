@@ -52,6 +52,7 @@ func main() {
 	pCSVBitfinex := flag.String("bitfinex", "", "Bitfinex CSV file")
 	pAPIBittrexKey := flag.String("bittrex_api_key", "", "Bittrex API key")
 	pAPIBittrexSecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
+	pCSVBittrex := flag.String("bittrex", "", "Bittrex CSV file")
 	pCSVCoinbase := flag.String("coinbase", "", "Coinbase CSV file")
 	pCSVCdCAppCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
@@ -135,9 +136,21 @@ func main() {
 		}
 	}
 	btrx := bittrex.New()
-	if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
-		go btrx.GetAllTransferTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
-		go btrx.GetAllTradeTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
+	if *pCSVBittrex != "" {
+		recordFile, err := os.Open(*pCSVBittrex)
+		if err != nil {
+			log.Fatal("Error opening Bittrex CSV file:", err)
+		}
+		err = btrx.ParseCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Bittrex CSV file:", err)
+		}
+		if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
+			go btrx.GetAllTransferTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
+			go btrx.GetAllTradeTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
+		} else {
+			log.Println("Warning, you should provide your API Key/Secret to retrieve Deposits and Withdrawals")
+		}
 	}
 	cb := coinbase.New()
 	if *pCSVCoinbase != "" {

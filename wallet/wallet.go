@@ -31,6 +31,7 @@ type TX struct {
 	Timestamp time.Time
 	Items     map[string]Currencies
 	Note      string
+	ID        string
 }
 
 type TXs []TX
