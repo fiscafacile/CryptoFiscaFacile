@@ -86,6 +86,15 @@ func main() {
 		btc.ParseCSVAddresses(recordFile)
 		go blkst.GetAllTXs(btc, *categ)
 	}
+	ethsc := etherscan.New()
+	if *pCSVEthAddress != "" {
+		recordFile, err := os.Open(*pCSVEthAddress)
+		if err != nil {
+			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
+		}
+		ethsc.APIConnect(*pEtherscanAPIKey)
+		go ethsc.ParseCSV(recordFile, *categ)
+	}
 	bc := blockchain.New()
 	if *pJsonBtgTXs != "" {
 		jsonFile, err := os.Open(*pJsonBtgTXs)
@@ -96,15 +105,6 @@ func main() {
 		if err != nil {
 			log.Fatal("Error parsing Bitcoin Gold JSON Transactions file:", err)
 		}
-	}
-	ethsc := etherscan.New()
-	if *pCSVEthAddress != "" {
-		recordFile, err := os.Open(*pCSVEthAddress)
-		if err != nil {
-			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
-		}
-		ethsc.APIConnect(*pEtherscanAPIKey)
-		go ethsc.ParseCSV(recordFile, *categ)
 	}
 	b := binance.New()
 	if *pCSVBinance != "" {

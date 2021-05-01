@@ -1,6 +1,9 @@
 package cryptocom
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
 	"encoding/csv"
 	"io"
 	"log"
@@ -21,6 +24,12 @@ type CsvTX struct {
 	NativeAmount    decimal.Decimal
 	NativeAmountUSD decimal.Decimal
 	Kind            string
+}
+
+func (tx CsvTX) base64String(anonymous bool) string {
+	var temp bytes.Buffer
+	binary.Write(&temp, binary.LittleEndian, tx)
+	return base64.StdEncoding.EncodeToString(append([]byte("TX"), temp.Bytes()...))
 }
 
 func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
@@ -105,11 +114,16 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "pay_checkout_reward" ||
 					tx.Kind == "referral_gift" ||
 					tx.Kind == "mco_stake_reward" ||
-					tx.Kind == "referral_bonus" {
+					tx.Kind == "referral_bonus" ||
+					tx.Kind == "supercharger_withdrawal" ||
+					tx.Kind == "crypto_purchase" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-					if tx.Kind == "referral_card_cashback" ||
+					if tx.Kind == "crypto_purchase" {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount})
+						cdc.TXsByCategory["CashIn"] = append(cdc.TXsByCategory["CashIn"], t)
+					} else if tx.Kind == "referral_card_cashback" ||
 						tx.Kind == "transfer_cashback" ||
 						tx.Kind == "reimbursement" ||
 						tx.Kind == "gift_card_reward" ||
@@ -127,7 +141,9 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "card_cashback_reverted" ||
 					tx.Kind == "transfer_cashback_reverted" ||
 					tx.Kind == "reimbursement_reverted" ||
-					tx.Kind == "crypto_to_exchange_transfer" {
+					tx.Kind == "crypto_to_exchange_transfer" ||
+					tx.Kind == "supercharger_deposit" ||
+					tx.Kind == "crypto_viban_exchange" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.Kind == "crypto_withdrawal" &&
@@ -140,11 +156,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					}
 					if tx.Kind == "crypto_payment" ||
 						tx.Kind == "crypto_viban_exchange" {
-						if tx.Kind == "crypto_payment" {
-							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
-						} else {
-							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount})
-						}
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
 						cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
 					} else if tx.Kind == "card_cashback_reverted" ||
 						tx.Kind == "transfer_cashback_reverted" ||
@@ -163,7 +175,7 @@ func (cdc *CryptoCom) ParseCSV(reader io.Reader) (err error) {
 					tx.Kind == "dynamic_coin_swap_debited" {
 					// Do nothing
 				} else {
-					log.Println("Unmanaged ", tx.Kind)
+					log.Println("Unmanaged ", tx.Kind, "please copy this into t.me/cryptofiscafacile so we can add support for it :", tx.base64String(true))
 				}
 			}
 		}

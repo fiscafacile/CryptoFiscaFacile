@@ -1,6 +1,9 @@
 package wallet
 
 import (
+	"bytes"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
 	"log"
@@ -168,6 +171,12 @@ func (tx *TX) SimilarDate(delta time.Duration, t time.Time) bool {
 		return true
 	}
 	return false
+}
+
+func (tx TX) Base64String(anonymous bool) string {
+	var temp bytes.Buffer
+	binary.Write(&temp, binary.LittleEndian, tx)
+	return base64.StdEncoding.EncodeToString(append([]byte("TX"), temp.Bytes()...))
 }
 
 func (tx TX) Println(filter string) (printed bool) {
