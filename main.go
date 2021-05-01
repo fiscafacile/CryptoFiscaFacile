@@ -51,7 +51,7 @@ func main() {
 	pCSVBinanceExtended := flag.Bool("binance_extended", false, "Use Binance CSV file extended format")
 	pCSVBitfinex := flag.String("bitfinex", "", "Bitfinex CSV file")
 	pCSVCoinbase := flag.String("coinbase", "", "Coinbase CSV file")
-	pCSVCdC := flag.String("cdc_app", "", "Crypto.com App CSV file")
+	pCSVCdCAppCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCSVCdCExStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCSVCdCExSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
@@ -144,12 +144,12 @@ func main() {
 		}
 	}
 	cdc := cryptocom.New()
-	if *pCSVCdC != "" {
-		recordFile, err := os.Open(*pCSVCdC)
+	if *pCSVCdCAppCrypto != "" {
+		recordFile, err := os.Open(*pCSVCdCAppCrypto)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com CSV file:", err)
 		}
-		err = cdc.ParseCSV(recordFile)
+		err = cdc.ParseCSVCrypto(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
 		}

@@ -239,8 +239,8 @@ Expériemental.
 #### Crypto.com [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#crypto.com-)
 
 ```
-  -cdc_app string
-        Crypto.com App CSV file
+  -cdc_app_crypto string
+        Crypto.com App Crypto Wallet CSV file
   -cdc_ex_stake string
         Crypto.com Exchange Stake CSV file
   -cdc_ex_supercharger string
@@ -250,7 +250,9 @@ Expériemental.
 ```
 Il faut fournir les CSV récupérés dans l'App et l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
 
-Les colones du CSV de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
+Le CSV de l'APP doit etre celui des Transactions du Portefeuille Crypto.
+
+Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
 
 Les colones du CSV de l'Exchange Stake doivent être : `create_time_utc,stake_currency,stake_amount,apr,interest_currency,interest_amount,status`
 
