@@ -31,18 +31,21 @@ type transferRequestParams struct {
 }
 
 type transferResponse struct {
-	ID               string `json:"id"`
-	Currencysymbol   string `json:"currencySymbol"`
-	Quantity         string `json:"quantity"`
-	Cryptoaddress    string `json:"cryptoAddress"`
-	Cryptoaddresstag string `json:"cryptoAddressTag"`
-	Txid             string `json:"txId"`
-	Confirmations    string `json:"confirmations"`
-	Updatedat        string `json:"updatedAt"`
-	Completedat      string `json:"completedAt"`
-	Status           string `json:"status"`
-	Source           string `json:"source"`
-	Accountid        string `json:"accountId"`
+	Accountid          string `json:"accountId"`
+	Clientwithdrawalid string `json:"clientWithdrawalId"`
+	Completedat        string `json:"completedAt"`
+	Confirmations      string `json:"confirmations"`
+	Createdat          string `json:"createdAt"`
+	Cryptoaddress      string `json:"cryptoAddress"`
+	Cryptoaddresstag   string `json:"cryptoAddressTag"`
+	Currencysymbol     string `json:"currencySymbol"`
+	ID                 string `json:"id"`
+	Quantity           string `json:"quantity"`
+	Source             string `json:"source"`
+	Status             string `json:"status"`
+	Txcost             string `json:"txCost"`
+	Txid               string `json:"txId"`
+	Updatedat          string `json:"updatedAt"`
 }
 
 func (btrx *Bittrex) getDeposits(apiKey, apiSecret string) (depositTx *resty.Response, err error) {
@@ -134,10 +137,17 @@ func (btrx *Bittrex) GetAllTransferTXs(apiKey, apiSecret string, cat category.Ca
 		}
 		tx.Address = trf.Cryptoaddress
 		tx.Status = trf.Status
+		if trf.Txcost != "" {
+			tx.Fee, err = decimal.NewFromString(trf.Txcost)
+			if err != nil {
+				log.Println("Error Parsing Amount : ", trf.Txcost)
+			}
+		}
 		t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex Transfer API : " + tx.Address}
 		t.Items = make(map[string]wallet.Currencies)
 		if trf.Source == "" {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
+			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fee})
 			btrx.TXsByCategory["Withdrawals"] = append(btrx.TXsByCategory["Withdrawals"], t)
 		} else {
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
