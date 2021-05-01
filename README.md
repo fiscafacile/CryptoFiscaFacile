@@ -20,11 +20,9 @@ Vous aurez besoin de Go dont voici la [doc officelle d'installation](https://gol
 
 ```bash
 $ go get -u github.com/fiscafacile/CryptoFiscaFacile
-$ cd $GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile
-$ go build
 ```
 
-Le binaire de l'outil sera généré dans le répertoire `$GOPATH/src/github.com/fiscafacile/CryptoFiscaFacile`, vous pourrez le lancer en ligne de commande avec les [Options](#configuration) nécessaires à vos besoins.
+Le binaire de l'outil sera généré sur votre PC, vous pourrez le lancer en ligne de commande (donc dans un terminal) avec les [Options](#configuration) nécessaires à vos besoins.
 
 ## Utilisation
 

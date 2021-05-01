@@ -10,6 +10,6 @@ require (
 	github.com/nanobox-io/golang-scribble v0.0.0-20190309225732-aa3e7c118975
 	github.com/shopspring/decimal v1.2.0
 	github.com/superoo7/go-gecko v1.0.0
-	golang.org/x/net v0.0.0-20210427231257-85d9c07bbe3a // indirect
+	golang.org/x/net v0.0.0-20210428140749-89ef3d95e781 // indirect
 	gopkg.in/resty.v1 v1.12.0
 )
