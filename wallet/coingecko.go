@@ -57,6 +57,7 @@ func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Exc
 	coin = strings.ReplaceAll(coin, "MEET.ONE", "meetone")
 	err = db.Read("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), &rates)
 	if err != nil {
+		err = nil
 		coinID := ""
 		var coinsList CoinList
 		err = db.Read("CoinGecko/coins", "list", &coinsList)
@@ -76,16 +77,18 @@ func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Exc
 			}
 			rates.Base = coin
 			if hist.MarketData == nil {
-				err = errors.New("CoinGecko API replyed a null MarketData")
+				err = errors.New("CoinGecko API replied a null MarketData")
 			} else {
 				for k, v := range hist.MarketData.CurrentPrice {
 					r := Rate{Time: date, Quote: strings.ToUpper(k), Rate: decimal.NewFromFloat(v)}
 					rates.Rates = append(rates.Rates, r)
 				}
-				err = db.Write("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), rates)
+				db.Write("CoinGecko/coins/history", coin+"-"+date.UTC().Format("2006-01-02"), rates)
+				if err != nil {
+					return rates, err
+				}
 			}
-			return rates, err
 		}
 	}
-	return rates, err
+	return rates, nil
 }

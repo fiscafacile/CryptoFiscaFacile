@@ -66,7 +66,7 @@ Vous pourrez aussi activer la détection de `Forks` sur certaines cryptos.
 
 ##### Catégories spécifiques à certaines plateformes
 
-Sur certaines plateformes comme Crypto.com il existe aussi des `Cashbacks`, `Earns` et autres `Rewards`. Certaines TXs sont directement catégorisées en `CashOut` comme les paiements en crypto.
+Sur certaines plateformes comme Crypto.com il existe aussi des `CommercialRebates` (cashback de carte, remboursement Netflix, Pay Checkout Reward et Gift Card Reward), `Interests` (intérêts du programme Earn, intérêts de "Stacking") et autres `Referrals`. Certaines TXs sont directement catégorisées en `CashOut` comme les paiements en crypto.
 
 ##### Catégories spécifiques ETH
 
@@ -80,7 +80,11 @@ Une fois toutes les TXs rangées dans des catégories, l'outil va essayer de rap
 
 - `CashIn` et `CashOut` : ce sont respectivement des `Deposits` et `Withdrawals` ou des `Exchanges` dont l'"Actif" source ou destination sont des Fiats.
 
-- les `Cashbacks` sont transformés en `CashIn` si aucun "reversal" n'est venu les annuler.
+- les `Interests` sont transformés en `CashIn` et leurs montant global est affiché.
+
+- les `CommercialRebates` sont transformés en `CashIn` si aucun "reversal" n'est venu les annuler et leurs montant global est affiché.
+
+- les `Referrals` sont transformés en `CashIn` et leurs montant global est affiché.
 
 ## Configuration
 

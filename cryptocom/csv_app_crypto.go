@@ -105,8 +105,8 @@ func (cdc *CryptoCom) ParseCSVCrypto(reader io.Reader) (err error) {
 					tx.Kind == "gift_card_reward" ||
 					tx.Kind == "pay_checkout_reward" ||
 					tx.Kind == "referral_gift" ||
-					tx.Kind == "mco_stake_reward" ||
 					tx.Kind == "referral_bonus" ||
+					tx.Kind == "mco_stake_reward" ||
 					tx.Kind == "supercharger_withdrawal" ||
 					tx.Kind == "crypto_purchase" ||
 					tx.Kind == "staking_reward" {
@@ -121,10 +121,15 @@ func (cdc *CryptoCom) ParseCSVCrypto(reader io.Reader) (err error) {
 						tx.Kind == "reimbursement" ||
 						tx.Kind == "gift_card_reward" ||
 						tx.Kind == "pay_checkout_reward" {
-						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
+						cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 					} else if tx.Kind == "crypto_earn_interest_paid" ||
-						tx.Kind == "crypto_earn_extra_interest_paid" {
-						cdc.TXsByCategory["Earns"] = append(cdc.TXsByCategory["Earns"], t)
+						tx.Kind == "crypto_earn_extra_interest_paid" ||
+						tx.Kind == "mco_stake_reward" ||
+						tx.Kind == "staking_reward" {
+						cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
+					} else if tx.Kind == "referral_gift" ||
+						tx.Kind == "referral_bonus" {
+						cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 					} else {
 						cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 					}
@@ -154,7 +159,7 @@ func (cdc *CryptoCom) ParseCSVCrypto(reader io.Reader) (err error) {
 					} else if tx.Kind == "card_cashback_reverted" ||
 						tx.Kind == "transfer_cashback_reverted" ||
 						tx.Kind == "reimbursement_reverted" {
-						cdc.TXsByCategory["Cashbacks"] = append(cdc.TXsByCategory["Cashbacks"], t)
+						cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 					} else {
 						cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 					}

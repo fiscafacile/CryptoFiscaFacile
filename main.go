@@ -288,14 +288,14 @@ func main() {
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
 	global.FindTransfers()
-	global.FindCashInOut(*pNative)
+	totalCommercialRebates, totalInterests, totalReferrals := global.FindCashInOut(*pNative)
 	global.SortTXsByDate(true)
 	loc, err := time.LoadLocation(*pLocation)
 	if err != nil {
 		log.Fatal("Error parsing Location:", err)
 	}
 	if *pStats {
-		global.PrintStats()
+		global.PrintStats(*pNative, totalCommercialRebates, totalInterests, totalReferrals)
 	}
 	if *pCheck {
 		global.CheckConsistency(loc)
