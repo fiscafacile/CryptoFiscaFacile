@@ -38,8 +38,10 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				}
 				rplcr := strings.NewReplacer(
 					"LIMIT_SELL", "SELL",
-					"LIMIT_BUY", "BUY",
+					"MARKET_SELL", "SELL",
 					"CEILING_MARKET_BUY", "BUY",
+					"LIMIT_BUY", "BUY",
+					"MARKET_BUY", "BUY",
 				)
 				tx.Operation = rplcr.Replace(r[3])
 				quantity, err := decimal.NewFromString(r[5])
@@ -88,7 +90,6 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 						btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
 					} else {
 						// fmt.Println("Transaction déjà enregistrée : ", tx.ID)
-
 					}
 				} else {
 					log.Println("Bittrex API : Unmanaged operation -> ", tx.Operation)
