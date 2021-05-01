@@ -82,7 +82,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 					if !found {
 						// fmt.Println("Nouvelle transaction :", tx)
 						// fmt.Println(tx.Time, "\t", tx.Operation, "\t", "FROM", tx.FromAmount, tx.FromSymbol, "TO", tx.ToAmount, tx.ToSymbol)
-						t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex API : " + tx.Operation + " TxID " + tx.ID, ID: tx.ID}
+						t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex CSV : " + tx.Operation + " TxID " + tx.ID, ID: tx.ID}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
@@ -92,7 +92,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 						// fmt.Println("Transaction déjà enregistrée : ", tx.ID)
 					}
 				} else {
-					log.Println("Bittrex API : Unmanaged operation -> ", tx.Operation)
+					log.Println("Bittrex CSV : Unmanaged operation -> ", tx.Operation)
 				}
 			}
 		}

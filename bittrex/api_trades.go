@@ -162,7 +162,6 @@ func (btrx *Bittrex) GetAllTradeTXs(apiKey, apiSecret string, cat category.Categ
 				btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
 			} else {
 				// fmt.Println("Transaction déjà enregistrée : ", tx.ID)
-
 			}
 		} else {
 			log.Println("Bittrex API : Unmanaged operation -> ", tx.Operation)
