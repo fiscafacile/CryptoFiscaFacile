@@ -264,9 +264,11 @@ Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,curre
   -coinbase string
         Coinbase CSV file
 ```
-Il faut fournir le CSV récupéré sur Coinbase.s
+Il faut fournir le CSV récupéré sur Coinbase.
 
 Le CSV contient une entête qui sera ignorée par l'outil.
+
+Pour les "Transaction Type" "Send" du CSV, les frais ne sont pas renseignés, l'outil ne pourra donc pas agréger ce `Withdrawals` avec le `Deposits` d'une autre Source. Vous pouvez l'y aider en retrouvant le `Depostis` correspondant à la main et calculant les frais (la différence entre les deux montants) puis en le rajoutant dans la colone `EUR Fees` de ce CSV.
 
 Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Transacted,EUR Spot Price at Transaction,EUR Subtotal,EUR Total (inclusive of fees),EUR Fees,Notes`
 

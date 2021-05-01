@@ -198,7 +198,7 @@ func (tx TX) Println(filter string) (printed bool) {
 	return
 }
 
-func (tx TX) GetCurrencies(includeFiat, includeFee bool) (cs WalletCurrencies) {
+func (tx TX) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	cs = make(WalletCurrencies)
 	for k, i := range tx.Items {
 		for _, c := range i {
@@ -252,7 +252,7 @@ func (txs TXsByCategory) GetWallets(date time.Time, includeFiat bool, rounding b
 	for _, a := range txs {
 		for _, tx := range a {
 			if tx.Timestamp.Before(date) {
-				txcs := tx.GetCurrencies(includeFiat, true)
+				txcs := tx.GetBalances(includeFiat, true)
 				w.Currencies.Add(txcs)
 			}
 		}
@@ -513,7 +513,7 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 	fmt.Println("--------------------------------------------------------")
 	fmt.Println("| List of Non-Zero balance Transfers                   |")
 	for _, tx := range txs["Transfers"] {
-		txcs := tx.GetCurrencies(false, false)
+		txcs := tx.GetBalances(false, false)
 		for _, v := range txcs {
 			if !v.IsZero() {
 				fmt.Println("--------------------------------------------------------")
