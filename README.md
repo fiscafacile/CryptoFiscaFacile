@@ -219,7 +219,14 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
         Detect Bitcoin Cash Fork
   -btg
         Detect Bitcoin Gold Fork
+  -lbtc
+        Detect Lightning Bitcoin Fork
 ```
+Il faut fournir un CSV contenant toutes les addresses BTC que vous possédez. L'outil se chargera de récupérer la liste des transactions associées sur Blockstream (pas besoin de API Key).
+
+Vous pouvez aussi demander la detection d'un des Fork de BTC, l'outil vous dira dans quel wallet vous avez un montant dû au Fork et intègrera ces montants à votre portefeuille global.
+
+Les colones du CSV doivent être : `Address,Description`
 
 #### BTG [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#btg-)
 
@@ -227,6 +234,7 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
   -btg_txs string
         Bitcoin Gold Transactions JSON file
 ```
+Expériemental.
 
 #### Crypto.com [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#crypto.com-)
 
@@ -240,6 +248,7 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
   -cdc_ex_transfer string
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
+Il faut fournir les CSV récupérés dans l'App et l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
 
 Les colones du CSV de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
 
@@ -255,6 +264,7 @@ Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,curre
   -coinbase string
         Coinbase CSV file
 ```
+Il faut fournir le CSV récupéré sur Coinbase.s
 
 Le CSV contient une entête qui sera ignorée par l'outil.
 
@@ -266,6 +276,11 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
   -eth_address string
         Ethereum Addresses CSV file
 ```
+Il faut fournir un CSV contenant toutes les addresses ETH que vous possédez. L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (besoin de fournir une API Key).
+
+Il détectera aussi les Token ERC20 associés.
+
+Les colones du CSV doivent être : `Address,Description`
 
 #### Local Bitcoin [![Support bon](https://img.shields.io/badge/support-bon-blue)](#local-bitcoin-)
 
