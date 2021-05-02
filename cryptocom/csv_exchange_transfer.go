@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type CsvTXExTransfer struct {
+type csvExTransferTX struct {
 	Time     time.Time
 	Currency string
 	Amount   decimal.Decimal
@@ -19,13 +19,13 @@ type CsvTXExTransfer struct {
 	Status   string
 }
 
-func (cdc *CryptoCom) ParseCSVExTransfer(reader io.Reader) (err error) {
+func (cdc *CryptoCom) ParseCSVExchangeTransfer(reader io.Reader) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		for _, r := range records {
 			if r[0] != "create_time_utc" {
-				tx := CsvTXExTransfer{}
+				tx := csvExTransferTX{}
 				tx.Time, err = time.Parse("2006-01-02 15:04:05.000", r[0])
 				if err != nil {
 					log.Println("Error Parsing Time : ", r[0])
@@ -43,13 +43,13 @@ func (cdc *CryptoCom) ParseCSVExTransfer(reader io.Reader) (err error) {
 				tx.Status = r[5]
 				if tx.Address == "EARLY_SWAP_BONUS_DEPOSIT" ||
 					tx.Address == "INTERNAL_DEPOSIT" {
-					cdc.CsvTXsExTransfer = append(cdc.CsvTXsExTransfer, tx)
+					cdc.csvExTransferTXs = append(cdc.csvExTransferTXs, tx)
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 				} else {
-					cdc.CsvTXsExTransfer = append(cdc.CsvTXsExTransfer, tx)
+					cdc.csvExTransferTXs = append(cdc.csvExTransferTXs, tx)
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})

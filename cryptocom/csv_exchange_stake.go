@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type CsvTXExStake struct {
+type csvExStakeTX struct {
 	Time     time.Time
 	Stake    wallet.Currency
 	Apr      string
@@ -18,13 +18,13 @@ type CsvTXExStake struct {
 	Status   string
 }
 
-func (cdc *CryptoCom) ParseCSVExStake(reader io.Reader) (err error) {
+func (cdc *CryptoCom) ParseCSVExchangeStake(reader io.Reader) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		for _, r := range records {
 			if r[0] != "create_time_utc" {
-				tx := CsvTXExStake{}
+				tx := csvExStakeTX{}
 				tx.Time, err = time.Parse("2006-01-02 15:04:05.000", r[0])
 				if err != nil {
 					log.Println("Error Parsing Time : ", r[0])
@@ -41,7 +41,7 @@ func (cdc *CryptoCom) ParseCSVExStake(reader io.Reader) (err error) {
 					log.Println("Error Parsing Interest.Amount : ", r[5])
 				}
 				tx.Status = r[6]
-				cdc.CsvTXsExStake = append(cdc.CsvTXsExStake, tx)
+				cdc.csvExStakeTXs = append(cdc.csvExStakeTXs, tx)
 				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Stake CSV : " + tx.Stake.Amount.String() + " " + tx.Stake.Code + " " + tx.Apr}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], tx.Interest)
