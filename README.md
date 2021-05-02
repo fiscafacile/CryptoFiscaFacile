@@ -308,6 +308,16 @@ Il détectera aussi les Token ERC20 associés.
 
 Les colones du CSV doivent être : `Address,Description`
 
+#### Kraken [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#kraken-)
+
+```
+  -kraken string
+        Kraken CSV file
+```
+Il faut fournir le fichier CSV récupéré dans Kraken (https://www.kraken.com/u/history/export puis sélectionner "Ledgers" et "All fields").
+
+Les colones du CSV d'origine doivent être : `txid,refid,time,type,subtype,aclass,asset,amount,fee,balance`
+
 #### Local Bitcoin [![Support bon](https://img.shields.io/badge/support-bon-blue)](#local-bitcoin-)
 
 ```

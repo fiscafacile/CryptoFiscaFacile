@@ -17,6 +17,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
+	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
 	"github.com/fiscafacile/CryptoFiscaFacile/metamask"
@@ -58,6 +59,7 @@ func main() {
 	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCSVCdCExStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCSVCdCExSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
+	pCSVKraken := flag.String("kraken", "", "Kraken CSV file")
 	pCSVLedgerLive := flag.String("ledgerlive", "", "LedgerLive CSV file")
 	pCSVLBTrade := flag.String("lb_trade", "", "Local Bitcoin Trade CSV file")
 	pCSVLBTransfer := flag.String("lb_transfer", "", "Local Bitcoin Transfer CSV file")
@@ -204,6 +206,17 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Supercharger CSV file:", err)
 		}
 	}
+	kr := kraken.New()
+	if *pCSVKraken != "" {
+		recordFile, err := os.Open(*pCSVKraken)
+		if err != nil {
+			log.Fatal("Error opening Kraken CSV file:", err)
+		}
+		err = kr.ParseCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Kraken CSV file:", err)
+		}
+	}
 	ll := ledgerlive.New()
 	if *pCSVLedgerLive != "" {
 		recordFile, err := os.Open(*pCSVLedgerLive)
@@ -310,6 +323,7 @@ func main() {
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
+	global.Add(kr.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
 	global.Add(mm.TXsByCategory)
