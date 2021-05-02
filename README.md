@@ -267,12 +267,22 @@ Expériemental.
         Crypto.com Exchange Stake CSV file
   -cdc_ex_supercharger string
         Crypto.com Exchange Supercharger CSV file
+  -cdc_ex_api_key string
+        Crypto.com Exchange API Key
+  -cdc_ex_secret_key string
+        Crypto.com Exchange Secret Key
   -cdc_ex_transfer string
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
 Il faut fournir les CSV récupérés dans l'App et l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
 
 Le CSV de l'APP doit etre celui des Transactions du Portefeuille Crypto.
+
+Pour l'API de l'Exchange, il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
+
+Il faut activer le droit de "Withdrawal" (si disponible pour vous) si vous voulez récupérer les `Withdrawals` et `Deposits` (je ne l'ai pas, je ne peux pas tester). Dans le cas contraire, le CSV Transfers permet de les mettre dans l'outil sans l'API.
+
+Par contre les `Exchanges` sur le Spot Market seront bien récupérés sans droit particulier (attention tout de même c'est assez long, on ne peut faire qu'une requête par seconde pour récupérer les Trades d'une seule journée, il faut donc de nombreuses requêtes pour remonter au jour du lancement de l'Exchange le 14 Nov 2019).
 
 Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
 
