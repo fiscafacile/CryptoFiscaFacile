@@ -43,14 +43,15 @@ type tradeResponse struct {
 }
 
 type apiTradeTX struct {
-	Time       time.Time
-	Operation  string
-	FromSymbol string
-	ToSymbol   string
-	FromAmount decimal.Decimal
-	ToAmount   decimal.Decimal
-	Fee        decimal.Decimal
-	ID         string
+	Time        time.Time
+	Operation   string
+	FromSymbol  string
+	ToSymbol    string
+	FromAmount  decimal.Decimal
+	ToAmount    decimal.Decimal
+	Fee         decimal.Decimal
+	FeeCurrency string
+	ID          string
 }
 
 func (btrx *Bittrex) getTrades(apiKey, apiSecret string, pageSize int, lastObjectId string) (tradeTx *resty.Response, err error) {
@@ -120,6 +121,7 @@ func (btrx *Bittrex) GetAllTradeTXs(apiKey, apiSecret string, cat category.Categ
 		if err != nil {
 			log.Println("Error Parsing Amount : ", trd.Commission)
 		}
+		tx.FeeCurrency = symbolSlice[0]
 		tx.ID = trd.ID
 		if tx.Operation == "BUY" || tx.Operation == "SELL" {
 			if tx.Operation == "BUY" {
@@ -158,7 +160,7 @@ func (btrx *Bittrex) GetAllTradeTXs(apiKey, apiSecret string, cat category.Categ
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.Fee})
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
 				btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
 			} else {
 				// fmt.Println("Transaction déjà enregistrée : ", tx.ID)

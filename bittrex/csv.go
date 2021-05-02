@@ -12,15 +12,16 @@ import (
 )
 
 type csvTX struct {
-	ID         string
-	FromSymbol string
-	ToSymbol   string
-	Time       time.Time
-	Operation  string
-	FromAmount decimal.Decimal
-	ToAmount   decimal.Decimal
-	Fee        decimal.Decimal
-	Remark     string
+	ID          string
+	FromSymbol  string
+	ToSymbol    string
+	Time        time.Time
+	Operation   string
+	FromAmount  decimal.Decimal
+	ToAmount    decimal.Decimal
+	Fee         decimal.Decimal
+	FeeCurrency string
+	Remark      string
 }
 
 func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
@@ -56,6 +57,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println("Error Parsing Amount : ", r[7])
 				}
+				tx.FeeCurrency = symbolSlice[0]
 				price, err := decimal.NewFromString(r[8])
 				if err != nil {
 					log.Println("Error Parsing Amount : ", r[8])
@@ -86,7 +88,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.Fee})
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
 						btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
 					} else {
 						// fmt.Println("Transaction déjà enregistrée : ", tx.ID)
