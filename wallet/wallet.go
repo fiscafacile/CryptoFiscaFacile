@@ -29,9 +29,9 @@ type Wallets struct {
 
 type TX struct {
 	Timestamp time.Time
+	ID        string
 	Items     map[string]Currencies
 	Note      string
-	ID        string
 }
 
 type TXs []TX

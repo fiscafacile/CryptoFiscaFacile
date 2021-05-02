@@ -11,16 +11,16 @@ import (
 )
 
 type csvTX struct {
-	TxId      string
-	RefId     string
-	Time      time.Time
-	Type      string
-	SubType   string
-	Class 	  string
-	Asset     string
-	Amount    decimal.Decimal
-	Fee       decimal.Decimal
-	Balance   decimal.Decimal
+	TxId    string
+	RefId   string
+	Time    time.Time
+	Type    string
+	SubType string
+	Class   string
+	Asset   string
+	Amount  decimal.Decimal
+	Fee     decimal.Decimal
+	Balance decimal.Decimal
 }
 
 func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
@@ -59,7 +59,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 				}
 				kr.csvTXs = append(kr.csvTXs, tx)
 				// Fill TXsByCategory
-				if tx.Type == "trade"  {
+				if tx.Type == "trade" {
 					found := false
 					for i, ex := range kr.TXsByCategory["Exchanges"] {
 						if ex.SimilarDate(2*time.Second, tx.Time) {
@@ -104,6 +104,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					kr.TXsByCategory["Withdrawals"] = append(kr.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "transfer" {
 					// Ignore transfer because it's a intra-account transfert
+					// is there some Fees to consider ?
 				} else {
 					log.Println("Kraken : Unmanaged ", tx.Type)
 				}

@@ -44,6 +44,7 @@ type tradeResponse struct {
 
 type apiTradeTX struct {
 	Time        time.Time
+	ID          string
 	Operation   string
 	FromSymbol  string
 	ToSymbol    string
@@ -51,7 +52,6 @@ type apiTradeTX struct {
 	ToAmount    decimal.Decimal
 	Fee         decimal.Decimal
 	FeeCurrency string
-	ID          string
 }
 
 func (btrx *Bittrex) getTrades(apiKey, apiSecret string, pageSize int, lastObjectId string) (tradeTx *resty.Response, err error) {
