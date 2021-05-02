@@ -72,11 +72,17 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 							} else {
 								kr.TXsByCategory["Exchanges"][i].Items["From"] = append(kr.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 							}
+							if !tx.Fee.IsZero() {
+								kr.TXsByCategory["Exchanges"][i].Items["Fee"] = append(kr.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+							}
 						}
 					}
 					if !found {
 						t := wallet.TX{Timestamp: tx.Time}
 						t.Items = make(map[string]wallet.Currencies)
+						if !tx.Fee.IsZero() {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+						}
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 							kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
