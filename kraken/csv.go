@@ -94,17 +94,26 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time}
 					t.Items = make(map[string]wallet.Currencies)
+					if !tx.Fee.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Deposits"] = append(kr.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "withdrawal" {
 					t := wallet.TX{Timestamp: tx.Time}
 					t.Items = make(map[string]wallet.Currencies)
+					if !tx.Fee.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+					}
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 					kr.TXsByCategory["Withdrawals"] = append(kr.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "staking" {
 					t := wallet.TX{Timestamp: tx.Time}
 					t.Items = make(map[string]wallet.Currencies)
-					t.Items["Interests"] = append(t.Items["Interests"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+					if !tx.Fee.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+					}
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
 				} else if tx.Type == "transfer" {
 					// Ignore transfer because it's a intra-account transfert
