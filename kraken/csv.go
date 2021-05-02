@@ -91,8 +91,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 							kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 						}
 					}
-				} else if tx.Type == "deposit" ||
-					tx.Type == "staking" {
+				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
@@ -102,6 +101,11 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 					kr.TXsByCategory["Withdrawals"] = append(kr.TXsByCategory["Withdrawals"], t)
+				} else if tx.Type == "staking" {
+					t := wallet.TX{Timestamp: tx.Time}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["Interests"] = append(t.Items["Interests"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
 				} else if tx.Type == "transfer" {
 					// Ignore transfer because it's a intra-account transfert
 				} else {
