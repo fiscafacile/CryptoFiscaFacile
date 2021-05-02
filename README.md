@@ -212,6 +212,24 @@ Il faut fournir le fichier CSV récupéré dans Bitfinex (https://report.bitfine
 
 Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALANCE,DATE,WALLET`
 
+#### Bittrex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bittrex-)
+
+```
+  -bittrex string
+        Bittrex CSV file
+  -bittrex_api_key string
+        Bittrex API key
+  -bittrex_api_key string
+        Bittrex API secret
+```
+Il faut fournir les fichiers CSV récupérés dans Bittrex (https://global.bittrex.com/history puis "Download Order History".
+
+Les colones du CSV d'origine doivent être : `Uuid,Exchange,TimeStamp,OrderType,Limit,Quantity,QuantityRemaining,Commission,Price,PricePerUnit,IsConditional,Condition,ConditionTarget,ImmediateOrCancel,Closed,TimeInForceTypeId,TimeInForce`
+
+Il est nécessaire de fournir l'API et le CSV car chaque support a son défaut :
+- L'API ne retourne pas les transactions liées a des assets délistés
+- Le CSV ne comprend pas l'historique de dépot/retrait
+
 #### BTC [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#btc-)
 
 ```
