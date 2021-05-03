@@ -345,7 +345,7 @@ Les colones du CSV de Trade doivent être : `id,created_at,buyer,seller,trade_ty
 
 Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, TXtype, TXdesc, TXNotes`
 
-#### Ledger Live
+#### Ledger Live [![Support bon](https://img.shields.io/badge/support-bon-blue)](#ledger-live-)
 
 ```
   -ledgerlive string
@@ -410,7 +410,7 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
 
 Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)](https://en.cryptobadges.io/donate/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)
+[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9)](https://en.cryptobadges.io/donate/bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9)
 
 [![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)](https://en.cryptobadges.io/donate/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)
 
