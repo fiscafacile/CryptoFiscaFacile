@@ -411,11 +411,11 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
 
 Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-![Donate with Bitcoin](https://img.shields.io/badge/BTC-bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9-orange?logo=bitcoin)
+![Donate with Bitcoin](https://img.shields.io/static/v1?label=BTC&message=bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9&color=f2a900&logo=bitcoin)
 
-![Donate with Ethereum](https://img.shields.io/badge/ETH-0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD-blue?logo=ethereum)
+![Donate with Ethereum](https://img.shields.io/static/v1?label=ETH&message=0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD&color=c99d66&logo=ethereum)
 
-![Donate with Crytpo.org Chain](https://img.shields.io/badge/CRO-cro1mj85k6v20ppnegpftxeyh3ne4gsqap4q0hpe89-blue?logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NSA0NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuMyAwTDAgMTEuMlYzMy41TDE5LjMgNDQuN0wzOC42IDMzLjVWMTEuMkwxOS4zIDBaTTMyLjkgMzAuMkwxOS4zIDM4TDUuNyAzMC4yVjE0LjVMMTkuMyA2LjZMMzIuOSAxNC41VjMwLjJaIiAvPjxwYXRoIGQ9Ik0yOC40MDA4IDI3LjQ5ODRMMTkuMzAwOCAzMi42OTg0TDEwLjMwMDggMjcuNDk4NFYxNy4wOTg0TDE5LjMwMDggMTEuODk4NEwyOC40MDA4IDE3LjA5ODRWMjcuNDk4NFoiIC8+PC9zdmc+)
+![Donate with Crytpo.org Chain](https://img.shields.io/static/v1?label=CRO&message=cro1mj85k6v20ppnegpftxeyh3ne4gsqap4q0hpe89&color=002d74&logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NSA0NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuMyAwTDAgMTEuMlYzMy41TDE5LjMgNDQuN0wzOC42IDMzLjVWMTEuMkwxOS4zIDBaTTMyLjkgMzAuMkwxOS4zIDM4TDUuNyAzMC4yVjE0LjVMMTkuMyA2LjZMMzIuOSAxNC41VjMwLjJaIiAvPjxwYXRoIGQ9Ik0yOC40MDA4IDI3LjQ5ODRMMTkuMzAwOCAzMi42OTg0TDEwLjMwMDggMjcuNDk4NFYxNy4wOTg0TDE5LjMwMDggMTEuODk4NEwyOC40MDA4IDE3LjA5ODRWMjcuNDk4NFoiIC8+PC9zdmc+)
 
 ## Support
 
