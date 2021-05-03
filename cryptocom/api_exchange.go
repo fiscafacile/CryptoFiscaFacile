@@ -41,6 +41,7 @@ type ErrorResp struct {
 }
 
 func (cdc *CryptoCom) NewExchangeAPI(apiKey, secretKey string, debug bool) {
+	cdc.apiEx.TXsByCategory = make(map[string]wallet.TXs)
 	cdc.apiEx.clientDep = resty.New()
 	cdc.apiEx.clientDep.SetRetryCount(3)
 	cdc.apiEx.clientDep.SetDebug(debug)
