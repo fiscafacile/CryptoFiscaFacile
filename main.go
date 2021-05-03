@@ -111,6 +111,7 @@ func main() {
 	cdc := cryptocom.New()
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
+		fmt.Println("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)...")
 		cdc.GetAPIExchangeTxs(loc)
 	}
 	// Now parse local files
