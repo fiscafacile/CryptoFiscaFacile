@@ -17,6 +17,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
+	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
 	"github.com/fiscafacile/CryptoFiscaFacile/metamask"
@@ -55,6 +56,8 @@ func main() {
 	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCSVCdCExStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCSVCdCExSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
+	pAPIKrakenKey := flag.String("kraken_api_key", "", "Kraken API key")
+	pAPIKrakenSecret := flag.String("kraken_api_secret", "", "Kraken API secret")
 	pCSVLedgerLive := flag.String("ledgerlive", "", "LedgerLive CSV file")
 	pCSVLBTrade := flag.String("lb_trade", "", "Local Bitcoin Trade CSV file")
 	pCSVLBTransfer := flag.String("lb_transfer", "", "Local Bitcoin Transfer CSV file")
@@ -184,6 +187,23 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Supercharger CSV file:", err)
 		}
 	}
+	krkn := kraken.New()
+	// if *pCSVKraken != "" {
+	// recordFile, err := os.Open(*pCSVKraken)
+	// if err != nil {
+	// 	log.Fatal("Error opening Kraken CSV file:", err)
+	// }
+	// err = krkn.ParseCSV(recordFile)
+	// if err != nil {
+	// 	log.Fatal("Error parsing Kraken CSV file:", err)
+	// }
+	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
+		// go krkn.GetAllTransferTXs(*pAPIKrakenKey, *pAPIKrakenSecret, *categ)
+		go krkn.GetAllTradeTXs(*pAPIKrakenKey, *pAPIKrakenSecret, *categ)
+		// } else {
+		// 	log.Println("Warning, you should provide your API Key/Secret to retrieve Deposits and Withdrawals")
+	}
+	// }
 	ll := ledgerlive.New()
 	if *pCSVLedgerLive != "" {
 		recordFile, err := os.Open(*pCSVLedgerLive)
@@ -273,12 +293,23 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
+		// errTransfer := krkn.WaitTransfersFinish()
+		// if errTransfer != nil {
+		// 	log.Fatalln("Error parsing Kraken API transfers:", errTransfer)
+		// }
+		errTrades := krkn.WaitTradesFinish()
+		if errTrades != nil {
+			log.Fatalln("Error parsing Kraken API trades:", errTrades)
+		}
+	}
 	// create Global Wallet up to Date
 	global := make(wallet.TXsByCategory)
 	global.Add(b.TXsByCategory)
 	global.Add(bf.TXsByCategory)
 	global.Add(cb.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
+	global.Add(krkn.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
 	global.Add(mm.TXsByCategory)
