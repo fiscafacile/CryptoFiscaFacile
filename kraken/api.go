@@ -5,54 +5,104 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
-	"errors"
-	"fmt"
+	"log"
 	"net/url"
+	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/go-resty/resty/v2"
 )
 
-const (
-	API_BASE = "https://api.kraken.com"
-)
+type api struct {
+	clientAssets  *resty.Client
+	doneAssets    chan error
+	clientLedgers *resty.Client
+	doneLedgers   chan error
+	basePath      string
+	apiKey        string
+	secretKey     string
+	firstTimeUsed time.Time
+	ledgerTX      []ledgerTX
+	assets        AssetsInfo
+	txsByCategory wallet.TXsByCategory
+}
 
-type TradesHistory struct {
+type AssetsInfo struct {
 	Error  []string    `json:"error"`
 	Result interface{} `json:"result"`
 }
 
-func (krkn *Kraken) sendRequest(apiKey, apiSecret, resource string, payload url.Values) (response *resty.Response, err error) {
-	// Generate signature
+func (kr *Kraken) NewAPI(apiKey, secretKey string, debug bool) {
+	kr.api.txsByCategory = make(map[string]wallet.TXs)
+	kr.api.clientAssets = resty.New()
+	kr.api.clientAssets.SetRetryCount(3)
+	kr.api.clientAssets.SetDebug(debug)
+	kr.api.doneAssets = make(chan error)
+	kr.api.clientLedgers = resty.New()
+	kr.api.clientLedgers.SetRetryCount(3).SetRetryWaitTime(1 * time.Second)
+	kr.api.clientLedgers.SetDebug(debug)
+	kr.api.doneLedgers = make(chan error)
+	kr.api.basePath = "https://api.kraken.com"
+	kr.api.apiKey = apiKey
+	kr.api.secretKey = secretKey
+	kr.api.firstTimeUsed = time.Now()
+}
+
+func (api *api) getAPITxs() (err error) {
+	api.getAPIAssets()
+	go api.getAPISpotTrades()
+	<-api.doneLedgers
+	api.categorize()
+	return
+}
+
+func (api *api) GetExchangeFirstUsedTime() time.Time {
+	return api.firstTimeUsed
+}
+
+func (api *api) categorize() {
+	for _, tx := range api.ledgerTX {
+		if tx.Type == "trade" {
+			t := wallet.TX{Timestamp: tx.Time, Note: "Kraken API : Trade  " + tx.TxId, ID: tx.TxId}
+			t.Items = make(map[string]wallet.Currencies)
+			if tx.Amount.IsPositive() {
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+			} else {
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+			}
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+			}
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		} else if tx.Type == "deposit" {
+			t := wallet.TX{Timestamp: tx.Time}
+			t.Items = make(map[string]wallet.Currencies)
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+			}
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+			api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+		} else if tx.Type == "withdrawal" {
+			t := wallet.TX{Timestamp: tx.Time}
+			t.Items = make(map[string]wallet.Currencies)
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+			}
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+		} else {
+			log.Println("Kraken : Unmanaged ", tx.Type)
+		}
+	}
+}
+
+func (api *api) sign(headers map[string]string, body url.Values, resource string) {
 	sha := sha256.New()
-	sha.Write([]byte(payload.Get("nonce") + payload.Encode()))
+	sha.Write([]byte(body.Get("nonce") + body.Encode()))
 	shasum := sha.Sum(nil)
-	b64DecodedSecret, _ := base64.StdEncoding.DecodeString(apiSecret)
+	b64DecodedSecret, _ := base64.StdEncoding.DecodeString(api.secretKey)
 	mac := hmac.New(sha512.New, b64DecodedSecret)
 	mac.Write(append([]byte(resource), shasum...))
 	macsum := mac.Sum(nil)
-	signature := base64.StdEncoding.EncodeToString(macsum)
-
-	client := resty.New()
-	response, err = client.R().
-		SetHeaders(map[string]string{
-			"Content-Type": "application/json",
-			"API-Key":      apiKey,
-			"API-Sign":     signature,
-		}).
-		SetFormDataFromValues(payload).
-		SetResult(&TradesHistory{}).
-		Post(API_BASE + resource)
-	errorMsg := ""
-	if err != nil {
-		fmt.Println("Error while fetching trade history", err)
-	} else if len(response.Result().(*TradesHistory).Error) > 0 {
-
-		for _, msg := range response.Result().(*TradesHistory).Error {
-			errorMsg += msg + "\n"
-		}
-	}
-	if errorMsg != "" {
-		err = errors.New(errorMsg)
-	}
-	return response, err
+	headers["API-Sign"] = base64.StdEncoding.EncodeToString(macsum)
 }

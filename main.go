@@ -224,8 +224,9 @@ func main() {
 	}
 	kr := kraken.New()
 	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
-		// go kr.GetAllTransferTXs(*pAPIKrakenKey, *pAPIKrakenSecret, *categ)
-		go kr.GetAllTradeTXs(*pAPIKrakenKey, *pAPIKrakenSecret, *categ)
+		kr.NewAPI(*pAPIKrakenKey, *pAPIKrakenSecret, *pDebug)
+		fmt.Println("Début de récupération des TXs par l'API Kraken (attention ce processus peut être long la première fois)...")
+		kr.GetAPITxs()
 	}
 	if *pCSVKraken != "" {
 		recordFile, err := os.Open(*pCSVKraken)
@@ -334,16 +335,6 @@ func main() {
 		}
 		if *pLBTC {
 			blkst.DetectLBTC(btc)
-		}
-	}
-	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
-		// errTransfer := kr.WaitTransfersFinish()
-		// if errTransfer != nil {
-		// 	log.Fatalln("Error parsing Kraken API transfers:", errTransfer)
-		// }
-		errTrades := kr.WaitTradesFinish()
-		if errTrades != nil {
-			log.Fatalln("Error parsing Kraken API trades:", errTrades)
 		}
 	}
 	// create Global Wallet up to Date
