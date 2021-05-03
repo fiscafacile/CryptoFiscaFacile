@@ -411,9 +411,9 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
 
 Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9)](https://en.cryptobadges.io/donate/bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9)
+[![Donate with Bitcoin](https://img.shields.io/badge/bitcoin-bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9-orange?logo=bitcoin)](bitcoin:bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9?label=Don%20CryptoFiscaFacile)
 
-[![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)](https://en.cryptobadges.io/donate/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)
+[![Donate with Ethereum](img.shields.io/badge/ETH-0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD-blueviolet?logo=ethereum)](ethereum:0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD?label=Don%20CryptoFiscaFacile)
 
 ## Support
 
