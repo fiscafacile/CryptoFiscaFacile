@@ -171,6 +171,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
   -txs_categ string
         Transactions Categories CSV file
 ```
+Il faut fournir un CSV à faire manuellement contenant toutes les transactions que vous voulez catégoriser manuellement (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-txs_categ Inputs/TXS_Categ_exemple.csv -btc_address Inputs/BTC_Addresses_exemple.csv`.
 
 Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH, ou autre) et donne un `Type`. Les différents `Type` supportés sont :
 
@@ -212,6 +213,24 @@ Il faut fournir le fichier CSV récupéré dans Bitfinex (https://report.bitfine
 
 Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALANCE,DATE,WALLET`
 
+#### Bittrex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bittrex-)
+
+```
+  -bittrex string
+        Bittrex CSV file
+  -bittrex_api_key string
+        Bittrex API key
+  -bittrex_api_secret string
+        Bittrex API secret
+```
+Il faut fournir les fichiers CSV récupérés dans Bittrex (https://global.bittrex.com/history puis "Download Order History").
+
+Les colones du CSV d'origine doivent être : `Uuid,Exchange,TimeStamp,OrderType,Limit,Quantity,QuantityRemaining,Commission,Price,PricePerUnit,IsConditional,Condition,ConditionTarget,ImmediateOrCancel,Closed,TimeInForceTypeId,TimeInForce`
+
+Il est nécessaire de fournir l'API et le CSV car chaque support a son défaut :
+- l'API ne retourne pas les transactions liées à des assets délistés.
+- le CSV ne comprend pas l'historique de dépot/retrait.
+
 #### BTC [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#btc-)
 
 ```
@@ -226,7 +245,9 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
   -lbtc
         Detect Lightning Bitcoin Fork
 ```
-Il faut fournir un CSV contenant toutes les addresses BTC que vous possédez. L'outil se chargera de récupérer la liste des transactions associées sur Blockstream (pas besoin de API Key).
+Il faut fournir un CSV à faire manuellement contenant toutes les addresses BTC que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-btc_address Inputs/BTC_Addresses_exemple.csv`.
+
+L'outil se chargera de récupérer la liste des transactions associées sur Blockstream (pas besoin de API Key).
 
 Vous pouvez aussi demander la detection d'un des Fork de BTC, l'outil vous dira dans quel wallet vous avez un montant dû au Fork et intègrera ces montants à votre portefeuille global.
 
@@ -249,12 +270,22 @@ Expériemental.
         Crypto.com Exchange Stake CSV file
   -cdc_ex_supercharger string
         Crypto.com Exchange Supercharger CSV file
+  -cdc_ex_api_key string
+        Crypto.com Exchange API Key
+  -cdc_ex_secret_key string
+        Crypto.com Exchange Secret Key
   -cdc_ex_transfer string
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
 Il faut fournir les CSV récupérés dans l'App et l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
 
 Le CSV de l'APP doit etre celui des Transactions du Portefeuille Crypto.
+
+Pour l'API de l'Exchange, il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
+
+Il faut activer le droit de "Withdrawal" (si disponible pour vous) si vous voulez récupérer les `Withdrawals` et `Deposits` (je ne l'ai pas, je ne peux pas tester). Dans le cas contraire, le CSV Transfers permet de les mettre dans l'outil sans l'API.
+
+Par contre les `Exchanges` sur le Spot Market seront bien récupérés sans droit particulier (attention tout de même c'est assez long, on ne peut faire qu'une requête par seconde pour récupérer les Trades d'une seule journée, il faut donc de nombreuses requêtes pour remonter au jour du lancement de l'Exchange le 14 Nov 2019).
 
 Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
 
@@ -284,11 +315,23 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
   -eth_address string
         Ethereum Addresses CSV file
 ```
-Il faut fournir un CSV contenant toutes les addresses ETH que vous possédez. L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (besoin de fournir une API Key).
+Il faut fournir un CSV à faire manuellement contenant toutes les addresses ETH que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-eth_address Inputs/ETH_Addresses_exemple.csv`.
+
+L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (à une vitesse limitée de 5 requêtes par secondes, vous devez fournir une API Key).
 
 Il détectera aussi les Token ERC20 associés.
 
 Les colones du CSV doivent être : `Address,Description`
+
+#### Kraken [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#kraken-)
+
+```
+  -kraken string
+        Kraken CSV file
+```
+Il faut fournir le fichier CSV récupéré dans Kraken (https://www.kraken.com/u/history/export puis sélectionner "Ledgers" et "All fields").
+
+Les colones du CSV d'origine doivent être : `txid,refid,time,type,subtype,aclass,asset,amount,fee,balance`
 
 #### Local Bitcoin [![Support bon](https://img.shields.io/badge/support-bon-blue)](#local-bitcoin-)
 
@@ -303,7 +346,7 @@ Les colones du CSV de Trade doivent être : `id,created_at,buyer,seller,trade_ty
 
 Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, TXtype, TXdesc, TXNotes`
 
-#### Ledger Live
+#### Ledger Live [![Support bon](https://img.shields.io/badge/support-bon-blue)](#ledger-live-)
 
 ```
   -ledgerlive string
@@ -368,9 +411,11 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
 
 Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-[![Donate with Bitcoin](https://en.cryptobadges.io/badge/small/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)](https://en.cryptobadges.io/donate/36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM)
+![Donate with Bitcoin](https://img.shields.io/static/v1?label=BTC&message=bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9&color=f2a900&logo=bitcoin)
 
-[![Donate with Ethereum](https://en.cryptobadges.io/badge/small/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)](https://en.cryptobadges.io/donate/0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD)
+![Donate with Ethereum](https://img.shields.io/static/v1?label=ETH&message=0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD&color=c99d66&logo=ethereum)
+
+![Donate with Crytpo.org Chain](https://img.shields.io/static/v1?label=CRO&message=cro1mj85k6v20ppnegpftxeyh3ne4gsqap4q0hpe89&color=002d74&logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NSA0NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuMyAwTDAgMTEuMlYzMy41TDE5LjMgNDQuN0wzOC42IDMzLjVWMTEuMkwxOS4zIDBaTTMyLjkgMzAuMkwxOS4zIDM4TDUuNyAzMC4yVjE0LjVMMTkuMyA2LjZMMzIuOSAxNC41VjMwLjJaIiAvPjxwYXRoIGQ9Ik0yOC40MDA4IDI3LjQ5ODRMMTkuMzAwOCAzMi42OTg0TDEwLjMwMDggMjcuNDk4NFYxNy4wOTg0TDE5LjMwMDggMTEuODk4NEwyOC40MDA4IDE3LjA5ODRWMjcuNDk4NFoiIC8+PC9zdmc+)
 
 ## Support
 

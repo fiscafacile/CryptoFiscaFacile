@@ -368,17 +368,25 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 							}
 						}
 					}
+					isExchange := false
 					for j, ntx := range ethsc.apiNormalTXs {
 						if ntx.Hash == tx.Hash {
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
 							if !ntx.Value.IsZero() {
-								log.Println("Detected Deposits Internal TX with non Zero Normal Value", tx)
+								if ethsc.ownAddress(ntx.From) {
+									t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
+									isExchange = true
+								} else {
+									log.Println("Detected Deposits Internal TX with Deposits Normal TX associated", tx)
+								}
 							}
 							ethsc.apiNormalTXs[j].used = true
 							break
 						}
 					}
-					if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
+					if isExchange {
+						ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)
+					} else if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
 						t.Note += " crypto_exchange " + desc
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
 						ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)

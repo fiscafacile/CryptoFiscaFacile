@@ -29,6 +29,7 @@ type Wallets struct {
 
 type TX struct {
 	Timestamp time.Time
+	ID        string
 	Items     map[string]Currencies
 	Note      string
 }
@@ -571,6 +572,26 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 						tx.Println("")
 					}
 				}
+			}
+		}
+	}
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("| List of Deposits with some From                      |")
+	for _, tx := range txs["Deposits"] {
+		for k := range tx.Items {
+			if k == "From" {
+				fmt.Println("--------------------------------------------------------")
+				tx.Println("")
+			}
+		}
+	}
+	fmt.Println("--------------------------------------------------------")
+	fmt.Println("| List of Withdrawals with some To                     |")
+	for _, tx := range txs["Withdrawals"] {
+		for k := range tx.Items {
+			if k == "To" {
+				fmt.Println("--------------------------------------------------------")
+				tx.Println("")
 			}
 		}
 	}

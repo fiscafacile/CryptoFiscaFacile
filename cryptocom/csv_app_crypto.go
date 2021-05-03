@@ -10,7 +10,7 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type CsvTX struct {
+type csvAppCryptoTX struct {
 	Timestamp       time.Time
 	Description     string
 	Currency        string
@@ -23,14 +23,14 @@ type CsvTX struct {
 	Kind            string
 }
 
-func (cdc *CryptoCom) ParseCSVCrypto(reader io.Reader) (err error) {
+func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		alreadyAsked := []string{}
 		for _, r := range records {
 			if r[0] != "Timestamp (UTC)" {
-				tx := CsvTX{}
+				tx := csvAppCryptoTX{}
 				tx.Timestamp, err = time.Parse("2006-01-02 15:04:05", r[0])
 				if err != nil {
 					log.Println("Error Parsing Timestamp : ", r[0])
@@ -53,7 +53,7 @@ func (cdc *CryptoCom) ParseCSVCrypto(reader io.Reader) (err error) {
 					log.Println("Error Parsing NativeAmountUSD : ", r[8])
 				}
 				tx.Kind = r[9]
-				cdc.CsvTXs = append(cdc.CsvTXs, tx)
+				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
 				// Fill TXsByCategory
 				if tx.Kind == "dust_conversion_credited" ||
 					tx.Kind == "dust_conversion_debited" ||

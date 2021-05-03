@@ -5,23 +5,23 @@ import (
 )
 
 type Kraken struct {
-	// api           api
+	csvTXs        []csvTX
 	TXsByCategory wallet.TXsByCategory
 	transferDone  chan error
 	tradesDone    chan error
 }
 
 func New() *Kraken {
-	krkn := &Kraken{}
-	krkn.TXsByCategory = make(map[string]wallet.TXs)
-	krkn.transferDone = make(chan error)
-	krkn.tradesDone = make(chan error)
-	return krkn
+	kr := &Kraken{}
+	kr.TXsByCategory = make(map[string]wallet.TXs)
+	kr.transferDone = make(chan error)
+	kr.tradesDone = make(chan error)
+	return kr
 }
 
-// func (krkn *Kraken) WaitTransfersFinish() error {
-// 	return <-krkn.transferDone
+// func (kr *Kraken) WaitTransfersFinish() error {
+// 	return <-kr.transferDone
 // }
-func (krkn *Kraken) WaitTradesFinish() error {
-	return <-krkn.tradesDone
+func (kr *Kraken) WaitTradesFinish() error {
+	return <-kr.tradesDone
 }
