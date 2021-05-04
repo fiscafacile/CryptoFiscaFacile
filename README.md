@@ -319,7 +319,7 @@ Il faut fournir un CSV à faire manuellement contenant toutes les addresses ETH 
 
 L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (à une vitesse limitée de 5 requêtes par secondes si vous ne fournissez pas une API Key).
 
-Il détectera aussi les Token ERC20 associés.
+Il détectera aussi les Token ERC20 et ERC721 (NFT) associés.
 
 Les colones du CSV doivent être : `Address,Description`
 
