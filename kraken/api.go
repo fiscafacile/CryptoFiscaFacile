@@ -5,8 +5,10 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
+	"fmt"
 	"log"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -62,8 +64,8 @@ func (api *api) GetExchangeFirstUsedTime() time.Time {
 
 func (api *api) categorize() {
 	for _, tx := range api.ledgerTX {
-		if tx.Type == "trade" {
-			t := wallet.TX{Timestamp: tx.Time, Note: "Kraken API : Trade  " + tx.TxId, ID: tx.TxId}
+		if tx.Type == "trade" || tx.Type == "margin" || tx.Type == "rollover" || tx.Type == "transfer" || tx.Type == "settled" {
+			t := wallet.TX{Timestamp: tx.Time, Note: "Kraken API : " + strings.Title(tx.Type) + "  " + tx.TxId, ID: tx.TxId}
 			t.Items = make(map[string]wallet.Currencies)
 			if tx.Amount.IsPositive() {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
@@ -92,6 +94,7 @@ func (api *api) categorize() {
 			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 		} else {
 			log.Println("Kraken : Unmanaged ", tx.Type)
+			fmt.Println(tx)
 		}
 	}
 }
