@@ -5,10 +5,22 @@ func ReplaceAssets(assetToReplace string) string {
 	switch assetToReplace {
 	case "DOT.S":
 		return "DOT"
-	case "XBT":
+	case "XETC":
+		return "ETC"
+	case "XETH":
+		return "ETH"
+	case "XLTC":
+		return "LTC"
+	case "XREP":
+		return "REP"
+	case "XXBT":
 		return "BTC"
-	case "XDG":
+	case "XXDG":
 		return "DOGE"
+	case "XXRP":
+		return "XRP"
+	case "ZEUR":
+		return "EUR"	
 	default:
 		return assetToReplace
 	}

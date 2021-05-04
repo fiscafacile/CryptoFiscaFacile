@@ -225,7 +225,6 @@ func main() {
 	kr := kraken.New()
 	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
 		kr.NewAPI(*pAPIKrakenKey, *pAPIKrakenSecret, *pDebug)
-		fmt.Println("Début de récupération des TXs par l'API Kraken (attention ce processus peut être long la première fois)...")
 		kr.GetAPITxs()
 	}
 	if *pCSVKraken != "" {

@@ -41,10 +41,12 @@ func (api *api) getAPISpotTrades() {
 			fmt.Println("Error while parsing amount", tra["amount"].(string))
 		}
 		if val, ok := assets[tra["asset"].(string)]; ok {
-			tx.Asset = ReplaceAssets(val.(map[string]interface{})["altname"].(string))
+			tx.Asset = val.(map[string]interface{})["altname"].(string)
 		} else {
-			tx.Asset = ReplaceAssets(tra["asset"].(string))
+			tx.Asset = tra["asset"].(string)
 		}
+		rpl := strings.NewReplacer("XBT", "BTC", "XXDG", "DOGE")
+		tx.Asset = rpl.Replace(tx.Asset)
 		tx.Class = tra["aclass"].(string)
 		tx.Fee, err = decimal.NewFromString(tra["fee"].(string))
 		if err != nil {
@@ -77,6 +79,7 @@ func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
 		err = db.Read("Kraken/private", "Ledgers", &fullTradeTx)
 	}
 	if !useCache || err != nil {
+		fmt.Println("Début de la récupération des TXs par l'API Kraken, attention ce processus peut être long en fonction du nombre de transactions...")
 		resource := "/0/private/Ledgers"
 		headers := make(map[string]string)
 		headers["API-Key"] = api.apiKey
