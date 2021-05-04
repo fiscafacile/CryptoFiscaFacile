@@ -12,20 +12,27 @@ type CryptoCom struct {
 	csvExTransferTXs     []csvExTransferTX
 	csvExStakeTXs        []csvExStakeTX
 	csvExSuperchargerTXs []csvExSuperchargerTX
+	done                 chan error
 	TXsByCategory        wallet.TXsByCategory
 }
 
 func New() *CryptoCom {
 	cdc := &CryptoCom{}
+	cdc.done = make(chan error)
 	cdc.TXsByCategory = make(map[string]wallet.TXs)
 	return cdc
 }
 
-func (cdc *CryptoCom) GetAPIExchangeTxs(loc *time.Location) (err error) {
-	err = cdc.apiEx.getAPIExchangeTxs(loc)
+func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
+	err := cdc.apiEx.getAllTXs(loc)
 	if err != nil {
+		cdc.done <- err
 		return
 	}
 	cdc.TXsByCategory.Add(cdc.apiEx.txsByCategory)
-	return
+	cdc.done <- nil
+}
+
+func (cdc *CryptoCom) WaitFinish() error {
+	return <-cdc.done
 }

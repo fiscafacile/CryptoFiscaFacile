@@ -20,7 +20,7 @@ type spotTradeTX struct {
 	FeeCurrency string
 }
 
-func (api *apiEx) getAPISpotTrades(loc *time.Location) {
+func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 	date := time.Now().Add(-24 * time.Hour)
 	for date.After(api.startTime) {
 		trades, err := api.getTrades(date.Year(), date.Month(), date.Day(), loc)
@@ -118,7 +118,7 @@ func (api *apiEx) getTrades(year int, month time.Month, day int, loc *time.Locat
 				return trades, errors.New("Crypto.com Exchange API Trades : Error Caching" + period)
 			}
 		}
-		time.Sleep(time.Second)
+		time.Sleep(api.timeBetweenReqSpot)
 	}
 	return trades, nil
 }

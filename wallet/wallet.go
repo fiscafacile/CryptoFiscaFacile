@@ -13,6 +13,14 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type Nft struct {
+	ID     string
+	Name   string
+	Symbol string
+}
+
+type Nfts []Nft
+
 type Currency struct {
 	Code   string
 	Amount decimal.Decimal
@@ -25,12 +33,14 @@ type WalletCurrencies map[string]decimal.Decimal
 type Wallets struct {
 	Date       time.Time
 	Currencies WalletCurrencies
+	Nfts       Nfts
 }
 
 type TX struct {
 	Timestamp time.Time
 	ID        string
 	Items     map[string]Currencies
+	Nfts      map[string]Nfts
 	Note      string
 }
 
@@ -38,8 +48,19 @@ type TXs []TX
 
 type TXsByCategory map[string]TXs
 
-func Base64String(i interface{}) string {
-	return base64.StdEncoding.EncodeToString([]byte(spew.Sdump(i)))
+func AskForHelp(id string, tx interface{}, alreadyAsked []string) []string {
+	found := false
+	for _, i := range alreadyAsked {
+		if i == id {
+			found = true
+			break
+		}
+	}
+	if !found {
+		log.Println("Unmanaged ", id, ", please copy this into t.me/cryptofiscafacile so we can add support for it :", base64.StdEncoding.EncodeToString([]byte(spew.Sdump(tx))))
+		alreadyAsked = append(alreadyAsked, id)
+	}
+	return alreadyAsked
 }
 
 func (c *Currency) IsFiat() bool {
@@ -183,6 +204,9 @@ func (tx TX) Println(filter string) (printed bool) {
 		printed = false
 	}
 	toPrint := fmt.Sprintln("Time :", tx.Timestamp.UTC())
+	if tx.ID != "" {
+		toPrint += fmt.Sprintln("ID :", tx.ID)
+	}
 	for k, v := range tx.Items {
 		toPrint += fmt.Sprintln(k, ":")
 		for _, i := range v {
@@ -190,6 +214,12 @@ func (tx TX) Println(filter string) (printed bool) {
 			if strings.Contains(filter, i.Code) {
 				printed = true
 			}
+		}
+	}
+	for k, v := range tx.Nfts {
+		toPrint += fmt.Sprintln("NFT", k, ":")
+		for _, i := range v {
+			toPrint += fmt.Sprintln("  ", i.Name, i.Symbol, i.ID)
 		}
 	}
 	toPrint += fmt.Sprintln("Note :", tx.Note)
@@ -298,6 +328,11 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
 					found = true
 					t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
+					if witTX.ID != "" {
+						t.ID = witTX.ID
+					} else if depTX.ID != "" {
+						t.ID = depTX.ID
+					}
 					t.Items = make(map[string]Currencies)
 					t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
 					t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)

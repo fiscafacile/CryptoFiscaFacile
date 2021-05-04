@@ -14,22 +14,24 @@ import (
 )
 
 type apiEx struct {
-	clientDep     *resty.Client
-	doneDep       chan error
-	clientWit     *resty.Client
-	doneWit       chan error
-	clientSpotTra *resty.Client
-	doneSpotTra   chan error
-	basePath      string
-	apiKey        string
-	secretKey     string
-	firstTimeUsed time.Time
-	startTime     time.Time
-	nextReqID     int64
-	withdrawalTXs []withdrawalTX
-	depositTXs    []depositTX
-	spotTradeTXs  []spotTradeTX
-	txsByCategory wallet.TXsByCategory
+	clientDep          *resty.Client
+	doneDep            chan error
+	clientWit          *resty.Client
+	doneWit            chan error
+	clientSpotTra      *resty.Client
+	doneSpotTra        chan error
+	basePath           string
+	apiKey             string
+	secretKey          string
+	firstTimeUsed      time.Time
+	startTime          time.Time
+	timeBetweenReq     time.Duration
+	timeBetweenReqSpot time.Duration
+	nextReqID          int64
+	withdrawalTXs      []withdrawalTX
+	depositTXs         []depositTX
+	spotTradeTXs       []spotTradeTX
+	txsByCategory      wallet.TXsByCategory
 }
 
 type ErrorResp struct {
@@ -59,12 +61,14 @@ func (cdc *CryptoCom) NewExchangeAPI(apiKey, secretKey string, debug bool) {
 	cdc.apiEx.secretKey = secretKey
 	cdc.apiEx.firstTimeUsed = time.Now()
 	cdc.apiEx.startTime = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
+	cdc.apiEx.timeBetweenReq = 100 * time.Millisecond
+	cdc.apiEx.timeBetweenReqSpot = time.Second
 }
 
-func (api *apiEx) getAPIExchangeTxs(loc *time.Location) (err error) {
-	go api.getAPIDeposits(loc)
-	go api.getAPIWithdrawals(loc)
-	go api.getAPISpotTrades(loc)
+func (api *apiEx) getAllTXs(loc *time.Location) (err error) {
+	go api.getDepositsTXs(loc)
+	go api.getWithdrawalsTXs(loc)
+	go api.getSpotTradesTXs(loc)
 	<-api.doneDep
 	<-api.doneWit
 	<-api.doneSpotTra

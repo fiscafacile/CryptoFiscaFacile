@@ -173,16 +173,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "dynamic_coin_swap_debited" {
 					// Do nothing
 				} else {
-					found := false
-					for _, k := range alreadyAsked {
-						if k == tx.Kind {
-							found = true
-						}
-					}
-					if !found {
-						log.Println("Unmanaged", tx.Kind, "please copy this into t.me/cryptofiscafacile so we can add support for it :", wallet.Base64String(tx))
-						alreadyAsked = append(alreadyAsked, tx.Kind)
-					}
+					alreadyAsked = wallet.AskForHelp("Crypto.com CSV "+tx.Kind, tx, alreadyAsked)
 				}
 			}
 		}

@@ -317,7 +317,7 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
 ```
 Il faut fournir un CSV à faire manuellement contenant toutes les addresses ETH que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-eth_address Inputs/ETH_Addresses_exemple.csv`.
 
-L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (à une vitesse limitée de 5 requêtes par secondes, vous devez fournir une API Key).
+L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (à une vitesse limitée de 5 requêtes par secondes si vous ne fournissez pas une API Key).
 
 Il détectera aussi les Token ERC20 associés.
 
@@ -399,6 +399,7 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
   -etherscan_apikey string
         Etherscan API Key (https://etherscan.io/myapikey)
 ```
+Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes seront limitées à 5 par secondes.
 
 ### Options de sortie
 

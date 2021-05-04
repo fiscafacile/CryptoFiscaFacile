@@ -1,33 +1,36 @@
 package etherscan
 
 import (
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
 type Etherscan struct {
-	api            API
-	csvAddresses   []csvAddress
-	apiNormalTXs   []apiNormalTX
-	apiInternalTXs []apiInternalTX
-	apiERC20TXs    []apiERC20TX
-	done           chan error
-	TXsByCategory  wallet.TXsByCategory
+	api           api
+	csvAddresses  []csvAddress
+	done          chan error
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *Etherscan {
 	ethsc := &Etherscan{}
-	ethsc.TXsByCategory = make(map[string]wallet.TXs)
 	ethsc.done = make(chan error)
+	ethsc.TXsByCategory = make(map[string]wallet.TXs)
 	return ethsc
 }
 
-func (ethsc *Etherscan) ownAddress(add string) bool {
+func (ethsc *Etherscan) GetAPITXs(cat category.Category) {
+	addresses := []string{}
 	for _, a := range ethsc.csvAddresses {
-		if a.address == add {
-			return true
-		}
+		addresses = append(addresses, a.address)
 	}
-	return false
+	err := ethsc.api.getAllTXs(addresses, cat)
+	if err != nil {
+		ethsc.done <- err
+		return
+	}
+	ethsc.TXsByCategory.Add(ethsc.api.txsByCategory)
+	ethsc.done <- nil
 }
 
 func (ethsc *Etherscan) WaitFinish() error {

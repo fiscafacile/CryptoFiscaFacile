@@ -105,14 +105,18 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
 		}
-		ethsc.APIConnect(*pEtherscanAPIKey)
-		go ethsc.ParseCSV(recordFile, *categ)
+		err = ethsc.ParseCSV(recordFile)
+		if err != nil {
+			log.Fatal("")
+		}
+		ethsc.NewAPI(*pEtherscanAPIKey, *pDebug)
+		go ethsc.GetAPITXs(*categ)
 	}
 	cdc := cryptocom.New()
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
 		fmt.Println("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)...")
-		cdc.GetAPIExchangeTxs(loc)
+		go cdc.GetAPIExchangeTXs(loc)
 	}
 	// Now parse local files
 	bc := blockchain.New()
@@ -294,6 +298,13 @@ func main() {
 		err = revo.ParseCSV(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Revolut CSV file:", err)
+		}
+	}
+	// Wait for API access to finish
+	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
+		err := cdc.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Crypto.com Exchange TXs:", err)
 		}
 	}
 	if *pCSVEthAddress != "" {

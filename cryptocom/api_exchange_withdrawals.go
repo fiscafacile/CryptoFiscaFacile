@@ -17,7 +17,7 @@ type withdrawalTX struct {
 	Fee         decimal.Decimal
 }
 
-func (api *apiEx) getAPIWithdrawals(loc *time.Location) {
+func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
 	for y := thisYear; y > 2019; y-- {
@@ -134,7 +134,7 @@ func (api *apiEx) getWithdrawalHistory(year, quarter int, loc *time.Location) (w
 				return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error Caching" + period)
 			}
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(api.timeBetweenReq)
 	}
 	return withHist, nil
 }

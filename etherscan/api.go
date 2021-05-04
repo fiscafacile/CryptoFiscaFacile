@@ -1,452 +1,352 @@
 package etherscan
 
 import (
-	"log"
+	"math/big"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
-	"github.com/nanmu42/etherscan-api"
-	"github.com/nanobox-io/golang-scribble"
-	"github.com/shopspring/decimal"
+	"github.com/go-resty/resty/v2"
 )
 
-type API struct {
-	client *etherscan.Client
+type api struct {
+	clientNor      *resty.Client
+	doneNor        chan error
+	clientInt      *resty.Client
+	doneInt        chan error
+	clientTok      *resty.Client
+	doneTok        chan error
+	clientNft      *resty.Client
+	doneNft        chan error
+	basePath       string
+	apiKey         string
+	firstTimeUsed  time.Time
+	timeBetweenReq time.Duration
+	normalTXs      []normalTX
+	internalTXs    []internalTX
+	tokenTXs       []tokenTX
+	nftTXs         []nftTX
+	txsByCategory  wallet.TXsByCategory
 }
 
-type apiNormalTX struct {
-	used              bool
-	BlockNumber       int
-	TimeStamp         time.Time
-	Hash              string
-	Nonce             int
-	BlockHash         string
-	TransactionIndex  int
-	From              string
-	To                string
-	Value             decimal.Decimal
-	Gas               int
-	GasPrice          decimal.Decimal
-	IsError           int
-	TxReceiptStatus   string
-	Input             string
-	ContractAddress   string
-	CumulativeGasUsed int
-	GasUsed           decimal.Decimal
-	Confirmations     int
+func (ethsc *Etherscan) NewAPI(apiKey string, debug bool) {
+	ethsc.api.txsByCategory = make(map[string]wallet.TXs)
+	ethsc.api.clientNor = resty.New()
+	ethsc.api.clientNor.SetRetryCount(3)
+	ethsc.api.clientNor.SetDebug(debug)
+	ethsc.api.doneNor = make(chan error)
+	ethsc.api.clientInt = resty.New()
+	ethsc.api.clientInt.SetRetryCount(3)
+	ethsc.api.clientInt.SetDebug(debug)
+	ethsc.api.doneInt = make(chan error)
+	ethsc.api.clientTok = resty.New()
+	ethsc.api.clientTok.SetRetryCount(3).SetRetryWaitTime(1 * time.Second)
+	ethsc.api.clientTok.SetDebug(debug)
+	ethsc.api.doneTok = make(chan error)
+	ethsc.api.clientNft = resty.New()
+	ethsc.api.clientNft.SetRetryCount(3).SetRetryWaitTime(1 * time.Second)
+	ethsc.api.clientNft.SetDebug(debug)
+	ethsc.api.doneNft = make(chan error)
+	ethsc.api.basePath = "https://api.etherscan.io/api"
+	ethsc.api.apiKey = apiKey
+	ethsc.api.firstTimeUsed = time.Now()
+	ethsc.api.timeBetweenReq = 200 * time.Millisecond
 }
 
-type apiInternalTX struct {
-	used            bool
-	BlockNumber     int
-	TimeStamp       time.Time
-	Hash            string
-	From            string
-	To              string
-	Value           decimal.Decimal
-	ContractAddress string
-	Input           string
-	Type            string
-	Gas             int
-	GasUsed         decimal.Decimal
-	TraceID         string
-	IsError         int
-	ErrCode         string
-}
-
-type apiERC20TX struct {
-	used              bool
-	BlockNumber       int
-	TimeStamp         time.Time
-	Hash              string
-	Nonce             int
-	BlockHash         string
-	From              string
-	ContractAddress   string
-	To                string
-	Value             decimal.Decimal
-	TokenName         string
-	TokenSymbol       string
-	TokenDecimal      uint8
-	TransactionIndex  int
-	Gas               int
-	GasPrice          decimal.Decimal
-	GasUsed           decimal.Decimal
-	CumulativeGasUsed int
-	Input             string
-	Confirmations     int
-}
-
-func (ethsc *Etherscan) APIConnect(apikey string) {
-	ethsc.api.client = etherscan.New(etherscan.Mainnet, apikey)
-}
-
-func (ethsc *Etherscan) apiGetAllTXs(cat category.Category) (err error) {
-	useCache := true
-	db, err := scribble.New("./Cache", nil)
-	if err != nil {
-		useCache = false
-	}
-	for _, eth := range ethsc.csvAddresses {
-		var nTXs []etherscan.NormalTx
-		if useCache {
-			err = db.Read("EtherScan/accounts/txlist", eth.address, &nTXs)
-		}
-		if !useCache || err != nil {
-			nTXs, err = ethsc.api.client.NormalTxByAddress(eth.address, nil, nil, 1, 500, false)
-			if err != nil {
-				time.Sleep(6 * time.Second)
-				nTXs, err = ethsc.api.client.NormalTxByAddress(eth.address, nil, nil, 1, 500, false)
-				if err != nil {
-					log.Println("Etherscan API : Error Getting by API Normal TX for", eth.address)
-				}
-			}
-			if useCache {
-				err = db.Write("EtherScan/accounts/txlist", eth.address, nTXs)
-				if err != nil {
-					log.Println("Etherscan API : Error Caching Normal TX for", eth.address)
-				}
-			}
-		}
-		for _, t := range nTXs {
-			tx := apiNormalTX{
-				used:              false,
-				BlockNumber:       t.BlockNumber,
-				TimeStamp:         t.TimeStamp.Time(),
-				Hash:              t.Hash,
-				Nonce:             t.Nonce,
-				BlockHash:         t.BlockHash,
-				TransactionIndex:  t.TransactionIndex,
-				From:              t.From,
-				To:                t.To,
-				Value:             decimal.NewFromBigInt(t.Value.Int(), -18),
-				Gas:               t.Gas,
-				GasPrice:          decimal.NewFromBigInt(t.GasPrice.Int(), -18),
-				IsError:           t.IsError,
-				TxReceiptStatus:   t.TxReceiptStatus,
-				Input:             t.Input,
-				ContractAddress:   t.ContractAddress,
-				CumulativeGasUsed: t.CumulativeGasUsed,
-				GasUsed:           decimal.NewFromInt(int64(t.GasUsed)),
-				Confirmations:     t.Confirmations,
-			}
-			ethsc.apiNormalTXs = append(ethsc.apiNormalTXs, tx)
-		}
-		var iTXs []etherscan.InternalTx
-		if useCache {
-			err = db.Read("EtherScan/accounts/txlistinternal", eth.address, &iTXs)
-		}
-		if !useCache || err != nil {
-			iTXs, err = ethsc.api.client.InternalTxByAddress(eth.address, nil, nil, 1, 500, false)
-			if err != nil {
-				time.Sleep(6 * time.Second)
-				iTXs, err = ethsc.api.client.InternalTxByAddress(eth.address, nil, nil, 1, 500, false)
-				if err != nil {
-					log.Println("Etherscan API : Error Getting by API Internal TX for", eth.address)
-				}
-			}
-			if useCache {
-				err = db.Write("EtherScan/accounts/txlistinternal", eth.address, iTXs)
-				if err != nil {
-					log.Println("Etherscan API : Error Caching Internal TX for", eth.address)
-				}
-			}
-		}
-		for _, t := range iTXs {
-			tx := apiInternalTX{
-				used:            false,
-				BlockNumber:     t.BlockNumber,
-				TimeStamp:       t.TimeStamp.Time(),
-				Hash:            t.Hash,
-				From:            t.From,
-				To:              t.To,
-				Value:           decimal.NewFromBigInt(t.Value.Int(), -18),
-				ContractAddress: t.ContractAddress,
-				Input:           t.Input,
-				Type:            t.Type,
-				Gas:             t.Gas,
-				GasUsed:         decimal.NewFromInt(int64(t.GasUsed)),
-				TraceID:         t.TraceID,
-				IsError:         t.IsError,
-				ErrCode:         t.ErrCode,
-			}
-			ethsc.apiInternalTXs = append(ethsc.apiInternalTXs, tx)
-		}
-		var tTXs []etherscan.ERC20Transfer
-		if useCache {
-			err = db.Read("EtherScan/accounts/tokentx", eth.address, &tTXs)
-		}
-		if !useCache || err != nil {
-			tTXs, err = ethsc.api.client.ERC20Transfers(nil, &eth.address, nil, nil, 1, 500, false)
-			if err != nil {
-				time.Sleep(6 * time.Second)
-				tTXs, err = ethsc.api.client.ERC20Transfers(nil, &eth.address, nil, nil, 1, 500, false)
-				if err != nil {
-					log.Println("Etherscan API : Error Getting by API ERC20 TX for", eth.address)
-				}
-			}
-			if useCache {
-				err = db.Write("EtherScan/accounts/tokentx", eth.address, tTXs)
-				if err != nil {
-					log.Println("Etherscan API : Error Caching ERC20 TX for", eth.address)
-				}
-			}
-		}
-		for _, t := range tTXs {
-			tx := apiERC20TX{
-				used:              false,
-				BlockNumber:       t.BlockNumber,
-				TimeStamp:         t.TimeStamp.Time(),
-				Hash:              t.Hash,
-				Nonce:             t.Nonce,
-				BlockHash:         t.BlockHash,
-				From:              t.From,
-				ContractAddress:   t.ContractAddress,
-				To:                t.To,
-				Value:             decimal.NewFromBigInt(t.Value.Int(), -18),
-				TokenName:         t.TokenName,
-				TokenSymbol:       t.TokenSymbol,
-				TokenDecimal:      t.TokenDecimal,
-				TransactionIndex:  t.TransactionIndex,
-				Gas:               t.Gas,
-				GasPrice:          decimal.NewFromBigInt(t.GasPrice.Int(), -18),
-				GasUsed:           decimal.NewFromInt(int64(t.GasUsed)),
-				CumulativeGasUsed: t.CumulativeGasUsed,
-				Input:             t.Input,
-				Confirmations:     t.Confirmations,
-			}
-			ethsc.apiERC20TXs = append(ethsc.apiERC20TXs, tx)
-		}
-	}
-	ethsc.apiFillTXsByCategory(cat)
+func (api *api) getAllTXs(addresses []string, cat category.Category) (err error) {
+	go api.getNormalTXs(addresses)
+	go api.getInternalTXs(addresses)
+	go api.getTokenTXs(addresses)
+	go api.getNftTXs(addresses)
+	<-api.doneNor
+	<-api.doneInt
+	<-api.doneTok
+	<-api.doneNft
+	api.categorize(addresses, cat)
 	return
 }
 
-func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
-	for i, tx := range ethsc.apiERC20TXs {
+func (api *api) GetExchangeFirstUsedTime() time.Time {
+	return api.firstTimeUsed
+}
+
+func (api *api) categorize(addresses []string, cat category.Category) {
+	alreadyAsked := []string{}
+	for i, tx := range api.nftTXs {
 		if !tx.used {
 			if is, _ := cat.IsTxShit(tx.Hash); is {
-				ethsc.apiERC20TXs[i].used = true
+				api.nftTXs[i].used = true
 			} else {
-				if ethsc.ownAddress(tx.To) && ethsc.ownAddress(tx.From) {
-					log.Println("Detected Self ERC20 TX", tx)
-				} else if ethsc.ownAddress(tx.To) {
-					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
+				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
+					alreadyAsked = wallet.AskForHelp("Etherscan API ERC721 Self TX", tx, alreadyAsked)
+				} else if api.ownAddress(tx.To, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
+					t.Items = make(map[string]wallet.Currencies)
+					if !tx.GasPrice.IsZero() && !tx.GasUsed.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+					}
+					t.Nfts = make(map[string]wallet.Nfts)
+					t.Nfts["To"] = append(t.Nfts["To"], wallet.Nft{ID: tx.TokenID, Name: tx.TokenName, Symbol: tx.TokenSymbol})
+					if is, feeHash := cat.IsTxFee(tx.Hash); is {
+						for k, ntx2 := range api.normalTXs {
+							for _, fee := range strings.Split(feeHash, ";") {
+								if ntx2.Hash == fee {
+									if !ntx2.GasPrice.IsZero() && !ntx2.GasUsed.IsZero() &&
+										(!ntx2.GasPrice.Equal(tx.GasPrice) || !ntx2.GasUsed.Equal(tx.GasUsed)) {
+										t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
+									}
+									api.normalTXs[k].used = true
+								}
+							}
+						}
+					}
+					for j, ntx := range api.normalTXs {
+						if ntx.Hash == tx.Hash {
+							if !ntx.GasPrice.IsZero() && !ntx.GasUsed.IsZero() &&
+								(!ntx.GasPrice.Equal(tx.GasPrice) || !ntx.GasUsed.Equal(tx.GasUsed)) {
+								t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
+							}
+							api.normalTXs[j].used = true
+							break
+						}
+					}
+					api.txsByCategory["NFTs"] = append(api.txsByCategory["NFTs"], t)
+					api.nftTXs[i].used = true
+				} else {
+					alreadyAsked = wallet.AskForHelp("Etherscan API ERC721 TX", tx, alreadyAsked)
+				}
+			}
+		}
+		if tx.TimeStamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.TimeStamp
+		}
+	}
+	for i, tx := range api.tokenTXs {
+		if !tx.used {
+			if is, _ := cat.IsTxShit(tx.Hash); is {
+				api.tokenTXs[i].used = true
+			} else {
+				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
+					alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", tx, alreadyAsked)
+				} else if api.ownAddress(tx.To, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
-						for k, ntx2 := range ethsc.apiNormalTXs {
+						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
 								if ntx2.Hash == fee {
-									ethsc.apiNormalTXs[k].used = true
+									api.normalTXs[k].used = true
 									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
 								}
 							}
 						}
 					}
 					found := false
-					for j, ntx := range ethsc.apiNormalTXs {
+					for j, ntx := range api.normalTXs {
 						if ntx.Hash == tx.Hash {
 							found = true
-							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
 							if tx.From == "0x0000000000000000000000000000000000000000" {
 								found2 := false
 								if is, buyHash := cat.IsTxTokenSale(tx.Hash); is {
-									for k, ntx2 := range ethsc.apiNormalTXs {
+									for k, ntx2 := range api.normalTXs {
 										if ntx2.Hash == buyHash {
 											found2 = true
-											ethsc.apiNormalTXs[k].used = true
+											api.normalTXs[k].used = true
 											t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx2.Value})
 											t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
 										}
 									}
 								}
 								if found2 {
-									ethsc.TXsByCategory["TokenBuys"] = append(ethsc.TXsByCategory["TokenBuys"], t)
+									api.txsByCategory["TokenBuys"] = append(api.txsByCategory["TokenBuys"], t)
 								} else {
-									ethsc.TXsByCategory["Claims"] = append(ethsc.TXsByCategory["Claims"], t)
+									api.txsByCategory["Claims"] = append(api.txsByCategory["Claims"], t)
 								}
 							} else {
 								if ntx.Value.IsZero() {
-									ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
+									api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 								} else {
 									t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
-									ethsc.TXsByCategory["Swaps"] = append(ethsc.TXsByCategory["Swaps"], t)
+									api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
 								}
 							}
-							ethsc.apiNormalTXs[j].used = true
-							ethsc.apiERC20TXs[i].used = true
+							api.normalTXs[j].used = true
+							api.tokenTXs[i].used = true
 							break
 						}
 					}
 					if !found {
-						ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
-						ethsc.apiERC20TXs[i].used = true
+						api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+						api.tokenTXs[i].used = true
 					}
-					for k, ntx := range ethsc.apiNormalTXs {
+					for k, ntx := range api.normalTXs {
 						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
 							ntx.BlockNumber == tx.BlockNumber &&
 							ntx.Hash == tx.Hash {
-							ethsc.apiNormalTXs[k].used = true
+							api.normalTXs[k].used = true
 							break
 						}
 					}
-				} else if ethsc.ownAddress(tx.From) {
-					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
+				} else if api.ownAddress(tx.From, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
-						for k, ntx2 := range ethsc.apiNormalTXs {
+						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
 								if ntx2.Hash == fee {
-									ethsc.apiNormalTXs[k].used = true
+									api.normalTXs[k].used = true
 									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
 								}
 							}
 						}
 					}
 					if tx.To == "0x0000000000000000000000000000000000000000" {
-						ethsc.TXsByCategory["Burns"] = append(ethsc.TXsByCategory["Burns"], t)
-						ethsc.apiERC20TXs[i].used = true
+						api.txsByCategory["Burns"] = append(api.txsByCategory["Burns"], t)
+						api.tokenTXs[i].used = true
 					} else {
 						found := false
-						for j, itx := range ethsc.apiInternalTXs {
+						for j, itx := range api.internalTXs {
 							if itx.TimeStamp.Equal(tx.TimeStamp) &&
 								itx.BlockNumber == tx.BlockNumber &&
 								itx.Hash == tx.Hash {
 								found = true
 								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: itx.Value})
-								ethsc.TXsByCategory["Swaps"] = append(ethsc.TXsByCategory["Swaps"], t)
-								ethsc.apiInternalTXs[j].used = true
-								ethsc.apiERC20TXs[i].used = true
+								api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
+								api.internalTXs[j].used = true
+								api.tokenTXs[i].used = true
 								break
 							}
 						}
 						if !found {
-							ethsc.TXsByCategory["Withdrawals"] = append(ethsc.TXsByCategory["Withdrawals"], t)
-							ethsc.apiERC20TXs[i].used = true
+							api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+							api.tokenTXs[i].used = true
 						}
 					}
-					for k, ntx := range ethsc.apiNormalTXs {
+					for k, ntx := range api.normalTXs {
 						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
 							ntx.BlockNumber == tx.BlockNumber &&
 							ntx.Hash == tx.Hash {
-							ethsc.apiNormalTXs[k].used = true
+							api.normalTXs[k].used = true
 							break
 						}
 					}
 				} else {
-					log.Println("Unmanaged ERC20 TX")
-					spew.Dump(tx)
+					alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 TX", tx, alreadyAsked)
 				}
 			}
 		}
+		if tx.TimeStamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.TimeStamp
+		}
 	}
-	for i, tx := range ethsc.apiInternalTXs {
+	for i, tx := range api.internalTXs {
 		if !tx.used {
 			if is, _ := cat.IsTxShit(tx.Hash); is {
-				ethsc.apiInternalTXs[i].used = true
+				api.internalTXs[i].used = true
 			} else {
-				if ethsc.ownAddress(tx.To) && ethsc.ownAddress(tx.From) {
-					log.Println("Detected Self Internal TX", tx)
-				} else if ethsc.ownAddress(tx.To) {
-					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
+				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
+					alreadyAsked = wallet.AskForHelp("Etherscan API Internal Self TX", tx, alreadyAsked)
+				} else if api.ownAddress(tx.To, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.From}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
-						for k, ntx2 := range ethsc.apiNormalTXs {
+						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
 								if ntx2.Hash == fee {
-									ethsc.apiNormalTXs[k].used = true
+									api.normalTXs[k].used = true
 									t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx2.GasPrice.Mul(ntx2.GasUsed)})
 								}
 							}
 						}
 					}
 					isExchange := false
-					for j, ntx := range ethsc.apiNormalTXs {
+					for j, ntx := range api.normalTXs {
 						if ntx.Hash == tx.Hash {
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
 							if !ntx.Value.IsZero() {
-								if ethsc.ownAddress(ntx.From) {
+								if api.ownAddress(ntx.From, addresses) {
 									t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
 									isExchange = true
 								} else {
-									log.Println("Detected Deposits Internal TX with Deposits Normal TX associated", tx)
+									alreadyAsked = wallet.AskForHelp("Etherscan API Internal Deposits TX with Normal Deposits TX associated", tx, alreadyAsked)
 								}
 							}
-							ethsc.apiNormalTXs[j].used = true
+							api.normalTXs[j].used = true
 							break
 						}
 					}
 					if isExchange {
-						ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)
+						api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 					} else if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
 						t.Note += " crypto_exchange " + desc
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
-						ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)
+						api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 					} else {
-						ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
+						api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 					}
-					ethsc.apiInternalTXs[i].used = true
-				} else if ethsc.ownAddress(tx.From) {
-					log.Println("Detected Withdrawal Internal TX", tx)
+					api.internalTXs[i].used = true
+				} else if api.ownAddress(tx.From, addresses) {
+					alreadyAsked = wallet.AskForHelp("Etherscan API Internal Withdrawal TX", tx, alreadyAsked)
 				} else {
-					log.Println("Unmanaged Internal TX")
-					spew.Dump(tx)
+					alreadyAsked = wallet.AskForHelp("Etherscan API Internal TX", tx, alreadyAsked)
 				}
 			}
 		}
+		if tx.TimeStamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.TimeStamp
+		}
 	}
-	for i, tx := range ethsc.apiNormalTXs {
+	for i, tx := range api.normalTXs {
 		if !tx.used {
 			if is, _ := cat.IsTxShit(tx.Hash); is {
-				ethsc.apiNormalTXs[i].used = true
+				api.normalTXs[i].used = true
 			} else {
-				if ethsc.ownAddress(tx.To) && ethsc.ownAddress(tx.From) {
-					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " "}
+				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " "}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					if tx.To == tx.From {
 						if !tx.Value.IsZero() {
-							log.Println("Detected non zero Value Self TX", tx)
+							alreadyAsked = wallet.AskForHelp("Etherscan API NonZero Self TX", tx, alreadyAsked)
 						}
-						ethsc.TXsByCategory["Fees"] = append(ethsc.TXsByCategory["Fees"], t)
-						ethsc.apiNormalTXs[i].used = true
+						api.txsByCategory["Fees"] = append(api.txsByCategory["Fees"], t)
+						api.normalTXs[i].used = true
 					} else {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})
-						ethsc.TXsByCategory["Transfers"] = append(ethsc.TXsByCategory["Transfers"], t)
-						ethsc.apiNormalTXs[i].used = true
-						for j, ntx := range ethsc.apiNormalTXs {
+						api.txsByCategory["Transfers"] = append(api.txsByCategory["Transfers"], t)
+						api.normalTXs[i].used = true
+						for j, ntx := range api.normalTXs {
 							if ntx.Hash == tx.Hash &&
 								!ntx.used {
-								ethsc.apiNormalTXs[j].used = true
+								api.normalTXs[j].used = true
 								break
 							}
 						}
 					}
-				} else if ethsc.ownAddress(tx.To) {
+				} else if api.ownAddress(tx.To, addresses) {
 					if !tx.Value.IsZero() {
-						t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.From}
+						t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.From}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 						if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
 							t.Note += " crypto_exchange " + desc
 							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
-							ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)
+							api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 						} else {
-							ethsc.TXsByCategory["Deposits"] = append(ethsc.TXsByCategory["Deposits"], t)
+							api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 						}
-						ethsc.apiNormalTXs[i].used = true
+						api.normalTXs[i].used = true
 					}
-				} else if ethsc.ownAddress(tx.From) {
-					t := wallet.TX{Timestamp: tx.TimeStamp, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.Hash + " " + tx.To}
+				} else if api.ownAddress(tx.From, addresses) {
+					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					if !tx.Value.IsZero() {
@@ -454,20 +354,57 @@ func (ethsc *Etherscan) apiFillTXsByCategory(cat category.Category) {
 						if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
 							t.Note += " crypto_exchange " + desc
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
-							ethsc.TXsByCategory["Exchanges"] = append(ethsc.TXsByCategory["Exchanges"], t)
+							api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 						} else {
-							ethsc.TXsByCategory["Withdrawals"] = append(ethsc.TXsByCategory["Withdrawals"], t)
+							api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 						}
-						ethsc.apiNormalTXs[i].used = true
+						api.normalTXs[i].used = true
 					} else {
-						ethsc.TXsByCategory["Fees"] = append(ethsc.TXsByCategory["Fees"], t)
-						ethsc.apiNormalTXs[i].used = true
+						api.txsByCategory["Fees"] = append(api.txsByCategory["Fees"], t)
+						api.normalTXs[i].used = true
 					}
 				} else {
-					log.Println("Unmanaged Normal TX")
-					spew.Dump(tx)
+					alreadyAsked = wallet.AskForHelp("Etherscan API TX", tx, alreadyAsked)
 				}
 			}
 		}
+		if tx.TimeStamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.TimeStamp
+		}
 	}
+}
+
+func (api *api) ownAddress(add string, addresses []string) bool {
+	for _, a := range addresses {
+		if a == add {
+			return true
+		}
+	}
+	return false
+}
+
+// BigInt is a wrapper over big.Int to implement only unmarshalText
+// for json decoding.
+type bigInt big.Int
+
+// UnmarshalText implements the encoding.TextUnmarshaler interface.
+func (b *bigInt) UnmarshalText(text []byte) (err error) {
+	var bi = new(big.Int)
+	err = bi.UnmarshalText(text)
+	if err != nil {
+		return
+	}
+
+	*b = bigInt(*bi)
+	return nil
+}
+
+// MarshalText implements the encoding.TextMarshaler
+func (b *bigInt) MarshalText() (text []byte, err error) {
+	return []byte(b.Int().String()), nil
+}
+
+// Int returns b's *big.Int form
+func (b *bigInt) Int() *big.Int {
+	return (*big.Int)(b)
 }

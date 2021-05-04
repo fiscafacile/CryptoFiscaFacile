@@ -17,7 +17,7 @@ type depositTX struct {
 	Fee         decimal.Decimal
 }
 
-func (api *apiEx) getAPIDeposits(loc *time.Location) {
+func (api *apiEx) getDepositsTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
 	for y := thisYear; y > 2019; y-- {
@@ -134,7 +134,7 @@ func (api *apiEx) getDepositHistory(year, quarter int, loc *time.Location) (depo
 				return depoHist, errors.New("Crypto.com Exchange API Deposits : Error Caching" + period)
 			}
 		}
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(api.timeBetweenReq)
 	}
 	return depoHist, nil
 }
