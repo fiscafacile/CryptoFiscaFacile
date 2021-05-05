@@ -49,7 +49,7 @@ func (api *api) getTokenTXs(addresses []string) {
 				From:              tokTX.From,
 				ContractAddress:   tokTX.ContractAddress,
 				To:                tokTX.To,
-				Value:             decimal.NewFromBigInt(tokTX.Value.Int(), -18),
+				Value:             decimal.NewFromBigInt(tokTX.Value.Int(), -int32(tokTX.TokenDecimal)),
 				TokenName:         tokTX.TokenName,
 				TokenSymbol:       tokTX.TokenSymbol,
 				TokenDecimal:      tokTX.TokenDecimal,

@@ -198,6 +198,7 @@ func (tx *TX) SimilarDate(delta time.Duration, t time.Time) bool {
 }
 
 func (tx TX) Println(filter string) (printed bool) {
+	toDisplay := strings.Split(filter, ",")
 	if filter == "" {
 		printed = true
 	} else {
@@ -211,8 +212,10 @@ func (tx TX) Println(filter string) (printed bool) {
 		toPrint += fmt.Sprintln(k, ":")
 		for _, i := range v {
 			toPrint += fmt.Sprintln("  ", i.Amount.String(), i.Code)
-			if strings.Contains(filter, i.Code) {
-				printed = true
+			for _, d := range toDisplay {
+				if d == i.Code {
+					printed = true
+				}
 			}
 		}
 	}

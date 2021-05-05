@@ -34,24 +34,26 @@ func (api *api) getInternalTXs(addresses []string) {
 			return
 		}
 		for _, intTX := range accTXListInternal.Result {
-			tx := internalTX{
-				used:            false,
-				BlockNumber:     intTX.BlockNumber,
-				TimeStamp:       time.Unix(intTX.TimeStamp, 0),
-				Hash:            intTX.Hash,
-				From:            intTX.From,
-				To:              intTX.To,
-				Value:           decimal.NewFromBigInt(intTX.Value.Int(), -18),
-				ContractAddress: intTX.ContractAddress,
-				Input:           intTX.Input,
-				Type:            intTX.Type,
-				Gas:             intTX.Gas,
-				GasUsed:         decimal.NewFromInt(intTX.GasUsed),
-				TraceID:         intTX.TraceID,
-				IsError:         intTX.IsError,
-				ErrCode:         intTX.ErrCode,
+			if intTX.IsError == 0 {
+				tx := internalTX{
+					used:            false,
+					BlockNumber:     intTX.BlockNumber,
+					TimeStamp:       time.Unix(intTX.TimeStamp, 0),
+					Hash:            intTX.Hash,
+					From:            intTX.From,
+					To:              intTX.To,
+					Value:           decimal.NewFromBigInt(intTX.Value.Int(), -18),
+					ContractAddress: intTX.ContractAddress,
+					Input:           intTX.Input,
+					Type:            intTX.Type,
+					Gas:             intTX.Gas,
+					GasUsed:         decimal.NewFromInt(intTX.GasUsed),
+					TraceID:         intTX.TraceID,
+					IsError:         intTX.IsError,
+					ErrCode:         intTX.ErrCode,
+				}
+				api.internalTXs = append(api.internalTXs, tx)
 			}
-			api.internalTXs = append(api.internalTXs, tx)
 		}
 	}
 	api.doneInt <- nil

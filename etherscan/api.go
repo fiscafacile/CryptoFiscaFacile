@@ -81,14 +81,27 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
 					alreadyAsked = wallet.AskForHelp("Etherscan API ERC721 Self TX", tx, alreadyAsked)
-				} else if api.ownAddress(tx.To, addresses) {
+				} else if api.ownAddress(tx.To, addresses) || api.ownAddress(tx.From, addresses) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
-					if !tx.GasPrice.IsZero() && !tx.GasUsed.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
-					}
 					t.Nfts = make(map[string]wallet.Nfts)
-					t.Nfts["To"] = append(t.Nfts["To"], wallet.Nft{ID: tx.TokenID, Name: tx.TokenName, Symbol: tx.TokenSymbol})
+					if api.ownAddress(tx.From, addresses) {
+						if !tx.GasPrice.IsZero() && !tx.GasUsed.IsZero() {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+						}
+						t.Nfts["From"] = append(t.Nfts["From"], wallet.Nft{ID: tx.TokenID, Name: tx.TokenName, Symbol: tx.TokenSymbol})
+					} else {
+						t.Nfts["To"] = append(t.Nfts["To"], wallet.Nft{ID: tx.TokenID, Name: tx.TokenName, Symbol: tx.TokenSymbol})
+					}
+					for j, ntx := range api.normalTXs {
+						if ntx.Hash == tx.Hash {
+							if !ntx.GasPrice.IsZero() && !ntx.GasUsed.IsZero() {
+								t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
+							}
+							api.normalTXs[j].used = true
+							break
+						}
+					}
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
 						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
@@ -102,25 +115,12 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 							}
 						}
 					}
-					for j, ntx := range api.normalTXs {
-						if ntx.Hash == tx.Hash {
-							if !ntx.GasPrice.IsZero() && !ntx.GasUsed.IsZero() &&
-								(!ntx.GasPrice.Equal(tx.GasPrice) || !ntx.GasUsed.Equal(tx.GasUsed)) {
-								t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: ntx.GasPrice.Mul(ntx.GasUsed)})
-							}
-							api.normalTXs[j].used = true
-							break
-						}
-					}
 					api.txsByCategory["NFTs"] = append(api.txsByCategory["NFTs"], t)
 					api.nftTXs[i].used = true
 				} else {
 					alreadyAsked = wallet.AskForHelp("Etherscan API ERC721 TX", tx, alreadyAsked)
 				}
 			}
-		}
-		if tx.TimeStamp.Before(api.firstTimeUsed) {
-			api.firstTimeUsed = tx.TimeStamp
 		}
 	}
 	for i, tx := range api.tokenTXs {
@@ -134,6 +134,8 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
+					api.tokenTXs[i].used = true
+					// Add declared Fee if any
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
 						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
@@ -144,6 +146,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 							}
 						}
 					}
+					// Add normal Fee if any
 					found := false
 					for j, ntx := range api.normalTXs {
 						if ntx.Hash == tx.Hash {
@@ -180,13 +183,30 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 						}
 					}
 					if !found {
-						api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
-						api.tokenTXs[i].used = true
+						// Look for other tokenTX with same Hash
+						for j, ttx := range api.tokenTXs {
+							if !ttx.used {
+								if ttx.Hash == tx.Hash {
+									api.tokenTXs[j].used = true
+									if api.ownAddress(ttx.To, addresses) && api.ownAddress(ttx.From, addresses) {
+										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", ttx, alreadyAsked)
+									} else if api.ownAddress(ttx.To, addresses) {
+										t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
+									} else if api.ownAddress(ttx.From, addresses) {
+										found = true
+										t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
+									}
+								}
+							}
+						}
+						if found {
+							api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
+						} else {
+							api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+						}
 					}
 					for k, ntx := range api.normalTXs {
-						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
-							ntx.BlockNumber == tx.BlockNumber &&
-							ntx.Hash == tx.Hash {
+						if ntx.Hash == tx.Hash {
 							api.normalTXs[k].used = true
 							break
 						}
@@ -196,6 +216,8 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+					api.tokenTXs[i].used = true
+					// Add declared Fee if any
 					if is, feeHash := cat.IsTxFee(tx.Hash); is {
 						for k, ntx2 := range api.normalTXs {
 							for _, fee := range strings.Split(feeHash, ";") {
@@ -224,14 +246,29 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 							}
 						}
 						if !found {
-							api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
-							api.tokenTXs[i].used = true
+							// Look for other tokenTX with same Hash
+							for j, ttx := range api.tokenTXs {
+								if !ttx.used && ttx.Hash == tx.Hash {
+									api.tokenTXs[j].used = true
+									if api.ownAddress(ttx.To, addresses) && api.ownAddress(ttx.From, addresses) {
+										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", ttx, alreadyAsked)
+									} else if api.ownAddress(ttx.To, addresses) {
+										found = true
+										t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
+									} else if api.ownAddress(ttx.From, addresses) {
+										t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
+									}
+								}
+							}
+							if found {
+								api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
+							} else {
+								api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+							}
 						}
 					}
 					for k, ntx := range api.normalTXs {
-						if ntx.TimeStamp.Equal(tx.TimeStamp) &&
-							ntx.BlockNumber == tx.BlockNumber &&
-							ntx.Hash == tx.Hash {
+						if ntx.Hash == tx.Hash {
 							api.normalTXs[k].used = true
 							break
 						}
@@ -240,9 +277,6 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 TX", tx, alreadyAsked)
 				}
 			}
-		}
-		if tx.TimeStamp.Before(api.firstTimeUsed) {
-			api.firstTimeUsed = tx.TimeStamp
 		}
 	}
 	for i, tx := range api.internalTXs {
@@ -351,12 +385,19 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					if !tx.Value.IsZero() {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})
+						// Is declared Exchanges
 						if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
 							t.Note += " crypto_exchange " + desc
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
 							api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 						} else {
-							api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+							// Special Case WETH
+							if tx.To == "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" {
+								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "WETH", Amount: tx.Value})
+								api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
+							} else {
+								api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+							}
 						}
 						api.normalTXs[i].used = true
 					} else {
