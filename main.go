@@ -21,61 +21,62 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
-	"github.com/fiscafacile/CryptoFiscaFacile/metamask"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
 func main() {
-	// Parse args
+	// General Options
 	pDate := flag.String("date", "2021-01-01T00:00:00", "Date Filter")
 	pLocation := flag.String("location", "Europe/Paris", "Date Filter Location")
 	pNative := flag.String("native", "EUR", "Native Currency for consolidation")
-	pTXsDisplayCat := flag.String("txs_display", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
-	pExact := flag.Bool("exact", false, "Display exact amount (no rounding)")
-	pCurrFilter := flag.String("curr_filter", "", "Currencies to be filtered in Transactions Display (comma separated list)")
 	pStats := flag.Bool("stats", false, "Display accounts stats")
+	// Debug
+	pDebug := flag.Bool("debug", false, "Debug Mode (only for devs)")
 	pCheck := flag.Bool("check", false, "Check and Display consistency")
-	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
-	pCSVTXsCateg := flag.String("txs_categ", "", "Transactions Categories CSV file")
+	pCurrFilter := flag.String("curr_filter", "", "Currencies to be filtered in Transactions Display (comma separated list)")
+	pExact := flag.Bool("exact", false, "Display exact amount (no rounding)")
+	pTXsDisplayCat := flag.String("txs_display", "", "Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	// Sources
+	pTXsCategCSV := flag.String("txs_categ", "", "Transactions Categories CSV file")
 	pCoinAPIKey := flag.String("coinapi_key", "", "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")
 	pCoinLayerKey := flag.String("coinlayer_key", "", "CoinLayer Key (https://coinlayer.com/product)")
-	pCSVBtcAddress := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
+	pBTCAddressesCSV := flag.String("btc_address", "", "Bitcoin Addresses CSV file")
 	pBCD := flag.Bool("bcd", false, "Detect Bitcoin Diamond Fork")
 	pBCH := flag.Bool("bch", false, "Detect Bitcoin Cash Fork")
 	pBTG := flag.Bool("btg", false, "Detect Bitcoin Gold Fork")
 	pLBTC := flag.Bool("lbtc", false, "Detect Lightning Bitcoin Fork")
-	pJsonBtgTXs := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
-	pCSVEthAddress := flag.String("eth_address", "", "Ethereum Addresses CSV file")
+	pBTGTXsJSON := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
+	pETHAddressesCSV := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
-	pCSVBinance := flag.String("binance", "", "Binance CSV file")
-	pCSVBinanceExtended := flag.Bool("binance_extended", false, "Use Binance CSV file extended format")
-	pCSVBitfinex := flag.String("bitfinex", "", "Bitfinex CSV file")
-	pAPIBittrexKey := flag.String("bittrex_api_key", "", "Bittrex API key")
-	pAPIBittrexSecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
-	pCSVBittrex := flag.String("bittrex", "", "Bittrex CSV file")
+	pBinanceCSV := flag.String("binance", "", "Binance CSV file")
+	pBinanceCSVExtended := flag.Bool("binance_extended", false, "Use Binance CSV file extended format")
+	pBitfinexCSV := flag.String("bitfinex", "", "Bitfinex CSV file")
+	pBittrexAPIKey := flag.String("bittrex_api_key", "", "Bittrex API key")
+	pBittrexAPISecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
+	pBittrexCSV := flag.String("bittrex", "", "Bittrex CSV file")
 	pHitBtcCSVTrades := flag.String("hitbtc_trades", "", "HitBTC Trades CSV file")
 	pHitBtcCSVTransactions := flag.String("hitbtc_transactions", "", "HitBTC Transactions CSV file")
 	pHitBtcAPIKey := flag.String("hitbtc_api_key", "", "HitBTC API Key")
 	pHitBtcSecretKey := flag.String("hitbtc_secret_key", "", "HitBTC Secret Key")
-	pCSVCoinbase := flag.String("coinbase", "", "Coinbase CSV file")
-	pCSVCdCAppCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
+	pCoinbaseCSV := flag.String("coinbase", "", "Coinbase CSV file")
+	pCdCAppCSVCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCdCExAPIKey := flag.String("cdc_ex_api_key", "", "Crypto.com Exchange API Key")
 	pCdCExSecretKey := flag.String("cdc_ex_secret_key", "", "Crypto.com Exchange Secret Key")
-	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
-	pCSVCdCExStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
-	pCSVCdCExSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
-	pAPIKrakenKey := flag.String("kraken_api_key", "", "Kraken API key")
-	pAPIKrakenSecret := flag.String("kraken_api_secret", "", "Kraken API secret")
-	pCSVKraken := flag.String("kraken", "", "Kraken CSV file")
-	pCSVLedgerLive := flag.String("ledgerlive", "", "LedgerLive CSV file")
-	pCSVLBTrade := flag.String("lb_trade", "", "Local Bitcoin Trade CSV file")
-	pCSVLBTransfer := flag.String("lb_transfer", "", "Local Bitcoin Transfer CSV file")
-	pCSVMetaMask := flag.String("metamask", "", "MetaMask CSV file")
-	pCSVMyCelium := flag.String("mycelium", "", "MyCelium CSV file")
-	pCSVRevo := flag.String("revolut", "", "Revolut CSV file")
-	pDebug := flag.Bool("debug", false, "Debug Mode (only for devs)")
+	pCdCExCSVTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
+	pCdCExCSVStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
+	pCdCExCSVSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
+	pKrakenAPIKey := flag.String("kraken_api_key", "", "Kraken API key")
+	pKrakenAPISecret := flag.String("kraken_api_secret", "", "Kraken API secret")
+	pKrakenCSV := flag.String("kraken", "", "Kraken CSV file")
+	pLedgerLiveCSV := flag.String("ledgerlive", "", "LedgerLive CSV file")
+	pLBCSVTrade := flag.String("lb_trade", "", "Local Bitcoin Trade CSV file")
+	pLBCSVTransfer := flag.String("lb_transfer", "", "Local Bitcoin Transfer CSV file")
+	pMyCeliumCSV := flag.String("mycelium", "", "MyCelium CSV file")
+	pRevoCSV := flag.String("revolut", "", "Revolut CSV file")
+	// Output
+	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
@@ -84,8 +85,8 @@ func main() {
 		wallet.CoinLayerSetKey(*pCoinLayerKey)
 	}
 	categ := category.New()
-	if *pCSVTXsCateg != "" {
-		recordFile, err := os.Open(*pCSVTXsCateg)
+	if *pTXsCategCSV != "" {
+		recordFile, err := os.Open(*pTXsCategCSV)
 		if err != nil {
 			log.Fatal("Error opening Transactions CSV Category file:", err)
 		}
@@ -98,8 +99,8 @@ func main() {
 	// Launch APIs access in go routines
 	btc := btc.New()
 	blkst := blockstream.New()
-	if *pCSVBtcAddress != "" {
-		recordFile, err := os.Open(*pCSVBtcAddress)
+	if *pBTCAddressesCSV != "" {
+		recordFile, err := os.Open(*pBTCAddressesCSV)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Addresses file:", err)
 		}
@@ -107,8 +108,8 @@ func main() {
 		go blkst.GetAllTXs(btc, *categ)
 	}
 	ethsc := etherscan.New()
-	if *pCSVEthAddress != "" {
-		recordFile, err := os.Open(*pCSVEthAddress)
+	if *pETHAddressesCSV != "" {
+		recordFile, err := os.Open(*pETHAddressesCSV)
 		if err != nil {
 			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
 		}
@@ -132,8 +133,8 @@ func main() {
 	}
 	// Now parse local files
 	bc := blockchain.New()
-	if *pJsonBtgTXs != "" {
-		jsonFile, err := os.Open(*pJsonBtgTXs)
+	if *pBTGTXsJSON != "" {
+		jsonFile, err := os.Open(*pBTGTXsJSON)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin Gold JSON Transactions file:", err)
 		}
@@ -143,12 +144,12 @@ func main() {
 		}
 	}
 	b := binance.New()
-	if *pCSVBinance != "" {
-		recordFile, err := os.Open(*pCSVBinance)
+	if *pBinanceCSV != "" {
+		recordFile, err := os.Open(*pBinanceCSV)
 		if err != nil {
 			log.Fatal("Error opening Binance CSV file:", err)
 		}
-		if *pCSVBinanceExtended {
+		if *pBinanceCSVExtended {
 			err = b.ParseCSVExtended(recordFile)
 		} else {
 			err = b.ParseCSV(recordFile)
@@ -158,8 +159,8 @@ func main() {
 		}
 	}
 	bf := bitfinex.New()
-	if *pCSVBitfinex != "" {
-		recordFile, err := os.Open(*pCSVBitfinex)
+	if *pBitfinexCSV != "" {
+		recordFile, err := os.Open(*pBitfinexCSV)
 		if err != nil {
 			log.Fatal("Error opening Bitfinex CSV file:", err)
 		}
@@ -169,8 +170,8 @@ func main() {
 		}
 	}
 	btrx := bittrex.New()
-	if *pCSVBittrex != "" {
-		recordFile, err := os.Open(*pCSVBittrex)
+	if *pBittrexCSV != "" {
+		recordFile, err := os.Open(*pBittrexCSV)
 		if err != nil {
 			log.Fatal("Error opening Bittrex CSV file:", err)
 		}
@@ -178,16 +179,16 @@ func main() {
 		if err != nil {
 			log.Fatal("Error parsing Bittrex CSV file:", err)
 		}
-		if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
-			go btrx.GetAllTransferTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
-			go btrx.GetAllTradeTXs(*pAPIBittrexKey, *pAPIBittrexSecret, *categ)
+		if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
+			go btrx.GetAllTransferTXs(*pBittrexAPIKey, *pBittrexAPISecret, *categ)
+			go btrx.GetAllTradeTXs(*pBittrexAPIKey, *pBittrexAPISecret, *categ)
 		} else {
 			log.Println("Warning, you should provide your API Key/Secret to retrieve Deposits and Withdrawals")
 		}
 	}
 	cb := coinbase.New()
-	if *pCSVCoinbase != "" {
-		recordFile, err := os.Open(*pCSVCoinbase)
+	if *pCoinbaseCSV != "" {
+		recordFile, err := os.Open(*pCoinbaseCSV)
 		if err != nil {
 			log.Fatal("Error opening Coinbase CSV file:", err)
 		}
@@ -196,8 +197,8 @@ func main() {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
 		}
 	}
-	if *pCSVCdCAppCrypto != "" {
-		recordFile, err := os.Open(*pCSVCdCAppCrypto)
+	if *pCdCAppCSVCrypto != "" {
+		recordFile, err := os.Open(*pCdCAppCSVCrypto)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com CSV file:", err)
 		}
@@ -206,8 +207,8 @@ func main() {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
 		}
 	}
-	if *pCSVCdCExTransfer != "" {
-		recordFile, err := os.Open(*pCSVCdCExTransfer)
+	if *pCdCExCSVTransfer != "" {
+		recordFile, err := os.Open(*pCdCExCSVTransfer)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Deposit/Withdrawal CSV file:", err)
 		}
@@ -216,8 +217,8 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Deposit/Withdrawal CSV file:", err)
 		}
 	}
-	if *pCSVCdCExStake != "" {
-		recordFile, err := os.Open(*pCSVCdCExStake)
+	if *pCdCExCSVStake != "" {
+		recordFile, err := os.Open(*pCdCExCSVStake)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Stake CSV file:", err)
 		}
@@ -226,8 +227,8 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Stake CSV file:", err)
 		}
 	}
-	if *pCSVCdCExSupercharger != "" {
-		recordFile, err := os.Open(*pCSVCdCExSupercharger)
+	if *pCdCExCSVSupercharger != "" {
+		recordFile, err := os.Open(*pCdCExCSVSupercharger)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Supercharger CSV file:", err)
 		}
@@ -257,12 +258,12 @@ func main() {
 		}
 	}
 	kr := kraken.New()
-	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
-		kr.NewAPI(*pAPIKrakenKey, *pAPIKrakenSecret, *pDebug)
+	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
+		kr.NewAPI(*pKrakenAPIKey, *pKrakenAPISecret, *pDebug)
 		kr.GetAPITxs()
 	}
-	if *pCSVKraken != "" {
-		recordFile, err := os.Open(*pCSVKraken)
+	if *pKrakenCSV != "" {
+		recordFile, err := os.Open(*pKrakenCSV)
 		if err != nil {
 			log.Fatal("Error opening Kraken CSV file:", err)
 		}
@@ -272,8 +273,8 @@ func main() {
 		}
 	}
 	ll := ledgerlive.New()
-	if *pCSVLedgerLive != "" {
-		recordFile, err := os.Open(*pCSVLedgerLive)
+	if *pLedgerLiveCSV != "" {
+		recordFile, err := os.Open(*pLedgerLiveCSV)
 		if err != nil {
 			log.Fatal("Error opening LedgerLive CSV file:", err)
 		}
@@ -283,8 +284,8 @@ func main() {
 		}
 	}
 	lb := localbitcoin.New()
-	if *pCSVLBTrade != "" {
-		recordFile, err := os.Open(*pCSVLBTrade)
+	if *pLBCSVTrade != "" {
+		recordFile, err := os.Open(*pLBCSVTrade)
 		if err != nil {
 			log.Fatal("Error opening Local Bitcoin Trade CSV file:", err)
 		}
@@ -293,8 +294,8 @@ func main() {
 			log.Fatal("Error parsing Local Bitcoin Trade CSV file:", err)
 		}
 	}
-	if *pCSVLBTransfer != "" {
-		recordFile, err := os.Open(*pCSVLBTransfer)
+	if *pLBCSVTransfer != "" {
+		recordFile, err := os.Open(*pLBCSVTransfer)
 		if err != nil {
 			log.Fatal("Error opening Local Bitcoin Transfer CSV file:", err)
 		}
@@ -303,20 +304,9 @@ func main() {
 			log.Fatal("Error parsing Local Bitcoin Transfer CSV file:", err)
 		}
 	}
-	mm := metamask.New()
-	if *pCSVMetaMask != "" {
-		recordFile, err := os.Open(*pCSVMetaMask)
-		if err != nil {
-			log.Fatal("Error opening MetaMask CSV file:", err)
-		}
-		err = mm.ParseCSV(recordFile)
-		if err != nil {
-			log.Fatal("Error parsing MetaMask CSV file:", err)
-		}
-	}
 	mc := mycelium.New()
-	if *pCSVMyCelium != "" {
-		recordFile, err := os.Open(*pCSVMyCelium)
+	if *pMyCeliumCSV != "" {
+		recordFile, err := os.Open(*pMyCeliumCSV)
 		if err != nil {
 			log.Fatal("Error opening MyCelium CSV file:", err)
 		}
@@ -326,8 +316,8 @@ func main() {
 		}
 	}
 	revo := revolut.New()
-	if *pCSVRevo != "" {
-		recordFile, err := os.Open(*pCSVRevo)
+	if *pRevoCSV != "" {
+		recordFile, err := os.Open(*pRevoCSV)
 		if err != nil {
 			log.Fatal("Error opening Revolut CSV file:", err)
 		}
@@ -349,13 +339,13 @@ func main() {
 			log.Fatal("Error getting HitBTC API TXs:", err)
 		}
 	}
-	if *pCSVEthAddress != "" {
+	if *pETHAddressesCSV != "" {
 		err := ethsc.WaitFinish()
 		if err != nil {
 			log.Fatal("Error parsing Ethereum CSV file:", err)
 		}
 	}
-	if *pAPIBittrexKey != "" && *pAPIBittrexSecret != "" {
+	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
 		errTransfer := btrx.WaitTransfersFinish()
 		if errTransfer != nil {
 			log.Fatalln("Error parsing Bittrex API transfers:", errTransfer)
@@ -365,7 +355,7 @@ func main() {
 			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
 		}
 	}
-	if *pCSVBtcAddress != "" {
+	if *pBTCAddressesCSV != "" {
 		err := blkst.WaitFinish()
 		if err != nil {
 			log.Fatal("Error parsing Bitcoin CSV file:", err)
@@ -394,7 +384,6 @@ func main() {
 	global.Add(kr.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
-	global.Add(mm.TXsByCategory)
 	global.Add(mc.TXsByCategory)
 	global.Add(revo.TXsByCategory)
 	global.Add(ethsc.TXsByCategory)
