@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -46,7 +47,7 @@ func (hb *HitBTC) ParseCSVTransactions(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing MainAccountBalance", r[6])
 				}
-				tx.Currency = r[7]
+				tx.Currency = strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(r[7], "BCHSV", "BSV"), "BCHABC", "BCH"), "BCCF", "BCHOLD"))
 				hb.csvTransactionTXs = append(hb.csvTransactionTXs, tx)
 				// Fill TXsByCategory
 				if tx.Type == "Deposit" {

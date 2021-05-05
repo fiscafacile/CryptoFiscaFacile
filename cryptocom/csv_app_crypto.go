@@ -24,6 +24,7 @@ type csvAppCryptoTX struct {
 }
 
 func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
+	const SOURCE = "Crypto.com App CSV Crypto :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -33,24 +34,24 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 				tx := csvAppCryptoTX{}
 				tx.Timestamp, err = time.Parse("2006-01-02 15:04:05", r[0])
 				if err != nil {
-					log.Println("Error Parsing Timestamp : ", r[0])
+					log.Println(SOURCE, "Error Parsing Timestamp : ", r[0])
 				}
 				tx.Description = r[1]
 				tx.Currency = r[2]
 				tx.Amount, err = decimal.NewFromString(r[3])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[3])
+					log.Println(SOURCE, "Error Parsing Amount : ", r[3])
 				}
 				tx.ToCurrency = r[4]
 				tx.ToAmount, _ = decimal.NewFromString(r[5])
 				tx.NativeCurrency = r[6]
 				tx.NativeAmount, err = decimal.NewFromString(r[7])
 				if err != nil {
-					log.Println("Error Parsing NativeAmount : ", r[7])
+					log.Println(SOURCE, "Error Parsing NativeAmount : ", r[7])
 				}
 				tx.NativeAmountUSD, err = decimal.NewFromString(r[8])
 				if err != nil {
-					log.Println("Error Parsing NativeAmountUSD : ", r[8])
+					log.Println(SOURCE, "Error Parsing NativeAmountUSD : ", r[8])
 				}
 				tx.Kind = r[9]
 				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
@@ -76,7 +77,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 						}
 					}
 					if !found {
-						t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
+						t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 						t.Items = make(map[string]wallet.Currencies)
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -88,7 +89,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					}
 				} else if tx.Kind == "crypto_exchange" ||
 					tx.Kind == "viban_purchase" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToCurrency, Amount: tx.ToAmount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
@@ -110,7 +111,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "supercharger_withdrawal" ||
 					tx.Kind == "crypto_purchase" ||
 					tx.Kind == "staking_reward" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					if tx.Kind == "crypto_purchase" {
@@ -142,7 +143,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "crypto_to_exchange_transfer" ||
 					tx.Kind == "supercharger_deposit" ||
 					tx.Kind == "crypto_viban_exchange" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com App CSV : " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.Kind == "crypto_withdrawal" &&
 						tx.Description == "Withdraw BTC" {
@@ -173,7 +174,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "dynamic_coin_swap_debited" {
 					// Do nothing
 				} else {
-					alreadyAsked = wallet.AskForHelp("Crypto.com CSV "+tx.Kind, tx, alreadyAsked)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Kind, tx, alreadyAsked)
 				}
 			}
 		}

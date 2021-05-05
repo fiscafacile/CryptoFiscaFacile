@@ -55,8 +55,10 @@ func main() {
 	pAPIBittrexKey := flag.String("bittrex_api_key", "", "Bittrex API key")
 	pAPIBittrexSecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
 	pCSVBittrex := flag.String("bittrex", "", "Bittrex CSV file")
-	pCSVHitBtcTrades := flag.String("hitbtc_trades", "", "HitBTC Trades CSV file")
-	pCSVHitBtcTransactions := flag.String("hitbtc_transactions", "", "HitBTC Transactions CSV file")
+	pHitBtcCSVTrades := flag.String("hitbtc_trades", "", "HitBTC Trades CSV file")
+	pHitBtcCSVTransactions := flag.String("hitbtc_transactions", "", "HitBTC Transactions CSV file")
+	pHitBtcAPIKey := flag.String("hitbtc_api_key", "", "HitBTC API Key")
+	pHitBtcSecretKey := flag.String("hitbtc_secret_key", "", "HitBTC Secret Key")
 	pCSVCoinbase := flag.String("coinbase", "", "Coinbase CSV file")
 	pCSVCdCAppCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCdCExAPIKey := flag.String("cdc_ex_api_key", "", "Crypto.com Exchange API Key")
@@ -122,6 +124,11 @@ func main() {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
 		fmt.Println("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)...")
 		go cdc.GetAPIExchangeTXs(loc)
+	}
+	hb := hitbtc.New()
+	if *pHitBtcAPIKey != "" && *pHitBtcSecretKey != "" {
+		hb.NewAPI(*pHitBtcAPIKey, *pHitBtcSecretKey, *pDebug)
+		go hb.GetAPIAllTXs()
 	}
 	// Now parse local files
 	bc := blockchain.New()
@@ -229,9 +236,8 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Supercharger CSV file:", err)
 		}
 	}
-	hb := hitbtc.New()
-	if *pCSVHitBtcTrades != "" {
-		recordFile, err := os.Open(*pCSVHitBtcTrades)
+	if *pHitBtcCSVTrades != "" {
+		recordFile, err := os.Open(*pHitBtcCSVTrades)
 		if err != nil {
 			log.Fatal("Error opening HitBTC Trades CSV file:", err)
 		}
@@ -240,8 +246,8 @@ func main() {
 			log.Fatal("Error parsing HitBTC Trades CSV file:", err)
 		}
 	}
-	if *pCSVHitBtcTransactions != "" {
-		recordFile, err := os.Open(*pCSVHitBtcTransactions)
+	if *pHitBtcCSVTransactions != "" {
+		recordFile, err := os.Open(*pHitBtcCSVTransactions)
 		if err != nil {
 			log.Fatal("Error opening HitBTC Transactions CSV file:", err)
 		}
@@ -334,7 +340,13 @@ func main() {
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		err := cdc.WaitFinish()
 		if err != nil {
-			log.Fatal("Error getting Crypto.com Exchange TXs:", err)
+			log.Fatal("Error getting Crypto.com Exchange API TXs:", err)
+		}
+	}
+	if *pHitBtcAPIKey != "" && *pHitBtcSecretKey != "" {
+		err := hb.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting HitBTC API TXs:", err)
 		}
 	}
 	if *pCSVEthAddress != "" {

@@ -325,6 +325,22 @@ Les colones du CSV doivent être : `Address,Description`
 
 #### HitBTC [![Support bon](https://img.shields.io/badge/support-bon-blue)](#hitbtc-)
 
+- Via API
+```
+  -hitbtc_api_key string
+        HitBTC API Key
+  -hitbtc_secret_key string
+        HitBTC Secret Key
+```
+L'API est utilisée pour récupérer les transactions du compte `Deposits` et `Withdrawals` afin de les ajouter à votre portefeuille global.
+
+La clé API doit avoir les droits :
+
+- `Payment information` pour les `Deposits` et `Withdrawals` (équivalent du CSV Transactions).
+
+- `Orderbook, History, Trading balance` pour les `Exchanges` (équivalent du CSV Trades).
+
+- Via CSV
 ```
   -hitbtc_trades string
         HitBTC Trades CSV file
@@ -332,6 +348,8 @@ Les colones du CSV doivent être : `Address,Description`
         HitBTC Transactions CSV file
 ```
 Il faut fournir les fichiers CSV récupérés dans HitBTC (https://hitbtc.com/reports).
+
+Le CSV Transactions ne fournit pas les infos de `Fee`, il vaut donc mieux utiliser l'API.
 
 Les colones du CSV Trades doivent être : `Email,Date (UTC),Instrument,Trade ID,Order ID,Side,Quantity,Price,Volume,Fee,Rebate,Total,Taker`
 
@@ -346,7 +364,7 @@ Les colones du CSV Transactions doivent être : `Email,Date (UTC),Operation id,T
   -kraken_api_secret string
         Kraken API secret
 ```
-L'API est utilisée pour récupérer l'ensemble des transactions du ledger afin de les ajouter à l'outil.
+L'API est utilisée pour récupérer l'ensemble des transactions du ledger afin de les ajouter à votre portefeuille global.
 
 - Via CSV
 ```
