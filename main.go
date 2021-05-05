@@ -17,6 +17,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
+	"github.com/fiscafacile/CryptoFiscaFacile/hitbtc"
 	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
@@ -54,6 +55,8 @@ func main() {
 	pAPIBittrexKey := flag.String("bittrex_api_key", "", "Bittrex API key")
 	pAPIBittrexSecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
 	pCSVBittrex := flag.String("bittrex", "", "Bittrex CSV file")
+	pCSVHitBtcTrades := flag.String("hitbtc_trades", "", "HitBTC Trades CSV file")
+	pCSVHitBtcTransactions := flag.String("hitbtc_transactions", "", "HitBTC Transactions CSV file")
 	pCSVCoinbase := flag.String("coinbase", "", "Coinbase CSV file")
 	pCSVCdCAppCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCdCExAPIKey := flag.String("cdc_ex_api_key", "", "Crypto.com Exchange API Key")
@@ -226,6 +229,27 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Supercharger CSV file:", err)
 		}
 	}
+	hb := hitbtc.New()
+	if *pCSVHitBtcTrades != "" {
+		recordFile, err := os.Open(*pCSVHitBtcTrades)
+		if err != nil {
+			log.Fatal("Error opening HitBTC Trades CSV file:", err)
+		}
+		err = hb.ParseCSVTransactions(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing HitBTC Trades CSV file:", err)
+		}
+	}
+	if *pCSVHitBtcTransactions != "" {
+		recordFile, err := os.Open(*pCSVHitBtcTransactions)
+		if err != nil {
+			log.Fatal("Error opening HitBTC Transactions CSV file:", err)
+		}
+		err = hb.ParseCSVTransactions(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing HitBTC Transactions CSV file:", err)
+		}
+	}
 	kr := kraken.New()
 	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
 		kr.NewAPI(*pAPIKrakenKey, *pAPIKrakenSecret, *pDebug)
@@ -354,6 +378,7 @@ func main() {
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
+	global.Add(hb.TXsByCategory)
 	global.Add(kr.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)

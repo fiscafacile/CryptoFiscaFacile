@@ -323,7 +323,21 @@ Il détectera aussi les Token ERC20 et ERC721 (NFT) associés.
 
 Les colones du CSV doivent être : `Address,Description`
 
-#### Kraken [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#kraken-)
+#### HitBTC [![Support bon](https://img.shields.io/badge/support-bon-blue)](#hitbtc-)
+
+```
+  -hitbtc_trades string
+        HitBTC Trades CSV file
+  -hitbtc_transactions string
+        HitBTC Transactions CSV file
+```
+Il faut fournir les fichiers CSV récupérés dans HitBTC (https://hitbtc.com/reports).
+
+Les colones du CSV Trades doivent être : `Email,Date (UTC),Instrument,Trade ID,Order ID,Side,Quantity,Price,Volume,Fee,Rebate,Total,Taker`
+
+Les colones du CSV Transactions doivent être : `Email,Date (UTC),Operation id,Type,Amount,Transaction hash,Main account balance,Currency`
+
+#### Kraken [![Support bon](https://img.shields.io/badge/support-bon-blue)](#kraken-)
 
 - Via API
 ```
