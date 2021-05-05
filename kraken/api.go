@@ -27,6 +27,7 @@ type api struct {
 	ledgerTX      []ledgerTX
 	assets        AssetsInfo
 	txsByCategory wallet.TXsByCategory
+	debug         bool
 }
 
 type AssetsInfo struct {
@@ -48,6 +49,7 @@ func (kr *Kraken) NewAPI(apiKey, secretKey string, debug bool) {
 	kr.api.apiKey = apiKey
 	kr.api.secretKey = secretKey
 	kr.api.firstTimeUsed = time.Now()
+	kr.api.debug = debug
 }
 
 func (api *api) getAPITxs() (err error) {

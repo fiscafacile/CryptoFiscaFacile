@@ -32,7 +32,6 @@ func (api *api) getAPISpotTrades() {
 		api.doneLedgers <- err
 		return
 	}
-	assets := api.assets.Result.(map[string]interface{})
 	for txID, txData := range trades {
 		tra := txData.(map[string]interface{})
 		tx := ledgerTX{}
@@ -40,7 +39,7 @@ func (api *api) getAPISpotTrades() {
 		if err != nil {
 			fmt.Println("Error while parsing amount", tra["amount"].(string))
 		}
-		if val, ok := assets[tra["asset"].(string)]; ok {
+		if val, ok := api.assets.Result.(map[string]interface{})[tra["asset"].(string)]; ok {
 			tx.Asset = val.(map[string]interface{})["altname"].(string)
 		} else {
 			tx.Asset = tra["asset"].(string)
@@ -92,7 +91,9 @@ func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
 			body.Set("nonce", strconv.FormatInt(time.Now().UTC().Unix()*1000, 10))
 			body.Set("ofs", fmt.Sprint(offset))
 			api.sign(headers, body, resource)
-			fmt.Println("Getting trades transactions from", offset, "to", offset+50)
+			if api.debug {
+				fmt.Println("Getting trades transactions from", offset, "to", offset+50)
+			}
 			resp, err := api.clientLedgers.R().
 				SetHeaders(headers).
 				SetFormDataFromValues(body).
