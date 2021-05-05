@@ -77,6 +77,7 @@ func main() {
 	pRevoCSV := flag.String("revolut", "", "Revolut CSV file")
 	// Output
 	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
+	p2086xlsx := flag.Bool("2086xlsx", false, "Save Cerfa 2086 in 2086.xlsx")
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
@@ -421,13 +422,18 @@ func main() {
 		fmt.Print("Total Value : ")
 		globalWalletTotalValue.Println("")
 	}
-	if *p2086 {
+	if *p2086 || *p2086xlsx {
 		var cessions Cessions
 		err = cessions.CalculatePVMV(global, *pNative, loc)
 		if err != nil {
 			log.Fatal(err)
 		}
-		cessions.Println()
+		if *p2086 {
+			cessions.Println()
+		}
+		if *p2086xlsx {
+			cessions.ToXlsx("2086.xlsx")
+		}
 	}
 	os.Exit(0)
 }
