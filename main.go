@@ -61,6 +61,8 @@ func main() {
 	pCSVCdCExTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCSVCdCExStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCSVCdCExSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
+	pAPIKrakenKey := flag.String("kraken_api_key", "", "Kraken API key")
+	pAPIKrakenSecret := flag.String("kraken_api_secret", "", "Kraken API secret")
 	pCSVKraken := flag.String("kraken", "", "Kraken CSV file")
 	pCSVLedgerLive := flag.String("ledgerlive", "", "LedgerLive CSV file")
 	pCSVLBTrade := flag.String("lb_trade", "", "Local Bitcoin Trade CSV file")
@@ -225,6 +227,10 @@ func main() {
 		}
 	}
 	kr := kraken.New()
+	if *pAPIKrakenKey != "" && *pAPIKrakenSecret != "" {
+		kr.NewAPI(*pAPIKrakenKey, *pAPIKrakenSecret, *pDebug)
+		kr.GetAPITxs()
+	}
 	if *pCSVKraken != "" {
 		recordFile, err := os.Open(*pCSVKraken)
 		if err != nil {

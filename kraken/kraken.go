@@ -5,12 +5,22 @@ import (
 )
 
 type Kraken struct {
-	csvTXs         []csvTX
-	TXsByCategory  wallet.TXsByCategory
+	api           api
+	csvTXs        []csvTX
+	TXsByCategory wallet.TXsByCategory
 }
 
 func New() *Kraken {
 	kr := &Kraken{}
 	kr.TXsByCategory = make(map[string]wallet.TXs)
 	return kr
+}
+
+func (kr *Kraken) GetAPITxs() (err error) {
+	err = kr.api.getAPITxs()
+	if err != nil {
+		return
+	}
+	kr.TXsByCategory.Add(kr.api.txsByCategory)
+	return
 }

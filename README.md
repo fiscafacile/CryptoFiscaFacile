@@ -325,6 +325,16 @@ Les colones du CSV doivent être : `Address,Description`
 
 #### Kraken [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#kraken-)
 
+- Via API
+```
+  -kraken_api_key string
+        Kraken API key
+  -kraken_api_secret string
+        Kraken API secret
+```
+L'API est utilisée pour récupérer l'ensemble des transactions du ledger afin de les ajouter à l'outil.
+
+- Via CSV
 ```
   -kraken string
         Kraken CSV file
