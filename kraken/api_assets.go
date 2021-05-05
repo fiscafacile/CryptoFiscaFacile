@@ -20,16 +20,15 @@ func (api *api) getAPIAssets() {
 		resource := "/0/public/Assets"
 		headers := make(map[string]string)
 		headers["Content-Type"] = "application/json"
-		resp, err := api.clientAssets.R().
+		_, err := api.clientAssets.R().
 			SetHeaders(headers).
-			SetResult(&AssetsInfo{}).
+			SetResult(&api.assets).
 			Post(api.basePath + resource)
-		if err != nil || len((*resp.Result().(*AssetsInfo)).Error) > 0 {
-			fmt.Println("Kraken API assets : Error Requesting AssetsInfo" + strings.Join((*resp.Result().(*AssetsInfo)).Error, ""))
+		if err != nil || len(api.assets.Error) > 0 {
+			fmt.Println("Kraken API assets : Error Requesting AssetsInfo" + strings.Join(api.assets.Error, ""))
 		}
-		result := (*resp.Result().(*AssetsInfo)).Result.(map[string]interface{})
 		if useCache {
-			err = db.Write("Kraken/public", "Assets", result)
+			err = db.Write("Kraken/public", "Assets", api.assets.Result)
 			if err != nil {
 				fmt.Println("Kraken API assets : Error Caching AssetsInfo")
 			}
