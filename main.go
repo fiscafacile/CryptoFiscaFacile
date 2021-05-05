@@ -76,8 +76,9 @@ func main() {
 	pMyCeliumCSV := flag.String("mycelium", "", "MyCelium CSV file")
 	pRevoCSV := flag.String("revolut", "", "Revolut CSV file")
 	// Output
-	p2086 := flag.Bool("2086", false, "Display Cerfa 2086")
-	p2086xlsx := flag.Bool("2086xlsx", false, "Save Cerfa 2086 in 2086.xlsx")
+	p2086Display := flag.Bool("2086_display", false, "Display Cerfa 2086")
+	p2086 := flag.Bool("2086", false, "Save Cerfa 2086 in 2086.xlsx")
+	pStock := flag.Bool("stock", false, "Save stock calculation in stock.xlsx")
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
@@ -391,6 +392,9 @@ func main() {
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
 	global.FindTransfers()
+	if *pStock {
+		global.StockToXlsx("stock.xlsx")
+	}
 	totalCommercialRebates, totalInterests, totalReferrals := global.FindCashInOut(*pNative)
 	global.SortTXsByDate(true)
 	if *pStats {
@@ -422,16 +426,16 @@ func main() {
 		fmt.Print("Total Value : ")
 		globalWalletTotalValue.Println("")
 	}
-	if *p2086 || *p2086xlsx {
+	if *p2086 || *p2086Display {
 		var cessions Cessions
 		err = cessions.CalculatePVMV(global, *pNative, loc)
 		if err != nil {
 			log.Fatal(err)
 		}
-		if *p2086 {
+		if *p2086Display {
 			cessions.Println()
 		}
-		if *p2086xlsx {
+		if *p2086 {
 			cessions.ToXlsx("2086.xlsx")
 		}
 	}

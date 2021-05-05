@@ -448,7 +448,10 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
 ```
   -2086
         Display Cerfa 2086
+  -2086xlsx
+        Save Cerfa 2086 in 2086.xlsx
 ```
+Cela vous génère automatiquement le formulaire 2086 !
 
 ## Donation
 

@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/davecgh/go-spew/spew"
 	"github.com/shopspring/decimal"
 )
@@ -39,6 +41,8 @@ type Wallets struct {
 type TX struct {
 	Timestamp time.Time
 	ID        string
+	Source    string
+	Category  string
 	Items     map[string]Currencies
 	Nfts      map[string]Nfts
 	Note      string
@@ -208,6 +212,12 @@ func (tx TX) Println(filter string) (printed bool) {
 	if tx.ID != "" {
 		toPrint += fmt.Sprintln("ID :", tx.ID)
 	}
+	if tx.Source != "" {
+		toPrint += fmt.Sprintln("Source :", tx.Source)
+	}
+	if tx.Category != "" {
+		toPrint += fmt.Sprintln("Category :", tx.Category)
+	}
 	for k, v := range tx.Items {
 		toPrint += fmt.Sprintln(k, ":")
 		for _, i := range v {
@@ -280,11 +290,109 @@ func (txs TXsByCategory) Println(filter string) {
 	}
 }
 
+func (txs TXsByCategory) GetCoinsList(includeFiat bool) (coins []string) {
+	for _, v := range txs {
+		for _, tx := range v {
+			for _, i := range tx.Items {
+				for _, c := range i {
+					found := false
+					for _, coin := range coins {
+						if coin == c.Code {
+							found = true
+						}
+					}
+					if !found &&
+						(includeFiat || !c.IsFiat()) {
+						coins = append(coins, c.Code)
+					}
+				}
+			}
+		}
+	}
+	sort.Strings(coins)
+	return
+}
+
+func (txs TXsByCategory) StockToXlsx(filename string) {
+	f := excelize.NewFile()
+	var allTXs TXs
+	for cat, list := range txs {
+		for _, tx := range list {
+			if cat != "Transfers" {
+				if cat == "Withdrawals" {
+					tx.Category = "Retrait"
+				} else if cat == "Deposits" {
+					tx.Category = "Dépot"
+				} else if cat == "Exchanges" {
+					tx.Category = "Echange"
+				} else if cat == "Fees" {
+					tx.Category = "Frais"
+				} else if cat == "Gifts" {
+					tx.Category = "Don"
+				} else {
+					tx.Category = cat
+				}
+				allTXs = append(allTXs, tx)
+			}
+		}
+	}
+	allTXs.SortByDate(true)
+	coins := txs.GetCoinsList(false)
+	for _, coin := range coins {
+		f.NewSheet(coin)
+		f.SetCellValue(coin, "A1", "Date")
+		f.SetCellValue(coin, "B1", "Type d'opération")
+		f.SetCellValue(coin, "C1", "Entrée")
+		f.SetCellValue(coin, "D1", "Sortie")
+		f.SetCellValue(coin, "E1", "Balance")
+		f.SetCellValue(coin, "F1", "Note")
+		row := 2
+		var balance decimal.Decimal
+		for _, t := range allTXs {
+			var input decimal.Decimal
+			var output decimal.Decimal
+			for k, i := range t.Items {
+				for _, c := range i {
+					if c.Code == coin {
+						if k == "To" {
+							input = input.Add(c.Amount)
+							balance = balance.Add(c.Amount)
+						} else if k == "From" || k == "Fee" {
+							output = output.Add(c.Amount)
+							balance = balance.Sub(c.Amount)
+						}
+					}
+				}
+			}
+			if !input.IsZero() || !output.IsZero() {
+				f.SetCellValue(coin, "A"+strconv.Itoa(row), t.Timestamp.Format("02/01/2006"))
+				f.SetCellValue(coin, "B"+strconv.Itoa(row), t.Category)
+				if !input.IsZero() {
+					in, _ := input.Float64()
+					f.SetCellValue(coin, "C"+strconv.Itoa(row), in)
+				}
+				if !output.IsZero() {
+					out, _ := output.Float64()
+					f.SetCellValue(coin, "D"+strconv.Itoa(row), out)
+				}
+				bal, _ := balance.Float64()
+				f.SetCellValue(coin, "E"+strconv.Itoa(row), bal)
+				f.SetCellValue(coin, "F"+strconv.Itoa(row), t.Note)
+				row += 1
+			}
+		}
+	}
+	f.DeleteSheet("Sheet1")
+	if err := f.SaveAs(filename); err != nil {
+		log.Fatal(err)
+	}
+}
+
 func (txs TXsByCategory) GetWallets(date time.Time, includeFiat bool, rounding bool) (w Wallets) {
 	w.Date = date
 	w.Currencies = make(WalletCurrencies)
-	for _, a := range txs {
-		for _, tx := range a {
+	for _, v := range txs {
+		for _, tx := range v {
 			if tx.Timestamp.Before(date) {
 				txcs := tx.GetBalances(includeFiat, true)
 				w.Currencies.Add(txcs)
