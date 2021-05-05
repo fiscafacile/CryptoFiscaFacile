@@ -44,7 +44,7 @@ func (c *Cession) Calculate() {
 }
 
 func (c Cession) Println() {
-	fmt.Println("211 Date de la cession :", c.Date211.Format("02/01/2006"))
+	fmt.Println("211 Date de la cession :", c.Date211.Format("02-01-2006"))
 	fmt.Println("212 Valeur globale du portefeuille au moment de la cession :", c.ValeurPortefeuille212.RoundBank(0))
 	fmt.Println("213 Prix de cession :", c.Prix213.RoundBank(0))
 	fmt.Println("214 Frais de cession :", c.Frais214.RoundBank(0))

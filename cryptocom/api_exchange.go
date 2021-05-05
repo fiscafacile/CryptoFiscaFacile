@@ -23,8 +23,9 @@ type apiEx struct {
 	basePath           string
 	apiKey             string
 	secretKey          string
-	firstTimeUsed      time.Time
 	startTime          time.Time
+	firstTimeUsed      time.Time
+	lastTimeUsed       time.Time
 	timeBetweenReq     time.Duration
 	timeBetweenReqSpot time.Duration
 	nextReqID          int64
@@ -61,6 +62,7 @@ func (cdc *CryptoCom) NewExchangeAPI(apiKey, secretKey string, debug bool) {
 	cdc.apiEx.secretKey = secretKey
 	cdc.apiEx.firstTimeUsed = time.Now()
 	cdc.apiEx.startTime = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
+	cdc.apiEx.lastTimeUsed = cdc.apiEx.startTime
 	cdc.apiEx.timeBetweenReq = 100 * time.Millisecond
 	cdc.apiEx.timeBetweenReqSpot = time.Second
 }
@@ -76,10 +78,6 @@ func (api *apiEx) getAllTXs(loc *time.Location) (err error) {
 	return
 }
 
-func (api *apiEx) GetExchangeFirstUsedTime() time.Time {
-	return api.firstTimeUsed
-}
-
 func (api *apiEx) categorize() {
 	for _, tx := range api.withdrawalTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com Exchange API : Withdrawal " + tx.Description}
@@ -92,6 +90,9 @@ func (api *apiEx) categorize() {
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
+		}
 	}
 	for _, tx := range api.depositTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com Exchange API : Deposit " + tx.Description}
@@ -103,6 +104,9 @@ func (api *apiEx) categorize() {
 		api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
+		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
@@ -122,6 +126,9 @@ func (api *apiEx) categorize() {
 		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
+		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
 		}
 	}
 }

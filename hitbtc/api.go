@@ -17,6 +17,7 @@ type api struct {
 	apiKey         string
 	secretKey      string
 	firstTimeUsed  time.Time
+	lastTimeUsed   time.Time
 	timeBetweenReq time.Duration
 	accountTXs     []accountTX
 	tradeTXs       []tradeTX
@@ -44,6 +45,7 @@ func (hb *HitBTC) NewAPI(apiKey, secretKey string, debug bool) {
 	hb.api.apiKey = apiKey
 	hb.api.secretKey = secretKey
 	hb.api.firstTimeUsed = time.Now()
+	hb.api.lastTimeUsed = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
 	hb.api.timeBetweenReq = 100 * time.Millisecond
 }
 
@@ -54,10 +56,6 @@ func (api *api) getAllTXs() (err error) {
 	<-api.doneTrade
 	api.categorize()
 	return
-}
-
-func (api *api) GetExchangeFirstUsedTime() time.Time {
-	return api.firstTimeUsed
 }
 
 func (api *api) categorize() {
@@ -86,8 +84,11 @@ func (api *api) categorize() {
 		} else {
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 		}
-		if tx.UpdatedAt.Before(api.firstTimeUsed) {
+		if tx.CreatedAt.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.UpdatedAt
+		}
+		if tx.UpdatedAt.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.UpdatedAt
 		}
 	}
 	// for _, tx := range api.tradeTXs {

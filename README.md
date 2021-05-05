@@ -446,12 +446,24 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
 ### Options de sortie
 
 ```
-  -2086
+  -2086_display
         Display Cerfa 2086
-  -2086xlsx
-        Save Cerfa 2086 in 2086.xlsx
+  -2086
+        Export Cerfa 2086 in 2086.xlsx
 ```
 Cela vous génère automatiquement le formulaire 2086 !
+
+```
+  -3916
+        Export Cerfa 3916 in 3916.xlsx
+```
+Cela vous génère automatiquement le formulaire 3916 !
+
+```
+  -stock
+        Export stock balances in stock.xlsx
+```
+Cela vous génère automatiquement une fiche de stock de tous vos coins !
 
 ## Donation
 

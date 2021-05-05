@@ -23,6 +23,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
@@ -77,8 +78,9 @@ func main() {
 	pRevoCSV := flag.String("revolut", "", "Revolut CSV file")
 	// Output
 	p2086Display := flag.Bool("2086_display", false, "Display Cerfa 2086")
-	p2086 := flag.Bool("2086", false, "Save Cerfa 2086 in 2086.xlsx")
-	pStock := flag.Bool("stock", false, "Save stock calculation in stock.xlsx")
+	p2086 := flag.Bool("2086", false, "Export Cerfa 2086 in 2086.xlsx")
+	p3916 := flag.Bool("3916", false, "Export Cerfa 3916 in 3916.xlsx")
+	pStock := flag.Bool("stock", false, "Export stock balances in stock.xlsx")
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
@@ -373,6 +375,14 @@ func main() {
 		}
 		if *pLBTC {
 			blkst.DetectLBTC(btc)
+		}
+	}
+	if *p3916 {
+		sources := make(source.Sources)
+		sources.Add(cdc.Sources)
+		err = sources.ToXlsx("3916.xlsx")
+		if err != nil {
+			log.Fatal(err)
 		}
 	}
 	// create Global Wallet up to Date
