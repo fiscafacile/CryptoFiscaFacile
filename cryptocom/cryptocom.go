@@ -21,8 +21,8 @@ type CryptoCom struct {
 func New() *CryptoCom {
 	cdc := &CryptoCom{}
 	cdc.done = make(chan error)
-	cdc.TXsByCategory = make(map[string]wallet.TXs)
-	cdc.Sources = make(map[string]source.Source)
+	cdc.TXsByCategory = make(wallet.TXsByCategory)
+	cdc.Sources = make(source.Sources)
 	return cdc
 }
 
@@ -38,8 +38,8 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 		AccountNumber: "emailAROBASEdomainPOINTcom",
 		OpeningDate:   cdc.apiEx.firstTimeUsed,
 		ClosingDate:   cdc.apiEx.lastTimeUsed,
-		LegalName:     "",
-		Address:       "",
+		LegalName:     "MCO Malta DAX Limited",
+		Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
 		URL:           "https://crypto.com/exchange",
 	}
 	cdc.done <- nil

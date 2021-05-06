@@ -209,7 +209,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "MCO Malta DAX Limited",
-			Address:       "",
+			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
 			URL:           "https://crypto.com/cards",
 		}
 	}

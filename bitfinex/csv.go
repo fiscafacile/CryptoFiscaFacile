@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -23,6 +24,8 @@ type CsvTX struct {
 }
 
 func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -51,6 +54,12 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				}
 				tx.Wallet = r[6]
 				bf.CsvTXs = append(bf.CsvTXs, tx)
+				if tx.Date.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Date
+				}
+				if tx.Date.After(lastTimeUsed) {
+					lastTimeUsed = tx.Date
+				}
 				// Fill TXsByCategory
 				if strings.Contains(tx.Description, "Exchange") ||
 					strings.Contains(tx.Description, "Transfer") ||
@@ -158,6 +167,15 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				}
 			}
 		}
+	}
+	bf.Sources["Bitfinex"] = source.Source{
+		Crypto:        true,
+		AccountNumber: "emailAROBASEdomainPOINTcom",
+		OpeningDate:   firstTimeUsed,
+		ClosingDate:   lastTimeUsed,
+		LegalName:     "Bitfinex",
+		Address:       "1308 Bank of America Tower, 13/F\n12 Harcourt Road, Central\nHong Kong",
+		URL:           "https://www.bitfinex.com",
 	}
 	return
 }
