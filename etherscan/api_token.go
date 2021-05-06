@@ -96,6 +96,7 @@ type GetAccountTokenTXResp struct {
 }
 
 func (api *api) getAccountTokenTX(address, contractAddress string, desc bool) (accTokTX GetAccountTokenTXResp, err error) {
+	const SOURCE = "Etherscan API TokenTX :"
 	ident := "a" + address + "-c" + contractAddress
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
@@ -128,13 +129,13 @@ func (api *api) getAccountTokenTX(address, contractAddress string, desc bool) (a
 			SetResult(&GetAccountTokenTXResp{}).
 			Get(api.basePath)
 		if err != nil {
-			return accTokTX, errors.New("Etherscan API TokenTX : Error Requesting" + ident)
+			return accTokTX, errors.New(SOURCE + " Error Requesting " + ident)
 		}
 		accTokTX = *resp.Result().(*GetAccountTokenTXResp)
 		if useCache {
 			err = db.Write("Etherscan.io/account/tokentx", ident, accTokTX)
 			if err != nil {
-				return accTokTX, errors.New("Etherscan API TokenTX : Error Caching" + ident)
+				return accTokTX, errors.New(SOURCE + " Error Caching " + ident)
 			}
 		}
 		if accTokTX.Message == "OK" {

@@ -95,6 +95,7 @@ type GetAccountTXListResp struct {
 }
 
 func (api *api) getAccountTXList(address string, desc bool) (accTXList GetAccountTXListResp, err error) {
+	const SOURCE = "Etherscan API TX List :"
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
@@ -121,13 +122,13 @@ func (api *api) getAccountTXList(address string, desc bool) (accTXList GetAccoun
 			SetResult(&GetAccountTXListResp{}).
 			Get(api.basePath)
 		if err != nil {
-			return accTXList, errors.New("Etherscan API TX List : Error Requesting" + address)
+			return accTXList, errors.New(SOURCE + " Error Requesting " + address)
 		}
 		accTXList = *resp.Result().(*GetAccountTXListResp)
 		if useCache {
 			err = db.Write("Etherscan.io/account/txlist", address, accTXList)
 			if err != nil {
-				return accTXList, errors.New("Etherscan API TX List : Error Caching" + address)
+				return accTXList, errors.New(SOURCE + " Error Caching " + address)
 			}
 		}
 		if accTXList.Message == "OK" {

@@ -8,6 +8,7 @@ import (
 )
 
 func (api *api) getAPIAssets() {
+	const SOURCE = "Kraken API Assets :"
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
@@ -25,12 +26,12 @@ func (api *api) getAPIAssets() {
 			SetResult(&api.assets).
 			Post(api.basePath + resource)
 		if err != nil || len(api.assets.Error) > 0 {
-			fmt.Println("Kraken API assets : Error Requesting AssetsInfo" + strings.Join(api.assets.Error, ""))
+			fmt.Println(SOURCE, "Error Requesting AssetsInfo"+strings.Join(api.assets.Error, ""))
 		}
 		if useCache {
 			err = db.Write("Kraken/public", "Assets", api.assets.Result)
 			if err != nil {
-				fmt.Println("Kraken API assets : Error Caching AssetsInfo")
+				fmt.Println(SOURCE, "Error Caching AssetsInfo")
 			}
 		}
 	}

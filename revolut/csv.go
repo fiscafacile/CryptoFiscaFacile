@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -25,9 +26,13 @@ type CsvTX struct {
 }
 
 func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Revolut CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		var curr string
 		for _, r := range records {
 			if r[0] == "Completed Date" {
@@ -37,57 +42,72 @@ func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
 				tx := CsvTX{}
 				tx.Timestamp, err = time.Parse("2 Jan 2006", f2e(r[0]))
 				if err != nil {
-					log.Println("Error Parsing Timestamp :", r[0])
+					log.Println(SOURCE, "Error Parsing Timestamp :", r[0])
 				}
 				tx.Description = strings.ReplaceAll(r[1], "\u00a0", "")
 				// spew.Dump(strings.Split(r[1], " "))
 				tx.Rate, err = decimal.NewFromString(strings.Split(r[1], " ")[7][:9])
 				if err != nil {
-					log.Println("Error Parsing Rate :", strings.Split(r[1], " ")[7][:9])
+					log.Println(SOURCE, "Error Parsing Rate :", strings.Split(r[1], " ")[7][:9])
 				}
 				if r[2] != "" {
 					tx.PaidOut, err = decimal.NewFromString(r[2])
 					if err != nil {
-						log.Println("Error Parsing PaidOut :", r[2])
+						log.Println(SOURCE, "Error Parsing PaidOut :", r[2])
 					}
 				} else {
 					tx.PaidIn, err = decimal.NewFromString(r[3])
 					if err != nil {
-						log.Println("Error Parsing PaidIn :", r[3])
+						log.Println(SOURCE, "Error Parsing PaidIn :", r[3])
 					}
 				}
 				s := strings.Split(r[4], " ")
 				tx.ExchangeOut.Code = s[0]
 				tx.ExchangeOut.Amount, err = decimal.NewFromString(s[1])
 				if err != nil {
-					log.Println("Error Parsing ExchangeOut.Amount :", s[1])
+					log.Println(SOURCE, "Error Parsing ExchangeOut.Amount :", s[1])
 				}
 				tx.ExchangeIn = r[5]
 				tx.Balance, err = decimal.NewFromString(r[6])
 				if err != nil {
-					log.Println("Error Parsing Balance :", r[6])
+					log.Println(SOURCE, "Error Parsing Balance :", r[6])
 				}
 				tx.Category = r[7]
 				tx.Notes = r[8]
 				revo.CsvTXs = append(revo.CsvTXs, tx)
+				if tx.Timestamp.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Timestamp
+				}
+				if tx.Timestamp.After(lastTimeUsed) {
+					lastTimeUsed = tx.Timestamp
+				}
 				// Fill TXsByCategory
 				if !tx.PaidIn.IsZero() {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.PaidIn})
 					t.Items["From"] = append(t.Items["From"], tx.ExchangeOut)
 					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else if !tx.PaidOut.IsZero() {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Revolut CSV : " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.PaidOut})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: tx.PaidOut.Mul(tx.Rate)})
 					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else {
-					log.Println("Unmanaged ", tx)
+					alreadyAsked = wallet.AskForHelp(SOURCE, tx, alreadyAsked)
 				}
 			}
 		}
+	}
+	revo.Sources["Revolut"] = source.Source{
+		Crypto:        true,
+		AccountNumber: "emailAROBASEdomainPOINTcom",
+		OpeningDate:   firstTimeUsed,
+		ClosingDate:   lastTimeUsed,
+		LegalName:     "Revolut Limited",
+		Address:       "4th Floor, 7 Westferry Circus\nE14 4HD Londres, Royaume-Uni",
+		URL:           "https://www.revolut.com",
 	}
 	return
 }

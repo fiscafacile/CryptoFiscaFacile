@@ -135,6 +135,11 @@ func main() {
 		hb.NewAPI(*pHitBtcAPIKey, *pHitBtcSecretKey, *pDebug)
 		go hb.GetAPIAllTXs()
 	}
+	kr := kraken.New()
+	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
+		kr.NewAPI(*pKrakenAPIKey, *pKrakenAPISecret, *pDebug)
+		go kr.GetAPIAllTXs()
+	}
 	// Now parse local files
 	bc := blockchain.New()
 	if *pBTGTXsJSON != "" {
@@ -257,11 +262,6 @@ func main() {
 			log.Fatal("Error parsing HitBTC Transactions CSV file:", err)
 		}
 	}
-	kr := kraken.New()
-	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
-		kr.NewAPI(*pKrakenAPIKey, *pKrakenAPISecret, *pDebug)
-		kr.GetAPITxs()
-	}
 	if *pKrakenCSV != "" {
 		recordFile, err := os.Open(*pKrakenCSV)
 		if err != nil {
@@ -355,6 +355,12 @@ func main() {
 			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
 		}
 	}
+	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
+		err := kr.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Kraken API TXs:", err)
+		}
+	}
 	if *pBTCAddressesCSV != "" {
 		err := blkst.WaitFinish()
 		if err != nil {
@@ -377,8 +383,12 @@ func main() {
 		sources := make(source.Sources)
 		sources.Add(b.Sources)
 		sources.Add(bf.Sources)
+		sources.Add(cb.Sources)
 		sources.Add(cdc.Sources)
 		sources.Add(hb.Sources)
+		sources.Add(kr.Sources)
+		sources.Add(lb.Sources)
+		sources.Add(revo.Sources)
 		err = sources.ToXlsx("3916.xlsx")
 		if err != nil {
 			log.Fatal(err)

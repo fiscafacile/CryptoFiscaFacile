@@ -5,8 +5,6 @@ import (
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/base64"
-	"fmt"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -24,6 +22,7 @@ type api struct {
 	apiKey        string
 	secretKey     string
 	firstTimeUsed time.Time
+	lastTimeUsed  time.Time
 	ledgerTX      []ledgerTX
 	assets        AssetsInfo
 	txsByCategory wallet.TXsByCategory
@@ -49,6 +48,7 @@ func (kr *Kraken) NewAPI(apiKey, secretKey string, debug bool) {
 	kr.api.apiKey = apiKey
 	kr.api.secretKey = secretKey
 	kr.api.firstTimeUsed = time.Now()
+	kr.api.lastTimeUsed = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
 	kr.api.debug = debug
 }
 
@@ -60,14 +60,12 @@ func (api *api) getAPITxs() (err error) {
 	return
 }
 
-func (api *api) GetExchangeFirstUsedTime() time.Time {
-	return api.firstTimeUsed
-}
-
 func (api *api) categorize() {
+	const SOURCE = "Kraken API :"
+	alreadyAsked := []string{}
 	for _, tx := range api.ledgerTX {
 		if tx.Type == "trade" || tx.Type == "margin" || tx.Type == "rollover" || tx.Type == "transfer" || tx.Type == "settled" {
-			t := wallet.TX{Timestamp: tx.Time, Note: "Kraken API : " + strings.Title(tx.Type) + "  " + tx.TxId, ID: tx.TxId}
+			t := wallet.TX{Timestamp: tx.Time, Note: SOURCE + " " + strings.Title(tx.Type) + "  " + tx.TxId, ID: tx.TxId}
 			t.Items = make(map[string]wallet.Currencies)
 			if tx.Amount.IsPositive() {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
@@ -95,8 +93,13 @@ func (api *api) categorize() {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 		} else {
-			log.Println("Kraken : Unmanaged ", tx.Type)
-			fmt.Println(tx)
+			alreadyAsked = wallet.AskForHelp(SOURCE+" : "+tx.Type, tx, alreadyAsked)
+		}
+		if tx.Time.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.Time
+		}
+		if tx.Time.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Time
 		}
 	}
 }

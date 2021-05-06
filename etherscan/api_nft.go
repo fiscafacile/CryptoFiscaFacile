@@ -96,6 +96,7 @@ type GetAccountNftTXResp struct {
 }
 
 func (api *api) getAccountNftTX(address, contractAddress string, desc bool) (accNftTX GetAccountNftTXResp, err error) {
+	const SOURCE = "Etherscan API Nft TX :"
 	ident := "a" + address + "-c" + contractAddress
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
@@ -128,13 +129,13 @@ func (api *api) getAccountNftTX(address, contractAddress string, desc bool) (acc
 			SetResult(&GetAccountNftTXResp{}).
 			Get(api.basePath)
 		if err != nil {
-			return accNftTX, errors.New("Etherscan API Nft TX : Error Requesting" + ident)
+			return accNftTX, errors.New(SOURCE + " Error Requesting " + ident)
 		}
 		accNftTX = *resp.Result().(*GetAccountNftTXResp)
 		if useCache {
 			err = db.Write("Etherscan.io/account/tokennfttx", ident, accNftTX)
 			if err != nil {
-				return accNftTX, errors.New("Etherscan API Nft TX : Error Caching" + ident)
+				return accNftTX, errors.New(SOURCE + " Error Caching " + ident)
 			}
 		}
 		if accNftTX.Message == "OK" {
