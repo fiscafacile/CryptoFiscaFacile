@@ -153,11 +153,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Binance CSV file:", err)
 		}
-		if *pBinanceCSVExtended {
-			err = b.ParseCSVExtended(recordFile)
-		} else {
-			err = b.ParseCSV(recordFile)
-		}
+		err = b.ParseCSV(recordFile, *pBinanceCSVExtended)
 		if err != nil {
 			log.Fatal("Error parsing Binance CSV file:", err)
 		}
@@ -379,7 +375,10 @@ func main() {
 	}
 	if *p3916 {
 		sources := make(source.Sources)
+		sources.Add(b.Sources)
+		sources.Add(bf.Sources)
 		sources.Add(cdc.Sources)
+		sources.Add(hb.Sources)
 		err = sources.ToXlsx("3916.xlsx")
 		if err != nil {
 			log.Fatal(err)
