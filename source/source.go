@@ -7,6 +7,8 @@ import (
 	"github.com/360EntSecGroup-Skylar/excelize"
 )
 
+const URL_3916 = "https://www.impots.gouv.fr/portail/files/formulaires/3916/2021/3916_3425.pdf"
+
 type Source struct {
 	Crypto        bool
 	AccountNumber string
@@ -25,7 +27,7 @@ func (ss Sources) Add(srcs Sources) {
 	}
 }
 
-func (ss Sources) ToXlsx(filename string) error {
+func (ss Sources) ToXlsx(filename string, loc *time.Location) error {
 	if len(ss) > 0 {
 		f := excelize.NewFile()
 		for src, s := range ss {
@@ -35,9 +37,9 @@ func (ss Sources) ToXlsx(filename string) error {
 				f.SetCellValue(src, "A2", "Numéro de compte")
 				f.SetCellValue(src, "B2", s.AccountNumber)
 				f.SetCellValue(src, "A3", "Date d'ouverture*")
-				f.SetCellValue(src, "B3", s.OpeningDate.Format("02-01-2006"))
+				f.SetCellValue(src, "B3", s.OpeningDate.In(loc).Format("02-01-2006"))
 				f.SetCellValue(src, "A4", "Date de clôture*")
-				f.SetCellValue(src, "B4", s.ClosingDate.Format("02-01-2006"))
+				f.SetCellValue(src, "B4", s.ClosingDate.In(loc).Format("02-01-2006"))
 				f.SetCellValue(src, "A5", "Designation de l'organisme gestionnaire du compte")
 				f.SetCellValue(src, "B5", s.LegalName)
 				f.SetCellValue(src, "A6", "Adresse de l'organisme gestionnaire du compte")
@@ -52,9 +54,9 @@ func (ss Sources) ToXlsx(filename string) error {
 				f.SetCellValue(src, "A3", "Caractéristiques du compte")
 				f.SetCellValue(src, "B3", "[x] Compte courant")
 				f.SetCellValue(src, "A4", "Date d'ouverture*")
-				f.SetCellValue(src, "B4", s.OpeningDate.Format("02-01-2006"))
+				f.SetCellValue(src, "B4", s.OpeningDate.In(loc).Format("02-01-2006"))
 				f.SetCellValue(src, "A5", "Date de clôture*")
-				f.SetCellValue(src, "B5", s.ClosingDate.Format("02-01-2006"))
+				f.SetCellValue(src, "B5", s.ClosingDate.In(loc).Format("02-01-2006"))
 				f.SetCellValue(src, "A6", "Designation de l'organisme gestionnaire du compte")
 				f.SetCellValue(src, "B6", s.LegalName)
 				f.SetCellValue(src, "A7", "Adresse de l'organisme gestionnaire du compte")

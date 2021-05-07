@@ -389,7 +389,7 @@ func main() {
 		sources.Add(kr.Sources)
 		sources.Add(lb.Sources)
 		sources.Add(revo.Sources)
-		err = sources.ToXlsx("3916.xlsx")
+		err = sources.ToXlsx("3916.xlsx", loc)
 		if err != nil {
 			log.Fatal(err)
 		}

@@ -340,7 +340,7 @@ func (txs TXsByCategory) StockToXlsx(filename string) {
 	coins := txs.GetCoinsList(false)
 	for _, coin := range coins {
 		f.NewSheet(coin)
-		f.SetCellValue(coin, "A1", "Date")
+		f.SetCellValue(coin, "A1", "Date (UTC)")
 		f.SetCellValue(coin, "B1", "Type d'opération")
 		f.SetCellValue(coin, "C1", "Entrée")
 		f.SetCellValue(coin, "D1", "Sortie")
@@ -365,7 +365,7 @@ func (txs TXsByCategory) StockToXlsx(filename string) {
 				}
 			}
 			if !input.IsZero() || !output.IsZero() {
-				f.SetCellValue(coin, "A"+strconv.Itoa(row), t.Timestamp.Format("02/01/2006"))
+				f.SetCellValue(coin, "A"+strconv.Itoa(row), t.Timestamp.Format("02/01/2006 15:04:05"))
 				f.SetCellValue(coin, "B"+strconv.Itoa(row), t.Category)
 				if !input.IsZero() {
 					in, _ := input.Float64()
@@ -381,6 +381,9 @@ func (txs TXsByCategory) StockToXlsx(filename string) {
 				row += 1
 			}
 		}
+		f.SetColWidth(coin, "A", "A", 18)
+		f.SetColWidth(coin, "B", "B", 16)
+		f.SetColWidth(coin, "F", "F", 50)
 	}
 	f.DeleteSheet("Sheet1")
 	if err := f.SaveAs(filename); err != nil {
