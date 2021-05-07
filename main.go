@@ -127,7 +127,7 @@ func main() {
 	cdc := cryptocom.New()
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
-		fmt.Println("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)...")
+		fmt.Print("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)")
 		go cdc.GetAPIExchangeTXs(loc)
 	}
 	hb := hitbtc.New()
@@ -410,11 +410,15 @@ func main() {
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
+	fmt.Print("Merging Deposits with Withdrawals into Transfers...")
 	global.FindTransfers()
+	fmt.Println("Finished")
 	if *pStock {
 		global.StockToXlsx("stock.xlsx")
 	}
+	fmt.Print("Look for CashIn and CashOut...")
 	totalCommercialRebates, totalInterests, totalReferrals := global.FindCashInOut(*pNative)
+	fmt.Println("Finished")
 	global.SortTXsByDate(true)
 	if *pStats {
 		global.PrintStats(*pNative, totalCommercialRebates, totalInterests, totalReferrals)

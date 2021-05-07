@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -22,6 +23,7 @@ func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
 	thisYear := today.Year()
 	for y := thisYear; y > 2019; y-- {
 		for q := 4; q > 0; q-- {
+			fmt.Print(".")
 			withHist, err := api.getWithdrawalHistory(y, q, loc)
 			if err != nil {
 				api.doneWit <- err

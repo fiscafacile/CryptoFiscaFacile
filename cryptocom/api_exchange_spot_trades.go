@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -23,6 +24,7 @@ type spotTradeTX struct {
 func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 	date := time.Now().Add(-24 * time.Hour)
 	for date.After(api.startTime) {
+		fmt.Print(".")
 		trades, err := api.getTrades(date.Year(), date.Month(), date.Day(), loc)
 		if err != nil {
 			api.doneSpotTra <- err

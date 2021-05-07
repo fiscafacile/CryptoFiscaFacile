@@ -74,12 +74,14 @@ func (api *apiEx) getAllTXs(loc *time.Location) (err error) {
 	<-api.doneDep
 	<-api.doneWit
 	<-api.doneSpotTra
+	fmt.Println("Finished")
 	api.categorize()
 	return
 }
 
 func (api *apiEx) categorize() {
 	const SOURCE = "Crypto.com Exchange API :"
+	alreadyAsked := []string{}
 	for _, tx := range api.withdrawalTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Withdrawal " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
@@ -114,17 +116,20 @@ func (api *apiEx) categorize() {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Exchange " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		curr := strings.Split(tx.Pair, "_")
-		if tx.Side == "BUY" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[1], Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[0], Amount: tx.Quantity.Mul(tx.Price)})
-		} else { // if tx.Side == "SELL"
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[0], Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[1], Amount: tx.Quantity.Mul(tx.Price)})
-		}
 		if !tx.Fee.IsZero() {
 			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
 		}
-		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		if tx.Side == "BUY" {
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[1], Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[0], Amount: tx.Quantity.Mul(tx.Price)})
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		} else if tx.Side == "SELL" {
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[0], Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[1], Amount: tx.Quantity.Mul(tx.Price)})
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		} else {
+			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Side, tx, alreadyAsked)
+		}
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}
