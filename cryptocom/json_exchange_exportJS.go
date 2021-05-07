@@ -124,7 +124,7 @@ type ExchangeJson struct {
 			Commission             string `json:"commission"`
 			ID                     string `json:"id"`
 			MTime                  int64  `json:"mtime,string"`
-			Status                 int    `json:"status"`
+			Status                 int    `json:"status,string"`
 			NetTradingFee          string `json:"netTradingFee"`
 			ReferralRelationshipID string `json:"referralRelationshipId"`
 			CTime                  int64  `json:"ctime,string"`
@@ -140,7 +140,7 @@ type ExchangeJson struct {
 			ID                     string `json:"id"`
 			MTime                  int64  `json:"mtime,string"`
 			ReferralBonusTierID    string `json:"referralBonusTierId"`
-			Status                 int    `json:"status"`
+			Status                 int    `json:"status,string"`
 			ReferralBonusInUSD     string `json:"referralBonusInUsd"`
 		} `json:"data"`
 	} `json:"bon"`
@@ -254,12 +254,6 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: r.CoinSymbol, Amount: amount})
 				}
-				// fee, err := decimal.NewFromString(r.FeePaid)
-				// if err != nil {
-				// 	log.Println(SOURCE, "Error Parsing FeePaid", r.FeePaid)
-				// } else {
-				// 	t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: r.CoinSymbol, Amount: fee})
-				// }
 				cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 			}
 			if time.Unix(r.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
