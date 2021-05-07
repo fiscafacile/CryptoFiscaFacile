@@ -25,6 +25,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
+	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -65,6 +66,7 @@ func main() {
 	pCdCAppCSVCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCdCExAPIKey := flag.String("cdc_ex_api_key", "", "Crypto.com Exchange API Key")
 	pCdCExSecretKey := flag.String("cdc_ex_secret_key", "", "Crypto.com Exchange Secret Key")
+	pCdCExJSONExportJS := flag.String("cdc_ex_exportjs", "", "Crypto.com Exchange JSON file from json_exporter.js")
 	pCdCExCSVTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCdCExCSVStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCdCExCSVSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
@@ -210,6 +212,16 @@ func main() {
 		err = cdc.ParseCSVAppCrypto(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
+		}
+	}
+	if *pCdCExJSONExportJS != "" {
+		recordFile, err := os.Open(*pCdCExJSONExportJS)
+		if err != nil {
+			log.Fatal("Error opening Crypto.com Exchange ExportJS JSON file:", err)
+		}
+		err = cdc.ParseJSONExchangeExportJS(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Crypto.com Exchange ExportJS JSON file:", err)
 		}
 	}
 	if *pCdCExCSVTransfer != "" {
@@ -416,9 +428,12 @@ func main() {
 	if *pStock {
 		global.StockToXlsx("stock.xlsx")
 	}
-	fmt.Print("Look for CashIn and CashOut...")
-	totalCommercialRebates, totalInterests, totalReferrals := global.FindCashInOut(*pNative)
-	fmt.Println("Finished")
+	var totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal
+	if *p2086 || *p2086Display {
+		fmt.Print("Look for CashIn and CashOut...")
+		totalCommercialRebates, totalInterests, totalReferrals = global.FindCashInOut(*pNative)
+		fmt.Println("Finished")
+	}
 	global.SortTXsByDate(true)
 	if *pStats {
 		global.PrintStats(*pNative, totalCommercialRebates, totalInterests, totalReferrals)

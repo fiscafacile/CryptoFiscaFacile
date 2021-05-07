@@ -682,12 +682,14 @@ func (txs TXsByCategory) PrintStats(native string, totalCommercialRebates, total
 	for _, k := range keys {
 		fmt.Println(k, ":", len(txs[k]), "TXs")
 	}
-	fmt.Println("----------------------------")
-	fmt.Println("| Total Values By Category |")
-	fmt.Println("----------------------------")
-	fmt.Println("CommercialRebates :", totalCommercialRebates.RoundBank(2), native)
-	fmt.Println("Interests :", totalInterests.RoundBank(2), native)
-	fmt.Println("Referrals :", totalReferrals.RoundBank(2), native)
+	if !totalCommercialRebates.IsZero() || !totalInterests.IsZero() || !totalReferrals.IsZero() {
+		fmt.Println("----------------------------")
+		fmt.Println("| Total Values By Category |")
+		fmt.Println("----------------------------")
+		fmt.Println("CommercialRebates :", totalCommercialRebates.RoundBank(2), native)
+		fmt.Println("Interests :", totalInterests.RoundBank(2), native)
+		fmt.Println("Referrals :", totalReferrals.RoundBank(2), native)
+	}
 }
 
 func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
