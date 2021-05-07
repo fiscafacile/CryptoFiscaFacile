@@ -31,7 +31,7 @@ func (api *apiEx) getDepositsTXs(loc *time.Location) {
 			}
 			for _, dep := range depoHist.Result.DepositList {
 				tx := depositTX{}
-				tx.Timestamp = time.Unix(dep.UpdateTime, 0)
+				tx.Timestamp = time.Unix(dep.UpdateTime/1000, 0)
 				tx.Description = "from " + dep.Address
 				tx.Currency = dep.Currency
 				tx.Amount = decimal.NewFromFloat(dep.Amount)

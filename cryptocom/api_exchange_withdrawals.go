@@ -31,7 +31,7 @@ func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
 			}
 			for _, wit := range withHist.Result.WithdrawalList {
 				tx := withdrawalTX{}
-				tx.Timestamp = time.Unix(wit.UpdateTime, 0)
+				tx.Timestamp = time.Unix(wit.UpdateTime/1000, 0)
 				tx.Description = "to " + wit.Address
 				tx.Currency = wit.Currency
 				tx.Amount = decimal.NewFromFloat(wit.Amount)

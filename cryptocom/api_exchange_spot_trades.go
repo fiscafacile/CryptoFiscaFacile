@@ -32,7 +32,7 @@ func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 		}
 		for _, tra := range trades.Result.TradeList {
 			tx := spotTradeTX{}
-			tx.Timestamp = time.Unix(tra.CreateTime, 0)
+			tx.Timestamp = time.Unix(tra.CreateTime/1000, 0)
 			tx.Description = tra.TradeID + " " + tra.LiquidityIndicator
 			tx.Pair = tra.InstrumentName
 			tx.Side = tra.Side
