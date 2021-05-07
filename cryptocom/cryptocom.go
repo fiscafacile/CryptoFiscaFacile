@@ -33,14 +33,16 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 		return
 	}
 	cdc.TXsByCategory.Add(cdc.apiEx.txsByCategory)
-	cdc.Sources["CdC Exchange"] = source.Source{
-		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
-		OpeningDate:   cdc.apiEx.firstTimeUsed,
-		ClosingDate:   cdc.apiEx.lastTimeUsed,
-		LegalName:     "MCO Malta DAX Limited",
-		Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
-		URL:           "https://crypto.com/exchange",
+	if _, ok := cdc.Sources["CdC Exchange"]; !ok {
+		cdc.Sources["CdC Exchange"] = source.Source{
+			Crypto:        true,
+			AccountNumber: "emailAROBASEdomainPOINTcom",
+			OpeningDate:   cdc.apiEx.firstTimeUsed,
+			ClosingDate:   cdc.apiEx.lastTimeUsed,
+			LegalName:     "MCO Malta DAX Limited",
+			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+			URL:           "https://crypto.com/exchange",
+		}
 	}
 	cdc.done <- nil
 }

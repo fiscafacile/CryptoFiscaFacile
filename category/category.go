@@ -80,6 +80,18 @@ func (cat Category) IsTxGift(txid string) (is bool, desc string) {
 	return
 }
 
+func (cat Category) IsTxAirDrop(txid string) (is bool, desc string) {
+	is = false
+	for _, a := range cat.csvCategories {
+		if a.txID == txid && a.kind == "AIR" {
+			is = true
+			desc = a.description
+			return
+		}
+	}
+	return
+}
+
 func (cat Category) IsTxShit(txid string) (is bool, desc string) {
 	is = false
 	for _, a := range cat.csvCategories {

@@ -171,7 +171,12 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 								}
 							} else {
 								if ntx.Value.IsZero() {
-									api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+									if is, desc := cat.IsTxAirDrop(tx.Hash); is {
+										t.Note += " " + desc
+										api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)
+									} else {
+										api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+									}
 								} else {
 									t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: ntx.Value})
 									api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)

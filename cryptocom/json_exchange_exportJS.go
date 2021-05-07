@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -89,9 +90,20 @@ type ExchangeJson struct {
 		} `json:"softStakingInterestList"`
 	} `json:"sstake"`
 	Rebs struct {
-		HistoryList []interface{} `json:"historyList"`
-		Count       int           `json:"count"`
-		Pagesize    int           `json:"pageSize"`
+		HistoryList []struct {
+			CreateTime       string  `json:"createTime"`
+			RebateAmount     string  `json:"rebateAmount"`
+			RebatePercentage float64 `json:"rebatePercentage,string"`
+			FeePaid          string  `json:"feePaid"`
+			CreatedAtTime    int64   `json:"createdAtTime"`
+			CoinSymbol       string  `json:"coinSymbol"`
+			Destination      string  `json:"destination"`
+			StatusText       string  `json:"status_text"`
+			Status           int     `json:"status"`
+			Extra            string  `json:"extra"`
+		} `json:"historyList"`
+		Count    int `json:"count"`
+		Pagesize int `json:"pageSize"`
 	} `json:"rebs"`
 	Syn struct {
 		Activities []interface{} `json:"activities"`
@@ -107,12 +119,30 @@ type ExchangeJson struct {
 		Pagesize int `json:"pageSize"`
 	} `json:"sup"`
 	Tcom struct {
-		Total int           `json:"total"`
-		Data  []interface{} `json:"data"`
+		Total int `json:"total"`
+		Data  []struct {
+			Commission             string `json:"commission"`
+			ID                     string `json:"id"`
+			MTime                  int64  `json:"mtime,string"`
+			Status                 int    `json:"status"`
+			NetTradingFee          string `json:"netTradingFee"`
+			ReferralRelationshipID string `json:"referralRelationshipId"`
+			CTime                  int64  `json:"ctime,string"`
+			TradingFeeRebate       string `json:"tradingFeeRebate"`
+		} `json:"data"`
 	} `json:"tcom"`
 	Bon struct {
-		Total int           `json:"total"`
-		Data  []interface{} `json:"data"`
+		Total int `json:"total"`
+		Data  []struct {
+			ReferralRelationshipID string `json:"referralRelationshipId"`
+			ReferralBonusInCRO     string `json:"referralBonusInCro"`
+			CTime                  int64  `json:"ctime,string"`
+			ID                     string `json:"id"`
+			MTime                  int64  `json:"mtime,string"`
+			ReferralBonusTierID    string `json:"referralBonusTierId"`
+			Status                 int    `json:"status"`
+			ReferralBonusInUSD     string `json:"referralBonusInUsd"`
+		} `json:"data"`
 	} `json:"bon"`
 	Rew struct {
 		SignupBonusCreatedAt         string `json:"signUpBonusCreatedAt"`
@@ -126,6 +156,8 @@ type ExchangeJson struct {
 }
 
 func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Crypto.com Exchange JSON ExportJS :"
 	var exch ExchangeJson
 	jsonDecoder := json.NewDecoder(reader)
@@ -148,6 +180,12 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				}
 				cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 			}
+			if time.Unix(w.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(w.UpdateAtTime/1000, 0)
+			}
+			if time.Unix(w.UpdateAtTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(w.UpdateAtTime/1000, 0)
+			}
 		}
 		for _, d := range exch.Deps.FinanceList {
 			if d.StatusText == "Payment received" {
@@ -160,6 +198,12 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: d.Symbol, Amount: amount})
 				}
 				cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
+			}
+			if time.Unix(d.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(d.UpdateAtTime/1000, 0)
+			}
+			if time.Unix(d.UpdateAtTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(d.UpdateAtTime/1000, 0)
 			}
 		}
 		for _, cs := range exch.Cros.HistoryList {
@@ -174,6 +218,12 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				}
 				cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 			}
+			if time.Unix(cs.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(cs.CreatedAtTime/1000, 0)
+			}
+			if time.Unix(cs.CreatedAtTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(cs.CreatedAtTime/1000, 0)
+			}
 		}
 		for _, ss := range exch.Sstake.SoftStakingInterestList {
 			if ss.Status == 2 {
@@ -187,18 +237,37 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				}
 				cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 			}
+			if time.Unix(ss.CalculateDate/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(ss.CalculateDate/1000, 0)
+			}
+			if time.Unix(ss.CalculateDate/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(ss.CalculateDate/1000, 0)
+			}
 		}
 		for _, r := range exch.Rebs.HistoryList {
-			// t := wallet.TX{Timestamp: time.Unix(r.CalculateDate/1000, 0), ID: strconv.Itoa(r.ID), Note: SOURCE + " Rebate"}
-			// t.Items = make(map[string]wallet.Currencies)
-			// amount, err := decimal.NewFromString(r.Amount)
-			// if err != nil {
-			// 	log.Println(SOURCE, "Error Parsing Amount", r.Amount)
-			// } else {
-			// 	t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: r.CoinSymbol, Amount: amount})
-			// }
-			// cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
-			alreadyAsked = wallet.AskForHelp(SOURCE+" Rebate", r, alreadyAsked)
+			if r.StatusText == "Completed" {
+				t := wallet.TX{Timestamp: time.Unix(r.CreatedAtTime/1000, 0), Note: SOURCE + " Rebate on Fee paid " + r.FeePaid + " " + r.CoinSymbol + " at " + strconv.FormatFloat(r.RebatePercentage*100, 'f', 1, 64) + "%"}
+				t.Items = make(map[string]wallet.Currencies)
+				amount, err := decimal.NewFromString(r.RebateAmount)
+				if err != nil {
+					log.Println(SOURCE, "Error Parsing RebateAmount", r.RebateAmount)
+				} else {
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: r.CoinSymbol, Amount: amount})
+				}
+				// fee, err := decimal.NewFromString(r.FeePaid)
+				// if err != nil {
+				// 	log.Println(SOURCE, "Error Parsing FeePaid", r.FeePaid)
+				// } else {
+				// 	t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: r.CoinSymbol, Amount: fee})
+				// }
+				cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
+			}
+			if time.Unix(r.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(r.CreatedAtTime/1000, 0)
+			}
+			if time.Unix(r.CreatedAtTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(r.CreatedAtTime/1000, 0)
+			}
 		}
 		for _, s := range exch.Syn.Activities {
 			// t := wallet.TX{Timestamp: time.Unix(s.CalculateDate/1000, 0), ID: strconv.Itoa(s.ID), Note: SOURCE + " Syndicate"}
@@ -222,30 +291,50 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: s.CoinSymbol, Amount: amount})
 			}
 			cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
+			if time.Unix(s.CreatedAt/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(s.CreatedAt/1000, 0)
+			}
+			if time.Unix(s.CreatedAt/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(s.CreatedAt/1000, 0)
+			}
 		}
-		for _, t := range exch.Tcom.Data {
-			// t := wallet.TX{Timestamp: time.Unix(t.CalculateDate/1000, 0), ID: strconv.Itoa(t.ID), Note: SOURCE + " Trade Commission"}
-			// t.Items = make(map[string]wallet.Currencies)
-			// amount, err := decimal.NewFromString(t.Amount)
-			// if err != nil {
-			// 	log.Println(SOURCE, "Error Parsing Amount", t.Amount)
-			// } else {
-			// 	t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: t.CoinSymbol, Amount: amount})
-			// }
-			// cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
-			alreadyAsked = wallet.AskForHelp(SOURCE+" Trade Commission", t, alreadyAsked)
+		for _, tc := range exch.Tcom.Data {
+			if tc.Status == 1 {
+				t := wallet.TX{Timestamp: time.Unix(tc.MTime/1000, 0), ID: tc.ID, Note: SOURCE + " Trade Commission"}
+				t.Items = make(map[string]wallet.Currencies)
+				amount, err := decimal.NewFromString(tc.Commission)
+				if err != nil {
+					log.Println(SOURCE, "Error Parsing Commission", tc.Commission)
+				} else {
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
+				}
+				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+			}
+			if time.Unix(tc.MTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(tc.MTime/1000, 0)
+			}
+			if time.Unix(tc.MTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(tc.MTime/1000, 0)
+			}
 		}
 		for _, b := range exch.Bon.Data {
-			// b := wallet.TX{Timestamp: time.Unix(b.CalculateDate/1000, 0), ID: strconv.Itoa(b.ID), Note: SOURCE + " Referral Bonus"}
-			// b.Items = make(map[string]wallet.Currencies)
-			// amount, err := decimal.NewFromString(b.Amount)
-			// if err != nil {
-			// 	log.Println(SOURCE, "Error Parsing Amount", b.Amount)
-			// } else {
-			// 	b.Items["To"] = append(b.Items["To"], wallet.Currency{Code: b.CoinSymbol, Amount: amount})
-			// }
-			// cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], b)
-			alreadyAsked = wallet.AskForHelp(SOURCE+" Referral Bonus", b, alreadyAsked)
+			if b.Status == 2 {
+				t := wallet.TX{Timestamp: time.Unix(b.MTime/1000, 0), ID: b.ID, Note: SOURCE + " Referral Bonus"}
+				t.Items = make(map[string]wallet.Currencies)
+				amount, err := decimal.NewFromString(b.ReferralBonusInCRO)
+				if err != nil {
+					log.Println(SOURCE, "Error Parsing ReferralBonusInCRO", b.ReferralBonusInCRO)
+				} else {
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
+				}
+				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+			}
+			if time.Unix(b.MTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(b.MTime/1000, 0)
+			}
+			if time.Unix(b.MTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(b.MTime/1000, 0)
+			}
 		}
 		if exch.Rew.SignupBonus != "0" {
 			alreadyAsked = wallet.AskForHelp(SOURCE+" Referral Reward", exch.Rew, alreadyAsked)
@@ -259,6 +348,17 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					TotalReferralBonus           string `json:"totalReferralBonus"`
 					TotalNumberOfUsersSignedUp   string `json:"totalNumberOfUsersSignedUp"`
 				} `json:"rew"`*/
+		}
+	}
+	if _, ok := cdc.Sources["CdC Exchange"]; !ok {
+		cdc.Sources["CdC Exchange"] = source.Source{
+			Crypto:        true,
+			AccountNumber: "emailAROBASEdomainPOINTcom",
+			OpeningDate:   firstTimeUsed,
+			ClosingDate:   lastTimeUsed,
+			LegalName:     "MCO Malta DAX Limited",
+			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+			URL:           "https://crypto.com/exchange",
 		}
 	}
 	return

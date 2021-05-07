@@ -100,7 +100,11 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
 					}
-					b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
+					if tx.Operation == "Distribution" {
+						b.TXsByCategory["CommercialRebates"] = append(b.TXsByCategory["CommercialRebates"], t)
+					} else {
+						b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
+					}
 				} else if tx.Operation == "Withdraw" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
