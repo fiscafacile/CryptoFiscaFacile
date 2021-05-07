@@ -1,7 +1,7 @@
 package hitbtc
 
 import (
-	// "strings"
+	"strconv"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -85,29 +85,52 @@ func (api *api) categorize() {
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 		}
 		if tx.CreatedAt.Before(api.firstTimeUsed) {
-			api.firstTimeUsed = tx.UpdatedAt
+			api.firstTimeUsed = tx.CreatedAt
 		}
 		if tx.UpdatedAt.After(api.lastTimeUsed) {
 			api.lastTimeUsed = tx.UpdatedAt
 		}
 	}
-	// for _, tx := range api.tradeTXs {
-	// 	t := wallet.TX{Timestamp: tx.Timestamp, Note: "Crypto.com Exchange API : Exchange " + tx.Description}
-	// 	t.Items = make(map[string]wallet.Currencies)
-	// 	curr := strings.Split(tx.Pair, "_")
-	// 	if tx.Side == "BUY" {
-	// 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[1], Amount: tx.Quantity})
-	// 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[0], Amount: tx.Quantity.Mul(tx.Price)})
-	// 	} else { // if tx.Side == "SELL"
-	// 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[0], Amount: tx.Quantity})
-	// 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[1], Amount: tx.Quantity.Mul(tx.Price)})
-	// 	}
-	// 	if !tx.Fee.IsZero() {
-	// 		t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
-	// 	}
-	// 	api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
-	// 	if tx.Timestamp.Before(api.firstTimeUsed) {
-	// 		api.firstTimeUsed = tx.Timestamp
-	// 	}
-	// }
+	/*
+		ID            int             // 9535486,
+		OrderID       int             // 816088377,
+		ClientOrderID string          // "f8dbaab336d44d5ba3ff578098a68454",
+		Symbol        string          // "ETHBTC",
+		Side          string          // "sell",
+		Quantity      decimal.Decimal // "0.061",
+		Price         decimal.Decimal // "0.045487",
+		Fee           decimal.Decimal // "0.000002775",
+		Timestamp     time.Time       // "2017-05-17T12:32:57.848Z"*/
+	/*
+		ID            int
+		OrderID       int
+		ClientOrderID string
+		Symbol        string
+		Side          string
+		Quantity      decimal.Decimal
+		Price         decimal.Decimal
+		Fee           decimal.Decimal
+		Timestamp     time.Time*/
+	for _, tx := range api.tradeTXs {
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: strconv.Itoa(tx.ID), Note: SOURCE + " " + tx.ClientOrderID}
+		t.Items = make(map[string]wallet.Currencies)
+		curr := []string{tx.Symbol[:3], tx.Symbol[3:]}
+		if tx.Side == "sell" {
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[0], Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[1], Amount: tx.Quantity.Mul(tx.Price)})
+		} else { // if tx.Side == "buy"
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[1], Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[0], Amount: tx.Quantity.Mul(tx.Price)})
+		}
+		if !tx.Fee.IsZero() {
+			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr[0], Amount: tx.Fee})
+		}
+		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		if tx.Timestamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.Timestamp
+		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
+		}
+	}
 }

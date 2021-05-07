@@ -247,7 +247,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening HitBTC Trades CSV file:", err)
 		}
-		err = hb.ParseCSVTransactions(recordFile)
+		err = hb.ParseCSVTrades(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing HitBTC Trades CSV file:", err)
 		}
