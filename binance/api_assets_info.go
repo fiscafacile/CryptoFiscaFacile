@@ -87,11 +87,11 @@ func (api *api) getExchangeInfo() (exchangeInfo GetExchangeInfoResp, err error) 
 		} else if r.Ratelimittype == "ORDERS" {
 			switch {
 			case r.Interval == "SECOND":
-				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Second) / r.Limit)
+				api.timeBetweenRequests = time.Duration(r.Intervalnum * int(time.Second) / r.Limit)
 			case r.Interval == "MINUTE":
-				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Minute) / r.Limit)
+				api.timeBetweenRequests = time.Duration(r.Intervalnum * int(time.Minute) / r.Limit)
 			case r.Interval == "HOUR":
-				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Hour) / r.Limit)
+				api.timeBetweenRequests = time.Duration(r.Intervalnum * int(time.Hour) / r.Limit)
 			}
 		}
 	}

@@ -32,7 +32,7 @@ type api struct {
 	spotTradeTXs         []spotTradeTX
 	txsByCategory        wallet.TXsByCategory
 	symbols              []Symbols
-	timeBetweenReqOrder  time.Duration
+	timeBetweenRequests  time.Duration
 	reqWeightlimit       int
 	reqWeightInterval    string
 	reqWeightIntervalNum int
@@ -118,13 +118,12 @@ func (api *api) categorize() {
 	for _, tx := range api.spotTradeTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Exchange " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
-		curr := strings.Split(tx.Pair, "_")
 		if tx.Side == "BUY" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[1], Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[0], Amount: tx.Quantity.Mul(tx.Price)})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity.Mul(tx.Price)})
 		} else { // if tx.Side == "SELL"
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr[0], Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr[1], Amount: tx.Quantity.Mul(tx.Price)})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity.Mul(tx.Price)})
 		}
 		if !tx.Fee.IsZero() {
 			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})

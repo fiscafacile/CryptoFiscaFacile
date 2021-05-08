@@ -13,7 +13,8 @@ import (
 type spotTradeTX struct {
 	Timestamp   time.Time
 	Description string
-	Pair        string
+	BaseAsset   string
+	QuoteAsset  string
 	Side        string
 	Price       decimal.Decimal
 	Quantity    decimal.Decimal
@@ -22,12 +23,13 @@ type spotTradeTX struct {
 }
 
 func (api *api) getSpotTradesTXs() {
-	limit := 50
-	for _, symbol := range api.symbols {
+	limit := 10
+	totalSymbols := len(api.symbols)
+	for i, symbol := range api.symbols {
 		orderId := 0
 		part := 0
+		fmt.Printf("[%v/%v] Récupération des trades du symbole %v\n", i+1, totalSymbols, symbol.Symbol)
 		for {
-			fmt.Println("Récupération des trades du symbole", symbol.Symbol)
 			trades, err := api.getTrades(symbol.Symbol, limit, orderId+1, part)
 			if err != nil {
 				api.doneSpotTra <- err
@@ -36,18 +38,23 @@ func (api *api) getSpotTradesTXs() {
 			for _, tra := range trades {
 				tx := spotTradeTX{}
 				tx.Timestamp = time.Unix(tra.Time, 0)
-				tx.Description = fmt.Sprintf("%v", tra.Orderid)
-				tx.Pair = tra.Symbol
-				tx.Side = tra.Side
+				tx.Description = fmt.Sprintf("Order ID: %v, Trade ID: %v", tra.Orderid, tra.ID)
+				tx.BaseAsset = symbol.Baseasset
+				tx.QuoteAsset = symbol.Quoteasset
+				if tra.Isbuyer {
+					tx.Side = "BUY"
+				} else if tra.Ismaker {
+					tx.Side = "SELL"
+				}
 				tx.Price, _ = decimal.NewFromString(tra.Price)
-				tx.Quantity, _ = decimal.NewFromString(tra.Executedqty)
-				// tx.Fee = decimal.NewFromFloat(tra.Fee)
-				// tx.FeeCurrency = tra.FeeCurrency
+				tx.Quantity, _ = decimal.NewFromString(tra.Qty)
+				tx.Fee, _ = decimal.NewFromString(tra.Commission)
+				tx.FeeCurrency = tra.Commissionasset
 				api.spotTradeTXs = append(api.spotTradeTXs, tx)
 			}
 			if len(trades) == limit {
 				part += 1
-				orderId = trades[len(trades)-1].Orderid
+				orderId = trades[len(trades)-1].ID
 			} else {
 				break
 			}
@@ -57,24 +64,19 @@ func (api *api) getSpotTradesTXs() {
 }
 
 type GetTradesResp []struct {
-	Symbol              string `json:"symbol"`
-	Orderid             int    `json:"orderId"`
-	Orderlistid         int    `json:"orderListId"`
-	Clientorderid       string `json:"clientOrderId"`
-	Price               string `json:"price"`
-	Origqty             string `json:"origQty"`
-	Executedqty         string `json:"executedQty"`
-	Cummulativequoteqty string `json:"cummulativeQuoteQty"`
-	Status              string `json:"status"`
-	Timeinforce         string `json:"timeInForce"`
-	Type                string `json:"type"`
-	Side                string `json:"side"`
-	Stopprice           string `json:"stopPrice"`
-	Icebergqty          string `json:"icebergQty"`
-	Time                int64  `json:"time"`
-	Updatetime          int64  `json:"updateTime"`
-	Isworking           bool   `json:"isWorking"`
-	Origquoteorderqty   string `json:"origQuoteOrderQty"`
+	Symbol          string `json:"symbol"`
+	ID              int    `json:"id"`
+	Orderid         int    `json:"orderId"`
+	Orderlistid     int    `json:"orderListId"`
+	Price           string `json:"price"`
+	Qty             string `json:"qty"`
+	Quoteqty        string `json:"quoteQty"`
+	Commission      string `json:"commission"`
+	Commissionasset string `json:"commissionAsset"`
+	Time            int64  `json:"time"`
+	Isbuyer         bool   `json:"isBuyer"`
+	Ismaker         bool   `json:"isMaker"`
+	Isbestmatch     bool   `json:"isBestMatch"`
 }
 
 func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trades GetTradesResp, err error) {
@@ -84,16 +86,16 @@ func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trad
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Binance/api/v3/allOrders", fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit), &trades)
+		err = db.Read("Binance/api/v3/myTrades", fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit), &trades)
 		if err == nil && len(trades) != limit { // If cached data is incomplete
 			useCache = false
 		}
 	}
 	if !useCache || err != nil {
-		endpoint := "api/v3/allOrders"
+		endpoint := "api/v3/myTrades"
 		queryParams := map[string]string{
 			"symbol":     symbol,
-			"orderId":    fmt.Sprintf("%v", orderId),
+			"fromId":     fmt.Sprintf("%v", orderId),
 			"limit":      fmt.Sprintf("%v", limit),
 			"recvWindow": "60000",
 			"timestamp":  fmt.Sprintf("%v", time.Now().UTC().UnixNano()/1e6),
@@ -113,7 +115,7 @@ func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trad
 		}
 		trades = *resp.Result().(*GetTradesResp)
 		if useCache {
-			err = db.Write("Binance/api/v3/allOrders/", fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit), trades)
+			err = db.Write("Binance/api/v3/myTrades/", fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit), trades)
 			if err != nil {
 				return trades, errors.New("Binance API Trades : Error Caching" + fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit))
 			}
@@ -127,9 +129,9 @@ func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trad
 			time.Sleep(api.reqWeightTimeToWait)
 		} else {
 			if api.debug {
-				fmt.Println(usedWeight, "/", api.reqWeightlimit, "Weight utilisé --> pause pendant", api.timeBetweenReqOrder)
+				fmt.Println(usedWeight, "/", api.reqWeightlimit, "Weight utilisé --> pause pendant", api.timeBetweenRequests)
 			}
-			time.Sleep(api.timeBetweenReqOrder)
+			time.Sleep(api.timeBetweenRequests)
 		}
 	}
 	return trades, nil

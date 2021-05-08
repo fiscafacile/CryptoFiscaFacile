@@ -2,6 +2,7 @@ package binance
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -20,20 +21,19 @@ type depositTX struct {
 func (api *api) getDepositsTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
-	for y := thisYear; y > 2019; y-- {
+	for y := thisYear; y > 2017; y-- {
 		for q := 4; q > 0; q-- {
 			depoHist, err := api.getDepositHistory(y, q, loc)
 			if err != nil {
 				api.doneDep <- err
 				return
 			}
-			for _, dep := range depoHist.Result.DepositList {
+			for _, dep := range depoHist.Depositlist {
 				tx := depositTX{}
-				tx.Timestamp = time.Unix(dep.UpdateTime, 0)
+				tx.Timestamp = time.Unix(dep.Inserttime, 0)
 				tx.Description = "from " + dep.Address
-				tx.Currency = dep.Currency
+				tx.Currency = dep.Asset
 				tx.Amount = decimal.NewFromFloat(dep.Amount)
-				tx.Fee = decimal.NewFromFloat(dep.Fee)
 				api.depositTXs = append(api.depositTXs, tx)
 			}
 		}
@@ -41,56 +41,47 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 	api.doneDep <- nil
 }
 
-type ResultDeposit struct {
-	Currency   string  `json:"currency"`
-	ClientWid  string  `json:"client_wid"`
-	Fee        float64 `json:"fee"`
-	CreateTime int64   `json:"create_time"`
-	ID         string  `json:"id"`
-	UpdateTime int64   `json:"update_time"`
+type Depositlist struct {
+	Inserttime int64   `json:"insertTime"`
 	Amount     float64 `json:"amount"`
+	Asset      string  `json:"asset"`
 	Address    string  `json:"address"`
-	Status     string  `json:"status"`
+	Txid       string  `json:"txId"`
+	Status     int     `json:"status"`
+	Addresstag string  `json:"addressTag,omitempty"`
 }
-
-type DepositList struct {
-	DepositList []ResultDeposit `json:"deposit_list"`
-}
-
 type GetDepositHistoryResp struct {
-	ID     int64       `json:"id"`
-	Method string      `json:"method"`
-	Code   int         `json:"code"`
-	Result DepositList `json:"result"`
+	Depositlist []Depositlist
+	Success     bool `json:"success"`
 }
 
-func (api *api) getDepositHistory(year, quarter int, loc *time.Location) (depoHist GetDepositHistoryResp, err error) {
+func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depoHist GetDepositHistoryResp, err error) {
 	var start_month time.Month
 	var end_month time.Month
 	end_year := year
-	period := strconv.Itoa(year) + "-Q" + strconv.Itoa(quarter)
-	if quarter == 1 {
+	period := strconv.Itoa(year) + "-T" + strconv.Itoa(trimester)
+	if trimester == 1 {
 		start_month = time.January
-		end_month = time.April
-	} else if quarter == 2 {
+		end_month = time.March
+	} else if trimester == 2 {
 		start_month = time.April
-		end_month = time.July
-	} else if quarter == 3 {
+		end_month = time.June
+	} else if trimester == 3 {
 		start_month = time.July
-		end_month = time.October
-	} else if quarter == 4 {
+		end_month = time.September
+	} else if trimester == 4 {
 		start_month = time.October
-		end_month = time.January
+		end_month = time.December
 		end_year = year + 1
 	} else {
-		err = errors.New("Binance API Deposits : Invalid Quarter" + period)
+		err = errors.New("Binance API Deposits : Invalid trimester" + period)
 		return
 	}
 	start_ts := time.Date(year, start_month, 1, 0, 0, 0, 0, loc)
 	end_ts := time.Date(end_year, end_month, 1, 0, 0, 0, 0, loc)
 	now := time.Now()
 	if start_ts.After(now) {
-		return // without error
+		return
 	}
 	if end_ts.After(now) {
 		end_ts = now
@@ -102,25 +93,24 @@ func (api *api) getDepositHistory(year, quarter int, loc *time.Location) (depoHi
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Binance/private/get-deposit-history", period, &depoHist)
+		err = db.Read("Binance/wapi/v3/depositHistory", period, &depoHist)
 	}
 	if !useCache || err != nil {
-		method := "private/get-deposit-history"
-		body := make(map[string]interface{})
-		body["method"] = method
-		body["params"] = map[string]interface{}{
-			"start_ts":  start_ts.UnixNano() / 1e6,
-			"end_ts":    end_ts.UnixNano() / 1e6,
-			"page_size": 200,
-			"page":      0,
-			"status":    "1",
+		endpoint := "wapi/v3/depositHistory.html"
+		queryParams := map[string]string{
+			"status":     "1",
+			"startTime":  strconv.FormatInt(start_ts.Unix(), 10),
+			"endTime":    strconv.FormatInt(end_ts.Unix(), 10),
+			"recvWindow": "60000",
+			"timestamp":  fmt.Sprintf("%v", time.Now().UTC().UnixNano()/1e6),
 		}
-		api.sign(body)
+		api.sign(queryParams)
 		resp, err := api.clientDep.R().
-			SetBody(body).
+			SetHeader("X-MBX-APIKEY", api.apiKey).
+			SetQueryParams(queryParams).
 			SetResult(&GetDepositHistoryResp{}).
 			SetError(&ErrorResp{}).
-			Post(api.basePath + method)
+			Get(api.basePath + endpoint)
 		if err != nil {
 			return depoHist, errors.New("Binance API Deposits : Error Requesting" + period)
 		}
@@ -129,12 +119,12 @@ func (api *api) getDepositHistory(year, quarter int, loc *time.Location) (depoHi
 		}
 		depoHist = *resp.Result().(*GetDepositHistoryResp)
 		if useCache {
-			err = db.Write("Binance/private/get-deposit-history", period, depoHist)
+			err = db.Write("Binance/wapi/v3/depositHistory", period, depoHist)
 			if err != nil {
 				return depoHist, errors.New("Binance API Deposits : Error Caching" + period)
 			}
 		}
-		time.Sleep(api.timeBetweenReq)
+		time.Sleep(api.timeBetweenRequests)
 	}
 	return depoHist, nil
 }
