@@ -4,8 +4,6 @@ import (
 	"errors"
 	"strconv"
 	"time"
-
-	scribble "github.com/nanobox-io/golang-scribble"
 )
 
 type Symbols struct {
@@ -60,34 +58,42 @@ type GetExchangeInfoResp struct {
 }
 
 func (api *api) getExchangeInfo() (exchangeInfo GetExchangeInfoResp, err error) {
-	useCache := true
-	db, err := scribble.New("./Cache", nil)
+	method := "api/v3/exchangeInfo"
+	resp, err := api.clientExInfo.R().
+		SetResult(&GetExchangeInfoResp{}).
+		SetError(&ErrorResp{}).
+		Get(api.basePath + method)
 	if err != nil {
-		useCache = false
+		return exchangeInfo, errors.New("Binance API Deposits : Error Requesting exchangeInfo")
 	}
-	if useCache {
-		err = db.Read("Binance/api/v3/", "exchangeInfo", &exchangeInfo)
+	if resp.StatusCode() > 300 {
+		return exchangeInfo, errors.New("Binance API Deposits : Error StatusCode " + strconv.Itoa(resp.StatusCode()))
 	}
-	if !useCache || err != nil {
-		method := "api/v3/exchangeInfo"
-		resp, err := api.clientDep.R().
-			SetResult(&GetExchangeInfoResp{}).
-			SetError(&ErrorResp{}).
-			Get(api.basePath + method)
-		if err != nil {
-			return exchangeInfo, errors.New("Binance API Deposits : Error Requesting exchangeInfo")
-		}
-		if resp.StatusCode() > 300 {
-			return exchangeInfo, errors.New("Binance API Deposits : Error StatusCode" + strconv.Itoa(resp.StatusCode()))
-		}
-		exchangeInfo = *resp.Result().(*GetExchangeInfoResp)
-		if useCache {
-			err = db.Write("Binance/api/v3/", "exchangeInfo", exchangeInfo)
-			if err != nil {
-				return exchangeInfo, errors.New("Binance API Deposits : Error Caching exchangeInfo")
+	exchangeInfo = *resp.Result().(*GetExchangeInfoResp)
+	api.symbols = exchangeInfo.Symbols
+	for _, r := range exchangeInfo.Ratelimits {
+		if r.Ratelimittype == "REQUEST_WEIGHT" {
+			api.reqWeightInterval = r.Interval
+			api.reqWeightIntervalNum = r.Intervalnum
+			api.reqWeightlimit = r.Limit
+			switch {
+			case r.Interval == "SECOND":
+				api.reqWeightTimeToWait = time.Duration(r.Intervalnum * int(time.Second))
+			case r.Interval == "MINUTE":
+				api.reqWeightTimeToWait = time.Duration(r.Intervalnum * int(time.Minute))
+			case r.Interval == "HOUR":
+				api.reqWeightTimeToWait = time.Duration(r.Intervalnum * int(time.Hour))
+			}
+		} else if r.Ratelimittype == "ORDERS" {
+			switch {
+			case r.Interval == "SECOND":
+				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Second) / r.Limit)
+			case r.Interval == "MINUTE":
+				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Minute) / r.Limit)
+			case r.Interval == "HOUR":
+				api.timeBetweenReqOrder = time.Duration(r.Intervalnum * int(time.Hour) / r.Limit)
 			}
 		}
-		time.Sleep(api.timeBetweenReq)
 	}
 	return exchangeInfo, nil
 }
