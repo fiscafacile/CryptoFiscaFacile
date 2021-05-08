@@ -2,6 +2,7 @@ package binance
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -20,105 +21,102 @@ type spotTradeTX struct {
 	FeeCurrency string
 }
 
-func (api *api) getSpotTradesTXs(loc *time.Location) {
-	date := time.Now().Add(-24 * time.Hour)
-	for date.After(api.startTime) {
-		trades, err := api.getTrades(date.Year(), date.Month(), date.Day(), loc)
+func (api *api) getSpotTradesTXs() {
+	for _, symbol := range api.symbols {
+		fmt.Println("Récupération des trades du symbole", symbol.Symbol)
+		trades, err := api.getTrades(symbol.Symbol)
 		if err != nil {
 			api.doneSpotTra <- err
 			return
 		}
-		for _, tra := range trades.Result.TradeList {
+		for _, tra := range trades {
 			tx := spotTradeTX{}
-			tx.Timestamp = time.Unix(tra.CreateTime, 0)
-			tx.Description = tra.TradeID + " " + tra.LiquidityIndicator
-			tx.Pair = tra.InstrumentName
+			tx.Timestamp = time.Unix(tra.Time, 0)
+			tx.Description = fmt.Sprintf("%v", tra.Orderid)
+			tx.Pair = tra.Symbol
 			tx.Side = tra.Side
-			tx.Price = decimal.NewFromFloat(tra.TradedPrice)
-			tx.Quantity = decimal.NewFromFloat(tra.TradedQuantity)
-			tx.Fee = decimal.NewFromFloat(tra.Fee)
-			tx.FeeCurrency = tra.FeeCurrency
+			tx.Price, _ = decimal.NewFromString(tra.Price)
+			tx.Quantity, _ = decimal.NewFromString(tra.Executedqty)
+			// tx.Fee = decimal.NewFromFloat(tra.Fee)
+			// tx.FeeCurrency = tra.FeeCurrency
 			api.spotTradeTXs = append(api.spotTradeTXs, tx)
 		}
-		date = date.Add(-24 * time.Hour)
 	}
 	api.doneSpotTra <- nil
 }
 
-type ResultTrade struct {
-	Side               string  `json:"side"`
-	InstrumentName     string  `json:"instrument_name"`
-	Fee                float64 `json:"fee"`
-	TradeID            string  `json:"trade_id"`
-	CreateTime         int64   `json:"create_time"`
-	TradedPrice        float64 `json:"traded_price"`
-	TradedQuantity     float64 `json:"traded_quantity"`
-	LiquidityIndicator string  `json:"liquidity_indicator"`
-	FeeCurrency        string  `json:"fee_currency"`
-	OrderID            string  `json:"order_id"`
+type GetTradesResp []struct {
+	Symbol              string `json:"symbol"`
+	Orderid             int    `json:"orderId"`
+	Orderlistid         int    `json:"orderListId"`
+	Clientorderid       string `json:"clientOrderId"`
+	Price               string `json:"price"`
+	Origqty             string `json:"origQty"`
+	Executedqty         string `json:"executedQty"`
+	Cummulativequoteqty string `json:"cummulativeQuoteQty"`
+	Status              string `json:"status"`
+	Timeinforce         string `json:"timeInForce"`
+	Type                string `json:"type"`
+	Side                string `json:"side"`
+	Stopprice           string `json:"stopPrice"`
+	Icebergqty          string `json:"icebergQty"`
+	Time                int64  `json:"time"`
+	Updatetime          int64  `json:"updateTime"`
+	Isworking           bool   `json:"isWorking"`
+	Origquoteorderqty   string `json:"origQuoteOrderQty"`
 }
 
-type TradeList struct {
-	TradeList []ResultTrade `json:"trade_list"`
-}
-
-type GetTradesResp struct {
-	ID     int64     `json:"id"`
-	Method string    `json:"method"`
-	Code   int       `json:"code"`
-	Result TradeList `json:"result"`
-}
-
-func (api *api) getTrades(year int, month time.Month, day int, loc *time.Location) (trades GetTradesResp, err error) {
-	start_ts := time.Date(year, month, day, 0, 0, 0, 0, loc)
-	end_ts := start_ts.Add(24 * time.Hour).Add(-time.Millisecond)
-	period := start_ts.Format("2006-01-02")
-	now := time.Now()
-	if start_ts.After(now) {
-		return // without error
-	}
-	if end_ts.After(now) {
-		end_ts = now
-		period += "-" + strconv.FormatInt(end_ts.Unix(), 10)
-	}
+func (api *api) getTrades(symbol string) (trades GetTradesResp, err error) {
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Binance/allOrders", period, &trades)
+		err = db.Read("Binance/api/v3/allOrders", symbol, &trades)
 	}
 	if !useCache || err != nil {
-		method := "/api/v3/allOrders"
-		body := make(map[string]interface{})
-		body["method"] = method
-		body["params"] = map[string]interface{}{
-			"start_ts":  start_ts.UnixNano() / 1e6,
-			"end_ts":    end_ts.UnixNano() / 1e6,
-			"page_size": 200,
-			"page":      0,
+		endpoint := "api/v3/allOrders"
+		queryParams := map[string]string{
+			"symbol":     symbol,
+			"orderId":    "1",
+			"limit":      "1000",
+			"recvWindow": "60000",
+			"timestamp":  fmt.Sprintf("%v", time.Now().UTC().UnixNano()/1e6),
 		}
-		api.sign(body)
+		api.sign(queryParams)
 		resp, err := api.clientSpotTra.R().
-			SetBody(body).
+			SetHeader("X-MBX-APIKEY", api.apiKey).
+			SetQueryParams(queryParams).
 			SetResult(&GetTradesResp{}).
 			SetError(&ErrorResp{}).
-			Post(api.basePath + method)
+			Get(api.basePath + endpoint)
 		if err != nil {
-			return trades, errors.New("Binance API Trades : Error Requesting" + period)
+			return trades, errors.New("Binance API Trades : Error Requesting" + symbol)
 		}
 		if resp.StatusCode() > 300 {
-			return trades, errors.New("Binance API Trades : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
+			return trades, errors.New("Binance API Trades : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + symbol)
 		}
 		trades = *resp.Result().(*GetTradesResp)
 		if useCache {
-			err = db.Write("Binance/allOrders", period, trades)
+			err = db.Write("Binance/api/v3/allOrders/", symbol, trades)
 			if err != nil {
-				return trades, errors.New("Binance API Trades : Error Caching" + period)
+				return trades, errors.New("Binance API Trades : Error Caching" + symbol)
 			}
 		}
-		time.Sleep(api.timeBetweenReqSpot)
+		weightHeader := fmt.Sprintf("X-MBX-USED-WEIGHT-%v%v", api.reqWeightIntervalNum, string(api.reqWeightInterval[0]))
+		usedWeight, _ := strconv.Atoi(resp.Header().Get(weightHeader))
+		if usedWeight >= api.reqWeightlimit-20 {
+			if api.debug {
+				fmt.Println(usedWeight, "/", api.reqWeightlimit, "Weight utilisé --> pause pendant", api.reqWeightTimeToWait)
+			}
+			time.Sleep(api.reqWeightTimeToWait)
+		} else {
+			if api.debug {
+				fmt.Println(usedWeight, "/", api.reqWeightlimit, "Weight utilisé --> pause pendant", api.timeBetweenReqOrder)
+			}
+			time.Sleep(api.timeBetweenReqOrder)
+		}
 	}
 	return trades, nil
 }
