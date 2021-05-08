@@ -79,6 +79,12 @@ func main() {
 		ethsc.NewAPI(config.Tools.EtherScan.Key, config.Options.Debug)
 		go ethsc.GetAPITXs(*categ)
 	}
+	b := binance.New()
+	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
+		b.NewAPI(config.Exchanges.Binance.API.Key, config.Exchanges.Binance.API.Secret, config.Options.Debug)
+		fmt.Println("Début de récupération des TXs par l'API Binance (attention ce processus peut être long la première fois)...")
+		go b.GetAPIAllTXs(loc)
+	}
 	bs := bitstamp.New()
 	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
 		bs.NewAPI(config.Exchanges.Bitstamp.API.Key, config.Exchanges.Bitstamp.API.Secret, config.Options.Debug)
@@ -117,7 +123,6 @@ func main() {
 			log.Fatal("Error parsing Bitcoin Gold JSON Transactions file:", err)
 		}
 	}
-	b := binance.New()
 	for _, file := range config.Exchanges.Binance.CSV.All {
 		recordFile, err := os.Open(file)
 		if err != nil {
@@ -315,6 +320,12 @@ func main() {
 		err := cdc.WaitFinish()
 		if err != nil {
 			log.Fatal("Error getting Crypto.com Exchange API TXs:", err)
+		}
+	}
+	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
+		err := b.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Binance API TXs:", err)
 		}
 	}
 	if config.Exchanges.HitBTC.API.Key != "" && config.Exchanges.HitBTC.API.Secret != "" {
