@@ -119,11 +119,11 @@ func (api *api) categorize() {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Exchange " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		if tx.Side == "BUY" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity.Mul(tx.Price)})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
 		} else if tx.Side == "SELL" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity.Mul(tx.Price)})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
 		} else {
 			fmt.Println("Unknown transaction kind", tx.Side)
 		}
