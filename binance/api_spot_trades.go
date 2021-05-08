@@ -17,7 +17,8 @@ type spotTradeTX struct {
 	QuoteAsset  string
 	Side        string
 	Price       decimal.Decimal
-	Quantity    decimal.Decimal
+	Qty         decimal.Decimal
+	QuoteQty    decimal.Decimal
 	Fee         decimal.Decimal
 	FeeCurrency string
 	ID          string
@@ -29,7 +30,9 @@ func (api *api) getSpotTradesTXs() {
 	for i, symbol := range api.symbols {
 		orderId := 0
 		part := 0
-		fmt.Printf("[%v/%v] Récupération des trades du symbole %v\n", i+1, totalSymbols, symbol.Symbol)
+		if api.debug {
+			fmt.Printf("[%v/%v] Récupération des trades du symbole %v\n", i+1, totalSymbols, symbol.Symbol)
+		}
 		for {
 			trades, err := api.getTrades(symbol.Symbol, limit, orderId+1, part)
 			if err != nil {
@@ -49,7 +52,8 @@ func (api *api) getSpotTradesTXs() {
 					tx.Side = "SELL"
 				}
 				tx.Price, _ = decimal.NewFromString(tra.Price)
-				tx.Quantity, _ = decimal.NewFromString(tra.Qty)
+				tx.Qty, _ = decimal.NewFromString(tra.Qty)
+				tx.QuoteQty, _ = decimal.NewFromString(tra.Quoteqty)
 				tx.Fee, _ = decimal.NewFromString(tra.Commission)
 				tx.FeeCurrency = tra.Commissionasset
 				api.spotTradeTXs = append(api.spotTradeTXs, tx)

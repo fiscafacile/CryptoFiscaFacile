@@ -2,6 +2,8 @@ package binance
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -20,20 +22,22 @@ type withdrawalTX struct {
 func (api *api) getWithdrawalsTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
-	for y := thisYear; y > 2019; y-- {
-		for q := 4; q > 0; q-- {
-			withHist, err := api.getWithdrawalHistory(y, q, loc)
+	for y := thisYear; y > 2017; y-- {
+		for t := 6; t > 0; t-- {
+			withHist, err := api.getWithdrawalHistory(y, t, loc)
 			if err != nil {
 				api.doneWit <- err
 				return
 			}
-			for _, wit := range withHist.Result.WithdrawalList {
+			for _, wit := range withHist {
 				tx := withdrawalTX{}
-				tx.Timestamp = time.Unix(wit.UpdateTime, 0)
+				tx.Timestamp, err = time.Parse("2006-01-02 15:04:05", wit.ApplyTime)
+				if err != nil {
+					log.Println("Error Parsing Time : ", wit.ApplyTime)
+				}
 				tx.Description = "to " + wit.Address
-				tx.Currency = wit.Currency
-				tx.Amount = decimal.NewFromFloat(wit.Amount)
-				tx.Fee = decimal.NewFromFloat(wit.Fee)
+				tx.Currency = wit.Coin
+				tx.Amount, _ = decimal.NewFromString(wit.Amount)
 				api.withdrawalTXs = append(api.withdrawalTXs, tx)
 			}
 		}
@@ -41,56 +45,52 @@ func (api *api) getWithdrawalsTXs(loc *time.Location) {
 	api.doneWit <- nil
 }
 
-type ResultWithdrawal struct {
-	Currency   string  `json:"currency"`
-	ClientWid  string  `json:"client_wid"`
-	Fee        float64 `json:"fee"`
-	CreateTime int64   `json:"create_time"`
-	ID         string  `json:"id"`
-	UpdateTime int64   `json:"update_time"`
-	Amount     float64 `json:"amount"`
-	Address    string  `json:"address"`
-	Status     string  `json:"status"`
+type GetWithdrawalHistoryResp []struct {
+	ApplyTime       string `json:"applyTime"`
+	Amount          string `json:"amount"`
+	Coin            string `json:"coin"`
+	Network         string `json:"network"`
+	Status          int    `json:"status"`
+	Address         string `json:"address"`
+	ID              string `json:"id"`
+	Txid            string `json:"txId"`
+	Transfertype    int    `json:"transferType"`
+	WithdrawOrderId string `json:"withdrawOrderId"`
 }
 
-type WithdrawalList struct {
-	WithdrawalList []ResultWithdrawal `json:"withdrawal_list"`
-}
-
-type GetWithdrawalHistoryResp struct {
-	ID     int64          `json:"id"`
-	Method string         `json:"method"`
-	Code   int            `json:"code"`
-	Result WithdrawalList `json:"result"`
-}
-
-func (api *api) getWithdrawalHistory(year, quarter int, loc *time.Location) (withHist GetWithdrawalHistoryResp, err error) {
+func (api *api) getWithdrawalHistory(year, trimester int, loc *time.Location) (withHist GetWithdrawalHistoryResp, err error) {
 	var start_month time.Month
 	var end_month time.Month
 	end_year := year
-	period := strconv.Itoa(year) + "-Q" + strconv.Itoa(quarter)
-	if quarter == 1 {
+	period := strconv.Itoa(year) + "-T" + strconv.Itoa(trimester)
+	if trimester == 1 {
 		start_month = time.January
-		end_month = time.April
-	} else if quarter == 2 {
-		start_month = time.April
+		end_month = time.March
+	} else if trimester == 2 {
+		start_month = time.March
+		end_month = time.May
+	} else if trimester == 3 {
+		start_month = time.May
 		end_month = time.July
-	} else if quarter == 3 {
+	} else if trimester == 4 {
 		start_month = time.July
-		end_month = time.October
-	} else if quarter == 4 {
-		start_month = time.October
+		end_month = time.September
+	} else if trimester == 5 {
+		start_month = time.September
+		end_month = time.November
+	} else if trimester == 6 {
+		start_month = time.November
 		end_month = time.January
 		end_year = year + 1
 	} else {
-		err = errors.New("Crypto.com Exchange API Withdrawals : Invalid Quarter" + period)
+		err = errors.New("Binance API Withdrawals : Invalid trimester" + period)
 		return
 	}
 	start_ts := time.Date(year, start_month, 1, 0, 0, 0, 0, loc)
 	end_ts := time.Date(end_year, end_month, 1, 0, 0, 0, 0, loc)
 	now := time.Now()
 	if start_ts.After(now) {
-		return // without error
+		return
 	}
 	if end_ts.After(now) {
 		end_ts = now
@@ -102,39 +102,38 @@ func (api *api) getWithdrawalHistory(year, quarter int, loc *time.Location) (wit
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Crypto.com/Exchange/private/get-withdrawal-history", period, &withHist)
+		err = db.Read("Binance/sapi/v1/capital/withdraw/history", period, &withHist)
 	}
 	if !useCache || err != nil {
-		method := "private/get-withdrawal-history"
-		body := make(map[string]interface{})
-		body["method"] = method
-		body["params"] = map[string]interface{}{
-			"start_ts":  start_ts.UnixNano() / 1e6,
-			"end_ts":    end_ts.UnixNano() / 1e6,
-			"page_size": 200,
-			"page":      0,
-			"status":    "5",
+		endpoint := "sapi/v1/capital/withdraw/history"
+		queryParams := map[string]string{
+			"status":     "6",
+			"startTime":  fmt.Sprintf("%v", start_ts.UTC().UnixNano()/1e6),
+			"endTime":    fmt.Sprintf("%v", end_ts.UTC().UnixNano()/1e6),
+			"recvWindow": "60000",
+			"timestamp":  fmt.Sprintf("%v", time.Now().UTC().UnixNano()/1e6),
 		}
-		api.sign(body)
+		api.sign(queryParams)
 		resp, err := api.clientWit.R().
-			SetBody(body).
+			SetHeader("X-MBX-APIKEY", api.apiKey).
+			SetQueryParams(queryParams).
 			SetResult(&GetWithdrawalHistoryResp{}).
 			SetError(&ErrorResp{}).
-			Post(api.basePath + method)
+			Get(api.basePath + endpoint)
 		if err != nil {
-			return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error Requesting" + period)
+			return withHist, errors.New("Binance API Withdrawals : Error Requesting" + period)
 		}
 		if resp.StatusCode() > 300 {
-			return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
+			return withHist, errors.New("Binance API Withdrawals : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
 		}
 		withHist = *resp.Result().(*GetWithdrawalHistoryResp)
 		if useCache {
-			err = db.Write("Crypto.com/Exchange/private/get-withdrawal-history", period, withHist)
+			err = db.Write("Binance/sapi/v1/capital/withdrawal/hisrec", period, withHist)
 			if err != nil {
-				return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error Caching" + period)
+				return withHist, errors.New("Binance API Withdrawals : Error Caching" + period)
 			}
 		}
-		time.Sleep(api.timeBetweenReq)
+		time.Sleep(api.timeBetweenRequests)
 	}
 	return withHist, nil
 }

@@ -77,10 +77,10 @@ func (b *Binance) NewAPI(apiKey, secretKey string, debug bool) {
 func (api *api) getAllTXs(loc *time.Location) (err error) {
 	api.getExchangeInfo()
 	go api.getDepositsTXs(loc)
-	// go api.getWithdrawalsTXs(loc)
+	go api.getWithdrawalsTXs(loc)
 	go api.getSpotTradesTXs()
 	<-api.doneDep
-	// <-api.doneWit
+	<-api.doneWit
 	<-api.doneSpotTra
 	api.categorize()
 	return
