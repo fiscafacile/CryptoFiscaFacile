@@ -20,6 +20,7 @@ type spotTradeTX struct {
 	Quantity    decimal.Decimal
 	Fee         decimal.Decimal
 	FeeCurrency string
+	ID          string
 }
 
 func (api *api) getSpotTradesTXs() {
@@ -38,12 +39,13 @@ func (api *api) getSpotTradesTXs() {
 			for _, tra := range trades {
 				tx := spotTradeTX{}
 				tx.Timestamp = time.Unix(tra.Time, 0)
+				tx.ID = strconv.Itoa(tra.ID)
 				tx.Description = fmt.Sprintf("Order ID: %v, Trade ID: %v", tra.Orderid, tra.ID)
 				tx.BaseAsset = symbol.Baseasset
 				tx.QuoteAsset = symbol.Quoteasset
 				if tra.Isbuyer {
 					tx.Side = "BUY"
-				} else if tra.Ismaker {
+				} else {
 					tx.Side = "SELL"
 				}
 				tx.Price, _ = decimal.NewFromString(tra.Price)

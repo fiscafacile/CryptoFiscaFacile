@@ -22,18 +22,18 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
 	for y := thisYear; y > 2017; y-- {
-		for q := 4; q > 0; q-- {
-			depoHist, err := api.getDepositHistory(y, q, loc)
+		for t := 6; t > 0; t-- {
+			depoHist, err := api.getDepositHistory(y, t, loc)
 			if err != nil {
 				api.doneDep <- err
 				return
 			}
-			for _, dep := range depoHist.Depositlist {
+			for _, dep := range depoHist {
 				tx := depositTX{}
 				tx.Timestamp = time.Unix(dep.Inserttime, 0)
 				tx.Description = "from " + dep.Address
-				tx.Currency = dep.Asset
-				tx.Amount = decimal.NewFromFloat(dep.Amount)
+				tx.Currency = dep.Coin
+				tx.Amount, _ = decimal.NewFromString(dep.Amount)
 				api.depositTXs = append(api.depositTXs, tx)
 			}
 		}
@@ -41,18 +41,17 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 	api.doneDep <- nil
 }
 
-type Depositlist struct {
-	Inserttime int64   `json:"insertTime"`
-	Amount     float64 `json:"amount"`
-	Asset      string  `json:"asset"`
-	Address    string  `json:"address"`
-	Txid       string  `json:"txId"`
-	Status     int     `json:"status"`
-	Addresstag string  `json:"addressTag,omitempty"`
-}
-type GetDepositHistoryResp struct {
-	Depositlist []Depositlist
-	Success     bool `json:"success"`
+type GetDepositHistoryResp []struct {
+	Amount       string `json:"amount"`
+	Coin         string `json:"coin"`
+	Network      string `json:"network"`
+	Status       int    `json:"status"`
+	Address      string `json:"address"`
+	Addresstag   string `json:"addressTag"`
+	Txid         string `json:"txId"`
+	Inserttime   int64  `json:"insertTime"`
+	Transfertype int    `json:"transferType"`
+	Confirmtimes string `json:"confirmTimes"`
 }
 
 func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depoHist GetDepositHistoryResp, err error) {
@@ -64,14 +63,20 @@ func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depo
 		start_month = time.January
 		end_month = time.March
 	} else if trimester == 2 {
-		start_month = time.April
-		end_month = time.June
+		start_month = time.March
+		end_month = time.May
 	} else if trimester == 3 {
+		start_month = time.May
+		end_month = time.July
+	} else if trimester == 4 {
 		start_month = time.July
 		end_month = time.September
-	} else if trimester == 4 {
-		start_month = time.October
-		end_month = time.December
+	} else if trimester == 5 {
+		start_month = time.September
+		end_month = time.November
+	} else if trimester == 6 {
+		start_month = time.November
+		end_month = time.January
 		end_year = year + 1
 	} else {
 		err = errors.New("Binance API Deposits : Invalid trimester" + period)
@@ -93,14 +98,14 @@ func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depo
 		useCache = false
 	}
 	if useCache {
-		err = db.Read("Binance/wapi/v3/depositHistory", period, &depoHist)
+		err = db.Read("Binance/sapi/v1/capital/deposit/hisrec", period, &depoHist)
 	}
 	if !useCache || err != nil {
-		endpoint := "wapi/v3/depositHistory.html"
+		endpoint := "sapi/v1/capital/deposit/hisrec"
 		queryParams := map[string]string{
-			"status":     "1",
-			"startTime":  strconv.FormatInt(start_ts.Unix(), 10),
-			"endTime":    strconv.FormatInt(end_ts.Unix(), 10),
+			// "status":     "1",
+			"startTime":  fmt.Sprintf("%v", start_ts.UTC().UnixNano()/1e6),
+			"endTime":    fmt.Sprintf("%v", end_ts.UTC().UnixNano()/1e6),
 			"recvWindow": "60000",
 			"timestamp":  fmt.Sprintf("%v", time.Now().UTC().UnixNano()/1e6),
 		}
@@ -119,7 +124,7 @@ func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depo
 		}
 		depoHist = *resp.Result().(*GetDepositHistoryResp)
 		if useCache {
-			err = db.Write("Binance/wapi/v3/depositHistory", period, depoHist)
+			err = db.Write("Binance/sapi/v1/capital/deposit/hisrec", period, depoHist)
 			if err != nil {
 				return depoHist, errors.New("Binance API Deposits : Error Caching" + period)
 			}
