@@ -50,6 +50,8 @@ func main() {
 	pBTGTXsJSON := flag.String("btg_txs", "", "Bitcoin Gold Transactions JSON file")
 	pETHAddressesCSV := flag.String("eth_address", "", "Ethereum Addresses CSV file")
 	pEtherscanAPIKey := flag.String("etherscan_apikey", "", "Etherscan API Key (https://etherscan.io/myapikey)")
+	pBinanceAPIKey := flag.String("binance_api_key", "", "Binance API Key")
+	pBinanceSecretKey := flag.String("binance_secret_key", "", "Binance Secret Key")
 	pBinanceCSV := flag.String("binance", "", "Binance CSV file")
 	pBinanceCSVExtended := flag.Bool("binance_extended", false, "Use Binance CSV file extended format")
 	pBitfinexCSV := flag.String("bitfinex", "", "Bitfinex CSV file")
@@ -146,6 +148,11 @@ func main() {
 		}
 	}
 	b := binance.New()
+	if *pBinanceAPIKey != "" && *pBinanceSecretKey != "" {
+		b.NewAPI(*pBinanceAPIKey, *pBinanceSecretKey, *pDebug)
+		fmt.Println("Début de récupération des TXs par l'API Binance (attention ce processus peut être long la première fois)...")
+		go b.GetAPIExchangeTXs(loc)
+	}
 	if *pBinanceCSV != "" {
 		recordFile, err := os.Open(*pBinanceCSV)
 		if err != nil {
@@ -333,6 +340,12 @@ func main() {
 		err := cdc.WaitFinish()
 		if err != nil {
 			log.Fatal("Error getting Crypto.com Exchange API TXs:", err)
+		}
+	}
+	if *pBinanceAPIKey != "" && *pBinanceSecretKey != "" {
+		err := b.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Binance API TXs:", err)
 		}
 	}
 	if *pHitBtcAPIKey != "" && *pHitBtcSecretKey != "" {

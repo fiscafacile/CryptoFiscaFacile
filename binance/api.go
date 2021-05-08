@@ -14,8 +14,8 @@ import (
 )
 
 type api struct {
-	clientAss          *resty.Client
-	doneAss            chan error
+	clientExInf        *resty.Client
+	doneExInf          chan error
 	clientDep          *resty.Client
 	doneDep            chan error
 	clientWit          *resty.Client
@@ -77,13 +77,13 @@ func (api *api) getAllTXs(loc *time.Location) (err error) {
 	// 2. Boucler sur les paires en récupérant l'historique
 	// 3. Mettre en cache après chaque call
 	api.getExchangeInfo()
-	go api.getDepositsTXs(loc)
-	go api.getWithdrawalsTXs(loc)
-	go api.getSpotTradesTXs(loc)
-	<-api.doneDep
-	<-api.doneWit
-	<-api.doneSpotTra
-	api.categorize()
+	// go api.getDepositsTXs(loc)
+	// go api.getWithdrawalsTXs(loc)
+	// go api.getSpotTradesTXs(loc)
+	// <-api.doneDep
+	// <-api.doneWit
+	// <-api.doneSpotTra
+	// api.categorize()
 	return
 }
 

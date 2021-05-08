@@ -6,41 +6,60 @@ import (
 	"time"
 
 	scribble "github.com/nanobox-io/golang-scribble"
-	"github.com/shopspring/decimal"
 )
 
-type exchangeInfo struct {
-	Timestamp   time.Time
-	Description string
-	Currency    string
-	Amount      decimal.Decimal
-	Fee         decimal.Decimal
+type Symbols struct {
+	Symbol                     string   `json:"symbol"`
+	Status                     string   `json:"status"`
+	Baseasset                  string   `json:"baseAsset"`
+	Baseassetprecision         int      `json:"baseAssetPrecision"`
+	Quoteasset                 string   `json:"quoteAsset"`
+	Quoteprecision             int      `json:"quotePrecision"`
+	Quoteassetprecision        int      `json:"quoteAssetPrecision"`
+	Basecommissionprecision    int      `json:"baseCommissionPrecision"`
+	Quotecommissionprecision   int      `json:"quoteCommissionPrecision"`
+	Ordertypes                 []string `json:"orderTypes"`
+	Icebergallowed             bool     `json:"icebergAllowed"`
+	Ocoallowed                 bool     `json:"ocoAllowed"`
+	Quoteorderqtymarketallowed bool     `json:"quoteOrderQtyMarketAllowed"`
+	Isspottradingallowed       bool     `json:"isSpotTradingAllowed"`
+	Ismargintradingallowed     bool     `json:"isMarginTradingAllowed"`
+	Filters                    []struct {
+		Filtertype       string `json:"filterType"`
+		Minprice         string `json:"minPrice,omitempty"`
+		Maxprice         string `json:"maxPrice,omitempty"`
+		Ticksize         string `json:"tickSize,omitempty"`
+		Multiplierup     string `json:"multiplierUp,omitempty"`
+		Multiplierdown   string `json:"multiplierDown,omitempty"`
+		Avgpricemins     int    `json:"avgPriceMins,omitempty"`
+		Minqty           string `json:"minQty,omitempty"`
+		Maxqty           string `json:"maxQty,omitempty"`
+		Stepsize         string `json:"stepSize,omitempty"`
+		Minnotional      string `json:"minNotional,omitempty"`
+		Applytomarket    bool   `json:"applyToMarket,omitempty"`
+		Limit            int    `json:"limit,omitempty"`
+		Maxnumorders     int    `json:"maxNumOrders,omitempty"`
+		Maxnumalgoorders int    `json:"maxNumAlgoOrders,omitempty"`
+	} `json:"filters"`
+	Permissions []string `json:"permissions"`
 }
 
-type ResultExchange struct {
-	Currency   string  `json:"currency"`
-	ClientWid  string  `json:"client_wid"`
-	Fee        float64 `json:"fee"`
-	CreateTime int64   `json:"create_time"`
-	ID         string  `json:"id"`
-	UpdateTime int64   `json:"update_time"`
-	Amount     float64 `json:"amount"`
-	Address    string  `json:"address"`
-	Status     string  `json:"status"`
-}
-
-type InfoList struct {
-	DepositList []ResultExchange `json:"deposit_list"`
+type Ratelimits struct {
+	Ratelimittype string `json:"rateLimitType"`
+	Interval      string `json:"interval"`
+	Intervalnum   int    `json:"intervalNum"`
+	Limit         int    `json:"limit"`
 }
 
 type GetExchangeInfoResp struct {
-	ID     int64    `json:"id"`
-	Method string   `json:"method"`
-	Code   int      `json:"code"`
-	Result InfoList `json:"result"`
+	Timezone        string        `json:"timezone"`
+	Servertime      int64         `json:"serverTime"`
+	Ratelimits      []Ratelimits  `json:"rateLimits"`
+	Exchangefilters []interface{} `json:"exchangeFilters"`
+	Symbols         []Symbols     `json:"symbols"`
 }
 
-func (api *api) getExchangeInfo() (exchangeInfo GetDepositHistoryResp, err error) {
+func (api *api) getExchangeInfo() (exchangeInfo GetExchangeInfoResp, err error) {
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
@@ -51,21 +70,17 @@ func (api *api) getExchangeInfo() (exchangeInfo GetDepositHistoryResp, err error
 	}
 	if !useCache || err != nil {
 		method := "api/v3/exchangeInfo"
-		body := make(map[string]interface{})
-		body["method"] = method
-		api.sign(body)
 		resp, err := api.clientDep.R().
-			SetBody(body).
-			SetResult(&GetDepositHistoryResp{}).
+			SetResult(&GetExchangeInfoResp{}).
 			SetError(&ErrorResp{}).
-			Post(api.basePath + method)
+			Get(api.basePath + method)
 		if err != nil {
 			return exchangeInfo, errors.New("Binance API Deposits : Error Requesting exchangeInfo")
 		}
 		if resp.StatusCode() > 300 {
 			return exchangeInfo, errors.New("Binance API Deposits : Error StatusCode" + strconv.Itoa(resp.StatusCode()))
 		}
-		exchangeInfo = *resp.Result().(*GetDepositHistoryResp)
+		exchangeInfo = *resp.Result().(*GetExchangeInfoResp)
 		if useCache {
 			err = db.Write("Binance/api/v3/", "exchangeInfo", exchangeInfo)
 			if err != nil {
