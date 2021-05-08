@@ -76,10 +76,10 @@ func (b *Binance) NewAPI(apiKey, secretKey string, debug bool) {
 
 func (api *api) getAllTXs(loc *time.Location) (err error) {
 	api.getExchangeInfo()
-	// go api.getDepositsTXs(loc)
+	go api.getDepositsTXs(loc)
 	// go api.getWithdrawalsTXs(loc)
 	go api.getSpotTradesTXs()
-	// <-api.doneDep
+	<-api.doneDep
 	// <-api.doneWit
 	<-api.doneSpotTra
 	api.categorize()
@@ -121,9 +121,11 @@ func (api *api) categorize() {
 		if tx.Side == "BUY" {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity})
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity.Mul(tx.Price)})
-		} else { // if tx.Side == "SELL"
+		} else if tx.Side == "SELL" {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Quantity})
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.Quantity.Mul(tx.Price)})
+		} else {
+			fmt.Println("Unknown transaction kind", tx.Side)
 		}
 		if !tx.Fee.IsZero() {
 			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
