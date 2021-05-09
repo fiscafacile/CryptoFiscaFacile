@@ -466,7 +466,9 @@ func main() {
 	}
 	if *p2086 || *p2086Display {
 		var cessions Cessions
+		fmt.Print("Début du calcul pour le 2086...")
 		err = cessions.CalculatePVMV(global, *pNative, loc)
+		fmt.Println("Fini")
 		if err != nil {
 			log.Fatal(err)
 		}

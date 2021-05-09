@@ -340,7 +340,6 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 		}
 		var amountToFind decimal.Decimal
 		amountToFind = quantity
-		// log.Println("Amount to Find :", amountToFind, crypto)
 		var fifoValue decimal.Decimal
 		for _, tx := range allTXs {
 			// Find all Tx before 2019 Jan 1st ...
@@ -348,7 +347,6 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 				// ... that have the wanted crypto into Items["To"]
 				for _, c := range tx.Items["To"] {
 					if c.Code == crypto {
-						// tx.Println()
 						rate, err := c.GetExchangeRate(tx.Timestamp, native)
 						if err != nil {
 							log.Println(err)
@@ -358,33 +356,35 @@ func CalculatePrixTotalAcquisitionWithFIFO(global wallet.TXsByCategory, native s
 							} else {
 								fifoValue = fifoValue.Add(rate.Mul(c.Amount))
 							}
-							// log.Println("Fifo :", fifoValue)
 						}
 						amountToFind = amountToFind.Sub(c.Amount)
-						// log.Println("Amount to Find :", amountToFind, crypto)
-						// log.Println("/////////////////////////////")
 					}
 				}
 				// ... and the ones consumpting the wanted crypto
 				for _, c := range tx.Items["From"] {
 					if c.Code == crypto {
-						// tx.Println()
 						amountToFind = amountToFind.Add(c.Amount)
-						// log.Println("Amount to Find :", amountToFind, crypto)
-						// log.Println("/////////////////////////////")
+						rate, err := c.GetExchangeRate(tx.Timestamp, native)
+						if err != nil {
+							log.Println(err)
+						} else {
+							fifoValue = fifoValue.Sub(rate.Mul(c.Amount))
+						}
 					}
 				}
 				for _, c := range tx.Items["Fee"] {
 					if c.Code == crypto {
-						// tx.Println()
 						amountToFind = amountToFind.Add(c.Amount)
-						// log.Println("Amount to Find :", amountToFind, crypto)
-						// log.Println("/////////////////////////////")
+						rate, err := c.GetExchangeRate(tx.Timestamp, native)
+						if err != nil {
+							log.Println(err)
+						} else {
+							fifoValue = fifoValue.Sub(rate.Mul(c.Amount))
+						}
 					}
 				}
 				if !amountToFind.IsPositive() {
 					pta = pta.Add(fifoValue)
-					// log.Println("prixTotalAcquisition :", pta)
 					break
 				}
 			}
