@@ -103,7 +103,7 @@ func (api *api) getDepositHistory(year, trimester int, loc *time.Location) (depo
 	if !useCache || err != nil {
 		endpoint := "sapi/v1/capital/deposit/hisrec"
 		queryParams := map[string]string{
-			// "status":     "1",
+			"status":     "1",
 			"startTime":  fmt.Sprintf("%v", start_ts.UTC().UnixNano()/1e6),
 			"endTime":    fmt.Sprintf("%v", end_ts.UTC().UnixNano()/1e6),
 			"recvWindow": "60000",
