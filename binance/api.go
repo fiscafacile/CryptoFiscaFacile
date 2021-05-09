@@ -22,6 +22,8 @@ type api struct {
 	doneWit              chan error
 	clientSpotTra        *resty.Client
 	doneSpotTra          chan error
+	clientAssDiv         *resty.Client
+	doneAssDiv           chan error
 	basePath             string
 	apiKey               string
 	secretKey            string
@@ -30,6 +32,7 @@ type api struct {
 	withdrawalTXs        []withdrawalTX
 	depositTXs           []depositTX
 	spotTradeTXs         []spotTradeTX
+	assetDividendTXs     []assetDividendTX
 	txsByCategory        wallet.TXsByCategory
 	symbols              []Symbols
 	timeBetweenRequests  time.Duration
@@ -66,6 +69,10 @@ func (b *Binance) NewAPI(apiKey, secretKey string, debug bool) {
 	b.api.clientSpotTra.SetRetryCount(3).SetRetryWaitTime(1 * time.Second)
 	b.api.clientSpotTra.SetDebug(debug)
 	b.api.doneSpotTra = make(chan error)
+	b.api.clientAssDiv = resty.New()
+	b.api.clientAssDiv.SetRetryCount(3).SetRetryWaitTime(1 * time.Second)
+	b.api.clientAssDiv.SetDebug(debug)
+	b.api.doneAssDiv = make(chan error)
 	b.api.basePath = "https://api.binance.com/"
 	b.api.apiKey = apiKey
 	b.api.secretKey = secretKey
@@ -79,9 +86,11 @@ func (api *api) getAllTXs(loc *time.Location) (err error) {
 	go api.getDepositsTXs(loc)
 	go api.getWithdrawalsTXs(loc)
 	go api.getSpotTradesTXs()
+	go api.getAssetDividendTXs(loc)
 	<-api.doneDep
 	<-api.doneWit
 	<-api.doneSpotTra
+	<-api.doneAssDiv
 	api.categorize()
 	return
 }
@@ -131,6 +140,15 @@ func (api *api) categorize() {
 			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
 		}
 		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		if tx.Timestamp.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.Timestamp
+		}
+	}
+	for _, tx := range api.assetDividendTXs {
+		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Asset Dividend " + tx.Description}
+		t.Items = make(map[string]wallet.Currencies)
+		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+		api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}
