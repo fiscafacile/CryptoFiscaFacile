@@ -5,44 +5,129 @@ import (
 	"crypto/sha512"
 	"encoding/hex"
 	"strconv"
+	"strings"
 	"time"
 
-	"gopkg.in/resty.v1"
+	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
+	"github.com/go-resty/resty/v2"
 )
 
-const (
-	API_BASE    = "https://api.bittrex.com/"
-	API_VERSION = "v3/"
-)
+type api struct {
+	clientDeposits    *resty.Client
+	doneDeposits      chan error
+	clientWithdrawals *resty.Client
+	doneWithdrawals   chan error
+	clientTrades      *resty.Client
+	doneTrades        chan error
+	basePath          string
+	apiKey            string
+	secretKey         string
+	firstTimeUsed     time.Time
+	lastTimeUsed      time.Time
+	timeBetweenReq    time.Duration
+	depositTXs        []depositTX
+	withdrawalTXs     []withdrawalTX
+	tradeTXs          []tradeTX
+	txsByCategory     wallet.TXsByCategory
+}
 
-func (btrx *Bittrex) sendRequest(apiKey string, apiSecret string, resource string, method string, request *resty.Request) (response *resty.Response, err error) {
-	// Generate signature
+func (btrx *Bittrex) NewAPI(apiKey, secretKey string, debug bool) {
+	btrx.api.txsByCategory = make(map[string]wallet.TXs)
+	btrx.api.clientDeposits = resty.New()
+	btrx.api.clientDeposits.SetRetryCount(3)
+	btrx.api.clientDeposits.SetDebug(debug)
+	btrx.api.doneDeposits = make(chan error)
+	btrx.api.clientWithdrawals = resty.New()
+	btrx.api.clientWithdrawals.SetRetryCount(3)
+	btrx.api.clientWithdrawals.SetDebug(debug)
+	btrx.api.doneWithdrawals = make(chan error)
+	btrx.api.clientTrades = resty.New()
+	btrx.api.clientTrades.SetRetryCount(3)
+	btrx.api.clientTrades.SetDebug(debug)
+	btrx.api.doneTrades = make(chan error)
+	btrx.api.basePath = "https://api.bittrex.com/v3/"
+	btrx.api.apiKey = apiKey
+	btrx.api.secretKey = secretKey
+	btrx.api.firstTimeUsed = time.Now()
+	btrx.api.lastTimeUsed = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
+	btrx.api.timeBetweenReq = 100 * time.Millisecond
+}
+
+func (api *api) getAllTXs() (err error) {
+	go api.getDepositsTXs()
+	go api.getWithdrawalsTXs()
+	go api.getTradesTXs()
+	<-api.doneDeposits
+	<-api.doneWithdrawals
+	<-api.doneTrades
+	api.categorize()
+	return
+}
+
+func (api *api) categorize() {
+	const SOURCE = "Bittrex API :"
+	alreadyAsked := []string{}
+	for _, tx := range api.tradeTXs {
+		found := false
+		for i := range api.txsByCategory["Exchanges"] {
+			if tx.ID == api.txsByCategory["Exchanges"][i].ID {
+				found = true
+			}
+		}
+		if !found {
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Direction}
+			symbolSlice := strings.Split(tx.MarketSymbol, "-")
+			t.Items = make(map[string]wallet.Currencies)
+			if tx.Direction == "BUY" {
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			} else if tx.Direction == "SELL" {
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			} else {
+				alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
+			}
+			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[0], Amount: tx.Commission})
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+			if tx.Time.Before(api.firstTimeUsed) {
+				api.firstTimeUsed = tx.Time
+			}
+			if tx.Time.After(api.lastTimeUsed) {
+				api.lastTimeUsed = tx.Time
+			}
+		}
+	}
+	// Process transfer transactions
+	for _, tx := range api.depositTXs {
+		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
+		t.Items = make(map[string]wallet.Currencies)
+		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity})
+		api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+	}
+	for _, tx := range api.withdrawalTXs {
+		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
+		t.Items = make(map[string]wallet.Currencies)
+		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity})
+		if !tx.Fee.IsZero() {
+			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Fee})
+		}
+		api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
+	}
+}
+
+func (api *api) hash(payload string) string {
 	sha_512 := sha512.New()
-	hmac512 := hmac.New(sha512.New, []byte(apiSecret))
-	params := ""
-	if len(request.QueryParam.Encode()) > 0 {
-		params += "?" + request.QueryParam.Encode()
-	}
-	url := API_BASE + API_VERSION + resource
-	timestamp := strconv.FormatInt(time.Now().UTC().Unix()*1000, 10)
-	payload := ""
-	if method == "POST" {
-		payload = "json.dumps(query)"
-	}
 	sha_512.Write([]byte(payload))
-	hash := hex.EncodeToString(sha_512.Sum(nil))
-	pre_signature := timestamp + url + params + method + hash
-	hmac512.Write([]byte(pre_signature))
-	signature := hex.EncodeToString(hmac512.Sum(nil))
+	return hex.EncodeToString(sha_512.Sum(nil))
+}
 
-	// Send request
-	response, err = request.SetHeaders(map[string]string{
-		"Accept":           "application/json",
-		"Content-Type":     "application/json",
-		"Api-Content-Hash": hash,
-		"Api-Key":          apiKey,
-		"Api-Signature":    signature,
-		"Api-Timestamp":    timestamp,
-	}).Get(url)
-	return response, err
+func (api *api) sign(timestamp, ressource, method, hash, queryParamEncoded string) (string, string) {
+	hmac512 := hmac.New(sha512.New, []byte(api.secretKey))
+	url := api.basePath + ressource
+	if timestamp == "" {
+		timestamp = strconv.FormatInt(time.Now().UTC().Unix()*1000, 10)
+	}
+	pre_signature := timestamp + url + queryParamEncoded + method + hash
+	hmac512.Write([]byte(pre_signature))
+	return timestamp, hex.EncodeToString(hmac512.Sum(nil))
 }

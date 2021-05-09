@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -25,6 +26,8 @@ type csvTX struct {
 }
 
 func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -62,6 +65,12 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println("Error Parsing Amount : ", r[8])
 				}
+				if tx.Time.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Time
+				}
+				if tx.Time.After(lastTimeUsed) {
+					lastTimeUsed = tx.Time
+				}
 				// Fill TXsByCategory
 				if tx.Operation == "BUY" || tx.Operation == "SELL" {
 					if tx.Operation == "BUY" {
@@ -97,6 +106,28 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 					log.Println("Bittrex CSV : Unmanaged operation -> ", tx.Operation)
 				}
 			}
+		}
+	}
+	if _, ok := btrx.Sources["Bittrex"]; ok {
+		if btrx.Sources["Bittrex"].OpeningDate.After(firstTimeUsed) {
+			src := btrx.Sources["Bittrex"]
+			src.OpeningDate = firstTimeUsed
+			btrx.Sources["Bittrex"] = src
+		}
+		if btrx.Sources["Bittrex"].ClosingDate.Before(lastTimeUsed) {
+			src := btrx.Sources["Bittrex"]
+			src.ClosingDate = lastTimeUsed
+			btrx.Sources["Bittrex"] = src
+		}
+	} else {
+		btrx.Sources["Bittrex"] = source.Source{
+			Crypto:        true,
+			AccountNumber: "emailAROBASEdomainPOINTcom",
+			OpeningDate:   firstTimeUsed,
+			ClosingDate:   lastTimeUsed,
+			LegalName:     "Bittrex International GmbH",
+			Address:       "Dr. Grass-Strasse 12, 9490 Vaduz,\nPrincipality of Liechtenstein",
+			URL:           "https://global.bittrex.com",
 		}
 	}
 	return

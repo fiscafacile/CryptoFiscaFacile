@@ -126,6 +126,12 @@ func main() {
 		ethsc.NewAPI(*pEtherscanAPIKey, *pDebug)
 		go ethsc.GetAPITXs(*categ)
 	}
+	btrx := bittrex.New()
+	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
+		btrx.NewAPI(*pBittrexAPIKey, *pBittrexAPISecret, *pDebug)
+		fmt.Println("Début de récupération des TXs par l'API Bittrex (attention ce processus peut être long la première fois)...")
+		go btrx.GetAPIAllTXs()
+	}
 	cdc := cryptocom.New()
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
@@ -176,7 +182,6 @@ func main() {
 			log.Fatal("Error parsing Bitfinex CSV file:", err)
 		}
 	}
-	btrx := bittrex.New()
 	if *pBittrexCSV != "" {
 		recordFile, err := os.Open(*pBittrexCSV)
 		if err != nil {
@@ -185,12 +190,6 @@ func main() {
 		err = btrx.ParseCSV(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Bittrex CSV file:", err)
-		}
-		if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
-			go btrx.GetAllTransferTXs(*pBittrexAPIKey, *pBittrexAPISecret, *categ)
-			go btrx.GetAllTradeTXs(*pBittrexAPIKey, *pBittrexAPISecret, *categ)
-		} else {
-			log.Println("Warning, you should provide your API Key/Secret to retrieve Deposits and Withdrawals")
 		}
 	}
 	cb := coinbase.New()
@@ -358,13 +357,9 @@ func main() {
 		}
 	}
 	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
-		errTransfer := btrx.WaitTransfersFinish()
-		if errTransfer != nil {
-			log.Fatalln("Error parsing Bittrex API transfers:", errTransfer)
-		}
-		errTrades := btrx.WaitTradesFinish()
-		if errTrades != nil {
-			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
+		err := btrx.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Bittrex API TXs:", err)
 		}
 	}
 	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
@@ -395,6 +390,7 @@ func main() {
 		sources := make(source.Sources)
 		sources.Add(b.Sources)
 		sources.Add(bf.Sources)
+		sources.Add(btrx.Sources)
 		sources.Add(cb.Sources)
 		sources.Add(cdc.Sources)
 		sources.Add(hb.Sources)
