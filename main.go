@@ -465,18 +465,18 @@ func main() {
 		globalWalletTotalValue.Println("")
 	}
 	if *p2086 || *p2086Display {
-		var cessions Cessions
+		var c2086 Cerfa2086
 		fmt.Print("Début du calcul pour le 2086...")
-		err = cessions.CalculatePVMV(global, *pNative, loc)
+		err = c2086.CalculatePVMV(global, *pNative, loc)
 		fmt.Println("Fini")
 		if err != nil {
 			log.Fatal(err)
 		}
 		if *p2086Display {
-			cessions.Println()
+			c2086.Println()
 		}
 		if *p2086 {
-			cessions.ToXlsx("2086.xlsx")
+			c2086.ToXlsx("2086.xlsx", *pNative)
 		}
 	}
 	os.Exit(0)

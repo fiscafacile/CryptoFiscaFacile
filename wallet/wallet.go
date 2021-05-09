@@ -517,6 +517,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal) {
 	var realExchanges TXs
 	for _, exTX := range txs["Exchanges"] {
+		fmt.Print(".")
 		fromHasFiat := false
 		for _, i := range exTX.Items["From"] {
 			if i.IsFiat() {
@@ -547,6 +548,7 @@ func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, t
 	var toCancel Currencies
 	txs["CommercialRebates"].SortByDate(false)
 	for _, crTx := range txs["CommercialRebates"] {
+		fmt.Print(".")
 		isReversal := false
 		for _, c := range crTx.Items["From"] {
 			toCancel = append(toCancel, c)
@@ -587,6 +589,7 @@ func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, t
 	// Integrate Interests into CashIn
 	var realInterests TXs
 	for _, iTx := range txs["Interests"] {
+		fmt.Print(".")
 		for _, c := range iTx.Items["To"] {
 			rate, err := c.GetExchangeRate(iTx.Timestamp, native)
 			if err != nil {
@@ -607,6 +610,7 @@ func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, t
 	// Integrate Referrals into CashIn
 	var realRefferals TXs
 	for _, rTx := range txs["Referrals"] {
+		fmt.Print(".")
 		for _, c := range rTx.Items["To"] {
 			rate, err := c.GetExchangeRate(rTx.Timestamp, native)
 			if err != nil {
