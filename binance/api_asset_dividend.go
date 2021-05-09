@@ -81,7 +81,7 @@ func (api *api) getAssetDividend(year, trimester int, loc *time.Location) (assDi
 		end_month = time.January
 		end_year = year + 1
 	} else {
-		err = errors.New("Binance API Deposits : Invalid trimester" + period)
+		err = errors.New("Binance API Dividends : Invalid trimester" + period)
 		return
 	}
 	start_ts := time.Date(year, start_month, 1, 0, 0, 0, 0, loc)
