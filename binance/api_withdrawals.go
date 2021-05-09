@@ -128,7 +128,7 @@ func (api *api) getWithdrawalHistory(year, trimester int, loc *time.Location) (w
 		}
 		withHist = *resp.Result().(*GetWithdrawalHistoryResp)
 		if useCache {
-			err = db.Write("Binance/sapi/v1/capital/withdrawal/hisrec", period, withHist)
+			err = db.Write("Binance/sapi/v1/capital/withdraw/history", period, withHist)
 			if err != nil {
 				return withHist, errors.New("Binance API Withdrawals : Error Caching" + period)
 			}
