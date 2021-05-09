@@ -263,37 +263,55 @@ Expériemental.
 
 #### Crypto.com [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#crypto.com-)
 
+- App with CSV:
 ```
   -cdc_app_crypto string
         Crypto.com App Crypto Wallet CSV file
+```
+Il faut fournir les CSV récupérés dans l'App (celui des Transactions du Portefeuille Crypto).
+
+Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
+
+- Exchange with JS and JSON:
+```
+  -cdc_ex_exportjs string
+        Crypto.com Exchange JSON file from json_exporter.js
+```
+Il faut fournir le JSON récupéré dans l'Exchange Crypto.com avec la méthode décrite [ici](https://github.com/fiscafacile/CryptoFiscaFacile/wiki/Crypto.com-Exchange-JSON-methode)
+
+Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `Interests` du Staking de CRO et Soft Staking, les `CommercialRebates` du bonus d'inscription et des Syndicates, les `Referrals` du programme de parainage, les `Minings` des Superchargers.
+
+- Exchange with CSV:
+```
   -cdc_ex_stake string
         Crypto.com Exchange Stake CSV file
   -cdc_ex_supercharger string
         Crypto.com Exchange Supercharger CSV file
-  -cdc_ex_api_key string
-        Crypto.com Exchange API Key
-  -cdc_ex_secret_key string
-        Crypto.com Exchange Secret Key
   -cdc_ex_transfer string
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
-Il faut fournir les CSV récupérés dans l'App et l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
+Il faut fournir les CSV récupérés dans l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
 
-Le CSV de l'APP doit etre celui des Transactions du Portefeuille Crypto.
-
-Pour l'API de l'Exchange, il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
-
-Il faut activer le droit de "Withdrawal" (si disponible pour vous) si vous voulez récupérer les `Withdrawals` et `Deposits` (je ne l'ai pas, je ne peux pas tester). Dans le cas contraire, le CSV Transfers permet de les mettre dans l'outil sans l'API.
-
-Par contre les `Exchanges` sur le Spot Market seront bien récupérés sans droit particulier (attention tout de même c'est assez long, on ne peut faire qu'une requête par seconde pour récupérer les Trades d'une seule journée, il faut donc de nombreuses requêtes pour remonter au jour du lancement de l'Exchange le 14 Nov 2019).
-
-Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
+Préférez la methode JS+JSON ci dessus, elle est plus complète.
 
 Les colones du CSV de l'Exchange Stake doivent être : `create_time_utc,stake_currency,stake_amount,apr,interest_currency,interest_amount,status`
 
 Les colones du CSV de l'Exchange Supercharger doivent être : `create_time_utc,supercharger_currency,reward_mount,description`
 
 Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
+
+- Exchange with API:
+```
+  -cdc_ex_api_key string
+        Crypto.com Exchange API Key
+  -cdc_ex_secret_key string
+        Crypto.com Exchange Secret Key
+```
+Il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
+
+Il faut activer le droit de "Withdrawal" (si disponible pour vous) si vous voulez récupérer les `Withdrawals` et `Deposits` (je ne l'ai pas donc je n'ai pas pu tester). Dans le cas contraire, le CSV Transfers  ou le JSON permet de les mettre dans l'outil sans l'API.
+
+Par contre les `Exchanges` sur le Spot Market seront bien récupérés sans droit particulier (attention tout de même c'est assez long, on ne peut faire qu'une requête par seconde pour récupérer les Trades d'une seule journée, il faut donc de nombreuses requêtes pour remonter au jour du lancement de l'Exchange le 14 Nov 2019).
 
 #### Coinbase [![Support bon](https://img.shields.io/badge/support-bon-blue)](#coinbase-)
 
@@ -446,12 +464,24 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
 ### Options de sortie
 
 ```
-  -2086
+  -2086_display
         Display Cerfa 2086
-  -2086xlsx
-        Save Cerfa 2086 in 2086.xlsx
+  -2086
+        Export Cerfa 2086 in 2086.xlsx
 ```
 Cela vous génère automatiquement le formulaire 2086 !
+
+```
+  -3916
+        Export Cerfa 3916 in 3916.xlsx
+```
+Cela vous génère automatiquement le formulaire 3916 !
+
+```
+  -stock
+        Export stock balances in stock.xlsx
+```
+Cela vous génère automatiquement une fiche de stock de tous vos coins !
 
 ## Donation
 

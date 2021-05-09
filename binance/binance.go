@@ -3,21 +3,23 @@ package binance
 import (
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
 type Binance struct {
-	api            api
-	csvTXs         []csvTX
-	csvExtendedTXs []csvExtendedTX
-	TXsByCategory  wallet.TXsByCategory
-	done           chan error
+	api           api
+	csvTXs        []csvTX
+	TXsByCategory wallet.TXsByCategory
+	done          chan error
+	Sources       source.Sources
 }
 
 func New() *Binance {
 	b := &Binance{}
 	b.done = make(chan error)
-	b.TXsByCategory = make(map[string]wallet.TXs)
+	b.TXsByCategory = make(wallet.TXsByCategory)
+	b.Sources = make(source.Sources)
 	return b
 }
 

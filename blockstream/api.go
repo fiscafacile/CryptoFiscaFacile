@@ -74,6 +74,7 @@ func (txs apiTXs) SortByHeight(asc bool) {
 }
 
 func (blkst *Blockstream) GetAddressTXs(add string) (txs apiTXs, err error) {
+	const SOURCE = "Blockstream API :"
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
@@ -93,16 +94,16 @@ func (blkst *Blockstream) GetAddressTXs(add string) (txs apiTXs, err error) {
 			}).Get("https://blockstream.info/api/address/" + add + "/txs")
 		}
 		if err != nil || resp.StatusCode() != http.StatusOK {
-			return txs, errors.New("Blockstream API : Error Getting BTC TX for " + add)
+			return txs, errors.New(SOURCE + " Error Getting BTC TX for " + add)
 		}
 		err = json.Unmarshal(resp.Body(), &txs)
 		if err != nil {
-			return txs, errors.New("Blockstream API : Error Unmarshaling BTC TX for " + add)
+			return txs, errors.New(SOURCE + " Error Unmarshaling BTC TX for " + add)
 		}
 		if useCache {
 			err = db.Write("BlockStream/address/txs", add, txs)
 			if err != nil {
-				return txs, errors.New("Blockstream API : Error Caching" + add)
+				return txs, errors.New(SOURCE + " Error Caching " + add)
 			}
 		}
 	}

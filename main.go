@@ -23,7 +23,9 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
+	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -66,6 +68,7 @@ func main() {
 	pCdCAppCSVCrypto := flag.String("cdc_app_crypto", "", "Crypto.com App Crypto Wallet CSV file")
 	pCdCExAPIKey := flag.String("cdc_ex_api_key", "", "Crypto.com Exchange API Key")
 	pCdCExSecretKey := flag.String("cdc_ex_secret_key", "", "Crypto.com Exchange Secret Key")
+	pCdCExJSONExportJS := flag.String("cdc_ex_exportjs", "", "Crypto.com Exchange JSON file from json_exporter.js")
 	pCdCExCSVTransfer := flag.String("cdc_ex_transfer", "", "Crypto.com Exchange Deposit/Withdrawal CSV file")
 	pCdCExCSVStake := flag.String("cdc_ex_stake", "", "Crypto.com Exchange Stake CSV file")
 	pCdCExCSVSupercharger := flag.String("cdc_ex_supercharger", "", "Crypto.com Exchange Supercharger CSV file")
@@ -79,8 +82,9 @@ func main() {
 	pRevoCSV := flag.String("revolut", "", "Revolut CSV file")
 	// Output
 	p2086Display := flag.Bool("2086_display", false, "Display Cerfa 2086")
-	p2086 := flag.Bool("2086", false, "Save Cerfa 2086 in 2086.xlsx")
-	pStock := flag.Bool("stock", false, "Save stock calculation in stock.xlsx")
+	p2086 := flag.Bool("2086", false, "Export Cerfa 2086 in 2086.xlsx")
+	p3916 := flag.Bool("3916", false, "Export Cerfa 3916 in 3916.xlsx")
+	pStock := flag.Bool("stock", false, "Export stock balances in stock.xlsx")
 	flag.Parse()
 	if *pCoinAPIKey != "" {
 		wallet.CoinAPISetKey(*pCoinAPIKey)
@@ -127,13 +131,18 @@ func main() {
 	cdc := cryptocom.New()
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		cdc.NewExchangeAPI(*pCdCExAPIKey, *pCdCExSecretKey, *pDebug)
-		fmt.Println("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)...")
+		fmt.Print("Début de récupération des TXs par l'API CdC Exchange (attention ce processus peut être long la première fois)")
 		go cdc.GetAPIExchangeTXs(loc)
 	}
 	hb := hitbtc.New()
 	if *pHitBtcAPIKey != "" && *pHitBtcSecretKey != "" {
 		hb.NewAPI(*pHitBtcAPIKey, *pHitBtcSecretKey, *pDebug)
 		go hb.GetAPIAllTXs()
+	}
+	kr := kraken.New()
+	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
+		kr.NewAPI(*pKrakenAPIKey, *pKrakenAPISecret, *pDebug)
+		go kr.GetAPIAllTXs()
 	}
 	// Now parse local files
 	bc := blockchain.New()
@@ -158,11 +167,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Binance CSV file:", err)
 		}
-		if *pBinanceCSVExtended {
-			err = b.ParseCSVExtended(recordFile)
-		} else {
-			err = b.ParseCSV(recordFile)
-		}
+		err = b.ParseCSV(recordFile, *pBinanceCSVExtended)
 		if err != nil {
 			log.Fatal("Error parsing Binance CSV file:", err)
 		}
@@ -216,6 +221,16 @@ func main() {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
 		}
 	}
+	if *pCdCExJSONExportJS != "" {
+		recordFile, err := os.Open(*pCdCExJSONExportJS)
+		if err != nil {
+			log.Fatal("Error opening Crypto.com Exchange ExportJS JSON file:", err)
+		}
+		err = cdc.ParseJSONExchangeExportJS(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Crypto.com Exchange ExportJS JSON file:", err)
+		}
+	}
 	if *pCdCExCSVTransfer != "" {
 		recordFile, err := os.Open(*pCdCExCSVTransfer)
 		if err != nil {
@@ -251,7 +266,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening HitBTC Trades CSV file:", err)
 		}
-		err = hb.ParseCSVTransactions(recordFile)
+		err = hb.ParseCSVTrades(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing HitBTC Trades CSV file:", err)
 		}
@@ -265,11 +280,6 @@ func main() {
 		if err != nil {
 			log.Fatal("Error parsing HitBTC Transactions CSV file:", err)
 		}
-	}
-	kr := kraken.New()
-	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
-		kr.NewAPI(*pKrakenAPIKey, *pKrakenAPISecret, *pDebug)
-		kr.GetAPITxs()
 	}
 	if *pKrakenCSV != "" {
 		recordFile, err := os.Open(*pKrakenCSV)
@@ -370,6 +380,12 @@ func main() {
 			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
 		}
 	}
+	if *pKrakenAPIKey != "" && *pKrakenAPISecret != "" {
+		err := kr.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Kraken API TXs:", err)
+		}
+	}
 	if *pBTCAddressesCSV != "" {
 		err := blkst.WaitFinish()
 		if err != nil {
@@ -388,6 +404,21 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	if *p3916 {
+		sources := make(source.Sources)
+		sources.Add(b.Sources)
+		sources.Add(bf.Sources)
+		sources.Add(cb.Sources)
+		sources.Add(cdc.Sources)
+		sources.Add(hb.Sources)
+		sources.Add(kr.Sources)
+		sources.Add(lb.Sources)
+		sources.Add(revo.Sources)
+		err = sources.ToXlsx("3916.xlsx", loc)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	// create Global Wallet up to Date
 	global := make(wallet.TXsByCategory)
 	global.Add(b.TXsByCategory)
@@ -404,11 +435,18 @@ func main() {
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
+	fmt.Print("Merging Deposits with Withdrawals into Transfers...")
 	global.FindTransfers()
+	fmt.Println("Finished")
 	if *pStock {
 		global.StockToXlsx("stock.xlsx")
 	}
-	totalCommercialRebates, totalInterests, totalReferrals := global.FindCashInOut(*pNative)
+	var totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal
+	if *p2086 || *p2086Display {
+		fmt.Print("Look for CashIn and CashOut...")
+		totalCommercialRebates, totalInterests, totalReferrals = global.FindCashInOut(*pNative)
+		fmt.Println("Finished")
+	}
 	global.SortTXsByDate(true)
 	if *pStats {
 		global.PrintStats(*pNative, totalCommercialRebates, totalInterests, totalReferrals)
@@ -440,16 +478,18 @@ func main() {
 		globalWalletTotalValue.Println("")
 	}
 	if *p2086 || *p2086Display {
-		var cessions Cessions
-		err = cessions.CalculatePVMV(global, *pNative, loc)
+		var c2086 Cerfa2086
+		fmt.Print("Début du calcul pour le 2086...")
+		err = c2086.CalculatePVMV(global, *pNative, loc)
+		fmt.Println("Fini")
 		if err != nil {
 			log.Fatal(err)
 		}
 		if *p2086Display {
-			cessions.Println()
+			c2086.Println()
 		}
 		if *p2086 {
-			cessions.ToXlsx("2086.xlsx")
+			c2086.ToXlsx("2086.xlsx", *pNative)
 		}
 	}
 	os.Exit(0)

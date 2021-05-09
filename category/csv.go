@@ -17,6 +17,7 @@ type csvCategorie struct {
 }
 
 func (cat *Category) ParseCSVCategory(reader io.Reader) {
+	const SOURCE = "TXs Categorie CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -29,7 +30,7 @@ func (cat *Category) ParseCSVCategory(reader io.Reader) {
 				if r[3] != "" {
 					a.value, err = decimal.NewFromString(r[3])
 					if err != nil {
-						log.Println("TXs Categorie CSV Error Parsing Value : ", r[3])
+						log.Println(SOURCE, "Error Parsing Value", r[3])
 					}
 				}
 				a.currency = r[4]

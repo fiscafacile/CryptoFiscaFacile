@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -25,6 +26,9 @@ type CsvTX struct {
 }
 
 func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Coinbase CSV :"
 	buf := make([]byte, 1)
 	var found int64
 	for found != 5 {
@@ -47,6 +51,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		var fiat string
 		for _, r := range records {
 			if r[0] == "Timestamp" {
@@ -55,46 +60,52 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 				tx := CsvTX{}
 				tx.Timestamp, err = time.Parse("2006-01-02T15:04:05Z", r[0])
 				if err != nil {
-					log.Println("Error Parsing Timestamp : ", r[0])
+					log.Println(SOURCE, "Error Parsing Timestamp : ", r[0])
 				}
 				tx.Type = r[1]
 				tx.Asset = r[2]
 				tx.Quantity, err = decimal.NewFromString(r[3])
 				if err != nil {
-					log.Println("Error Parsing Quantity : ", r[3])
+					log.Println(SOURCE, "Error Parsing Quantity : ", r[3])
 				}
 				tx.SpotPrice, err = decimal.NewFromString(r[4])
 				if err != nil {
-					log.Println("Error Parsing SpotPrice : ", r[4])
+					log.Println(SOURCE, "Error Parsing SpotPrice : ", r[4])
 				}
 				if r[5] != "" {
 					tx.Subtotal, err = decimal.NewFromString(r[5])
 					if err != nil {
-						log.Println("Error Parsing Subtotal : ", r[5])
+						log.Println(SOURCE, "Error Parsing Subtotal : ", r[5])
 					}
 				}
 				if r[6] != "" {
 					tx.Total, err = decimal.NewFromString(r[6])
 					if err != nil {
-						log.Println("Error Parsing Total : ", r[6])
+						log.Println(SOURCE, "Error Parsing Total : ", r[6])
 					}
 				}
 				if r[7] != "" {
 					tx.Fees, err = decimal.NewFromString(r[7])
 					if err != nil {
-						log.Println("Error Parsing Fees : ", r[7])
+						log.Println(SOURCE, "Error Parsing Fees : ", r[7])
 					}
 				}
 				tx.Notes = r[8]
 				cb.CsvTXs = append(cb.CsvTXs, tx)
+				if tx.Timestamp.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Timestamp
+				}
+				if tx.Timestamp.After(lastTimeUsed) {
+					lastTimeUsed = tx.Timestamp
+				}
 				// Fill TXsByCategory
 				if tx.Type == "Receive" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					cb.TXsByCategory["Deposits"] = append(cb.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "Send" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					if !tx.Fees.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
@@ -102,24 +113,33 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity.Sub(tx.Fees)})
 					cb.TXsByCategory["Withdrawals"] = append(cb.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "Sell" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Buy" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: "Coinbase CSV : " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else {
-					log.Println("Coinbase : Unmanaged ", tx)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
 			}
 		}
+	}
+	cb.Sources["Coinbase"] = source.Source{
+		Crypto:        true,
+		AccountNumber: "emailAROBASEdomainPOINTcom",
+		OpeningDate:   firstTimeUsed,
+		ClosingDate:   lastTimeUsed,
+		LegalName:     "Coinbase Europe Limited",
+		Address:       "70 Sir John Rogerson’s Quay,\nDublin D02 R296\nIrlande",
+		URL:           "https://www.coinbase.com",
 	}
 	return
 }

@@ -83,6 +83,7 @@ type GetAccountTXListInternalResp struct {
 }
 
 func (api *api) getAccountTXListInternal(address string, desc bool) (accTXListInternal GetAccountTXListInternalResp, err error) {
+	const SOURCE = "Etherscan API TX List Internal :"
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
@@ -109,13 +110,13 @@ func (api *api) getAccountTXListInternal(address string, desc bool) (accTXListIn
 			SetResult(&GetAccountTXListInternalResp{}).
 			Get(api.basePath)
 		if err != nil {
-			return accTXListInternal, errors.New("Etherscan API TX List Internal : Error Requesting" + address)
+			return accTXListInternal, errors.New(SOURCE + " Error Requesting " + address)
 		}
 		accTXListInternal = *resp.Result().(*GetAccountTXListInternalResp)
 		if useCache {
 			err = db.Write("Etherscan.io/account/txlistinternal", address, accTXListInternal)
 			if err != nil {
-				return accTXListInternal, errors.New("Etherscan API TX List Internal : Error Caching" + address)
+				return accTXListInternal, errors.New(SOURCE + " Error Caching " + address)
 			}
 		}
 		if accTXListInternal.Message == "OK" {

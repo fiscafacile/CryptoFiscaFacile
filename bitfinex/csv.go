@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -23,6 +24,8 @@ type CsvTX struct {
 }
 
 func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -51,6 +54,12 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				}
 				tx.Wallet = r[6]
 				bf.CsvTXs = append(bf.CsvTXs, tx)
+				if tx.Date.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Date
+				}
+				if tx.Date.After(lastTimeUsed) {
+					lastTimeUsed = tx.Date
+				}
 				// Fill TXsByCategory
 				if strings.Contains(tx.Description, "Exchange") ||
 					strings.Contains(tx.Description, "Transfer") ||
@@ -114,9 +123,17 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 					t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-					bf.TXsByCategory["Deposits"] = append(bf.TXsByCategory["Deposits"], t)
-				} else if strings.Contains(tx.Description, "Withdrawal") ||
-					strings.Contains(tx.Description, "fork clear") {
+					if strings.Contains(tx.Description, "fork credit") {
+						bf.TXsByCategory["Forks"] = append(bf.TXsByCategory["Forks"], t)
+					} else {
+						bf.TXsByCategory["Deposits"] = append(bf.TXsByCategory["Deposits"], t)
+					}
+				} else if strings.Contains(tx.Description, "fork clear") {
+					t := wallet.TX{Timestamp: tx.Date, Note: "Bitfinex CSV : " + tx.Description}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
+					bf.TXsByCategory["Forks"] = append(bf.TXsByCategory["Forks"], t)
+				} else if strings.Contains(tx.Description, "Withdrawal") {
 					if strings.Contains(tx.Description, "fee") {
 						found := false
 						for i, ex := range bf.TXsByCategory["Withdrawals"] {
@@ -158,6 +175,15 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				}
 			}
 		}
+	}
+	bf.Sources["Bitfinex"] = source.Source{
+		Crypto:        true,
+		AccountNumber: "emailAROBASEdomainPOINTcom",
+		OpeningDate:   firstTimeUsed,
+		ClosingDate:   lastTimeUsed,
+		LegalName:     "Bitfinex",
+		Address:       "1308 Bank of America Tower, 13/F\n12 Harcourt Road, Central\nHong Kong",
+		URL:           "https://www.bitfinex.com",
 	}
 	return
 }

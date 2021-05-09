@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -24,6 +25,9 @@ type csvAppCryptoTX struct {
 }
 
 func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	hasCashback := false
 	const SOURCE = "Crypto.com App CSV Crypto :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
@@ -34,28 +38,38 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 				tx := csvAppCryptoTX{}
 				tx.Timestamp, err = time.Parse("2006-01-02 15:04:05", r[0])
 				if err != nil {
-					log.Println(SOURCE, "Error Parsing Timestamp : ", r[0])
+					log.Println(SOURCE, "Error Parsing Timestamp", r[0])
 				}
 				tx.Description = r[1]
 				tx.Currency = r[2]
 				tx.Amount, err = decimal.NewFromString(r[3])
 				if err != nil {
-					log.Println(SOURCE, "Error Parsing Amount : ", r[3])
+					log.Println(SOURCE, "Error Parsing Amount", r[3])
 				}
 				tx.ToCurrency = r[4]
 				tx.ToAmount, _ = decimal.NewFromString(r[5])
 				tx.NativeCurrency = r[6]
 				tx.NativeAmount, err = decimal.NewFromString(r[7])
 				if err != nil {
-					log.Println(SOURCE, "Error Parsing NativeAmount : ", r[7])
+					log.Println(SOURCE, "Error Parsing NativeAmount", r[7])
 				}
 				tx.NativeAmountUSD, err = decimal.NewFromString(r[8])
 				if err != nil {
-					log.Println(SOURCE, "Error Parsing NativeAmountUSD : ", r[8])
+					log.Println(SOURCE, "Error Parsing NativeAmountUSD", r[8])
 				}
 				tx.Kind = r[9]
 				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
+				if tx.Timestamp.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Timestamp
+				}
+				if tx.Timestamp.After(lastTimeUsed) {
+					lastTimeUsed = tx.Timestamp
+				}
 				// Fill TXsByCategory
+				if tx.Kind == "referral_card_cashback" ||
+					tx.Kind == "reimbursement" {
+					hasCashback = true
+				}
 				if tx.Kind == "dust_conversion_credited" ||
 					tx.Kind == "dust_conversion_debited" ||
 					tx.Kind == "interest_swap_credited" ||
@@ -177,6 +191,26 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Kind, tx, alreadyAsked)
 				}
 			}
+		}
+	}
+	cdc.Sources["CdC App"] = source.Source{
+		Crypto:        true,
+		AccountNumber: "emailAROBASEdomainPOINTcom",
+		OpeningDate:   firstTimeUsed,
+		ClosingDate:   lastTimeUsed,
+		LegalName:     "MCO Malta DAX Limited",
+		Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+		URL:           "https://crypto.com/app",
+	}
+	if hasCashback {
+		cdc.Sources["CdC MCO Card"] = source.Source{
+			Crypto:        false,
+			AccountNumber: "votre IBAN LTxxxxx",
+			OpeningDate:   firstTimeUsed,
+			ClosingDate:   lastTimeUsed,
+			LegalName:     "MCO Malta DAX Limited",
+			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+			URL:           "https://crypto.com/cards",
 		}
 	}
 	return

@@ -4,9 +4,10 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -47,8 +48,9 @@ func (hb *HitBTC) ParseCSVTransactions(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing MainAccountBalance", r[6])
 				}
-				tx.Currency = strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(r[7], "BCHSV", "BSV"), "BCHABC", "BCH"), "BCCF", "BCHOLD"))
+				tx.Currency = csvCurrencyCure(r[7])
 				hb.csvTransactionTXs = append(hb.csvTransactionTXs, tx)
+				hb.emails = utils.AppendUniq(hb.emails, tx.Email)
 				// Fill TXsByCategory
 				if tx.Type == "Deposit" {
 					t := wallet.TX{Timestamp: tx.Date, ID: tx.Hash, Note: SOURCE + " " + tx.OperationID}
@@ -66,6 +68,19 @@ func (hb *HitBTC) ParseCSVTransactions(reader io.Reader) (err error) {
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+tx.Type, tx, alreadyAsked)
 				}
+			}
+		}
+	}
+	for _, e := range hb.emails {
+		if _, ok := hb.Sources["HitBTC_"+e]; !ok {
+			hb.Sources["HitBTC_"+e] = source.Source{
+				Crypto:        true,
+				AccountNumber: utils.RemoveSymbol(e),
+				OpeningDate:   hb.api.firstTimeUsed,
+				ClosingDate:   hb.api.lastTimeUsed,
+				LegalName:     "Hit Tech Solutions Development Ltd.",
+				Address:       "Suite 15, Oliaji Trade Centre, Francis Rachel Street,\nVictoria, Mahe,\nSeychelles",
+				URL:           "https://hitbtc.com",
 			}
 		}
 	}

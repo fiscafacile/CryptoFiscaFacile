@@ -27,6 +27,7 @@ type ledgerTX struct {
 }
 
 func (api *api) getAPISpotTrades() {
+	const SOURCE = "Kraken API Trades :"
 	trades, err := api.getTrades()
 	if err != nil {
 		api.doneLedgers <- err
@@ -37,7 +38,7 @@ func (api *api) getAPISpotTrades() {
 		tx := ledgerTX{}
 		tx.Amount, err = decimal.NewFromString(tra["amount"].(string))
 		if err != nil {
-			fmt.Println("Error while parsing amount", tra["amount"].(string))
+			fmt.Println(SOURCE, "Error while parsing amount", tra["amount"].(string))
 		}
 		if val, ok := api.assets.Result.(map[string]interface{})[tra["asset"].(string)]; ok {
 			tx.Asset = val.(map[string]interface{})["altname"].(string)
@@ -49,7 +50,7 @@ func (api *api) getAPISpotTrades() {
 		tx.Class = tra["aclass"].(string)
 		tx.Fee, err = decimal.NewFromString(tra["fee"].(string))
 		if err != nil {
-			fmt.Println("Error while parsing fee", tra["fee"].(string))
+			fmt.Println(SOURCE, "Error while parsing fee", tra["fee"].(string))
 		}
 		tx.RefId = tra["refid"].(string)
 		tx.SubType = tra["subtype"].(string)
@@ -68,6 +69,7 @@ type TradesHistory struct {
 }
 
 func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
+	const SOURCE = "Kraken API Trades :"
 	fullTradeTx = make(map[string]interface{})
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
@@ -109,8 +111,8 @@ func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
 					SetResult(&TradesHistory{}).
 					Post(api.basePath + resource)
 				if err != nil || len((*resp.Result().(*TradesHistory)).Error) > 0 {
-					fmt.Println("Kraken API Trades : Error Requesting TradesHistory" + strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
-					return fullTradeTx, errors.New("Kraken API Trades : Error Requesting TradesHistory" + strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
+					fmt.Println(SOURCE, "Error Requesting TradesHistory"+strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
+					return fullTradeTx, errors.New(SOURCE + " Error Requesting TradesHistory" + strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
 				}
 			}
 			result := (*resp.Result().(*TradesHistory)).Result.(map[string]interface{})
@@ -124,7 +126,7 @@ func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
 		if useCache {
 			err = db.Write("Kraken/private", "Ledgers", fullTradeTx)
 			if err != nil {
-				return fullTradeTx, errors.New("Kraken API Trades : Error Caching TradesHistory")
+				return fullTradeTx, errors.New(SOURCE + " Error Caching TradesHistory")
 			}
 		}
 	}

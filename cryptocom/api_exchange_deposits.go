@@ -2,6 +2,7 @@ package cryptocom
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -22,6 +23,7 @@ func (api *apiEx) getDepositsTXs(loc *time.Location) {
 	thisYear := today.Year()
 	for y := thisYear; y > 2019; y-- {
 		for q := 4; q > 0; q-- {
+			fmt.Print(".")
 			depoHist, err := api.getDepositHistory(y, q, loc)
 			if err != nil {
 				api.doneDep <- err
@@ -29,7 +31,7 @@ func (api *apiEx) getDepositsTXs(loc *time.Location) {
 			}
 			for _, dep := range depoHist.Result.DepositList {
 				tx := depositTX{}
-				tx.Timestamp = time.Unix(dep.UpdateTime, 0)
+				tx.Timestamp = time.Unix(dep.UpdateTime/1000, 0)
 				tx.Description = "from " + dep.Address
 				tx.Currency = dep.Currency
 				tx.Amount = decimal.NewFromFloat(dep.Amount)
@@ -65,6 +67,7 @@ type GetDepositHistoryResp struct {
 }
 
 func (api *apiEx) getDepositHistory(year, quarter int, loc *time.Location) (depoHist GetDepositHistoryResp, err error) {
+	const SOURCE = "Crypto.com Exchange API Deposits :"
 	var start_month time.Month
 	var end_month time.Month
 	end_year := year
@@ -83,7 +86,7 @@ func (api *apiEx) getDepositHistory(year, quarter int, loc *time.Location) (depo
 		end_month = time.January
 		end_year = year + 1
 	} else {
-		err = errors.New("Crypto.com Exchange API Deposits : Invalid Quarter" + period)
+		err = errors.New(SOURCE + " Invalid Quarter" + period)
 		return
 	}
 	start_ts := time.Date(year, start_month, 1, 0, 0, 0, 0, loc)
@@ -122,16 +125,16 @@ func (api *apiEx) getDepositHistory(year, quarter int, loc *time.Location) (depo
 			SetError(&ErrorResp{}).
 			Post(api.basePath + method)
 		if err != nil {
-			return depoHist, errors.New("Crypto.com Exchange API Deposits : Error Requesting" + period)
+			return depoHist, errors.New(SOURCE + " Error Requesting" + period)
 		}
 		if resp.StatusCode() > 300 {
-			return depoHist, errors.New("Crypto.com Exchange API Deposits : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
+			return depoHist, errors.New(SOURCE + " Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
 		}
 		depoHist = *resp.Result().(*GetDepositHistoryResp)
 		if useCache {
 			err = db.Write("Crypto.com/Exchange/private/get-deposit-history", period, depoHist)
 			if err != nil {
-				return depoHist, errors.New("Crypto.com Exchange API Deposits : Error Caching" + period)
+				return depoHist, errors.New(SOURCE + " Error Caching" + period)
 			}
 		}
 		time.Sleep(api.timeBetweenReq)
