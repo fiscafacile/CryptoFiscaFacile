@@ -89,36 +89,31 @@ func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decim
 		if err == nil {
 			ratesCG, err := gecko.GetExchangeRates(date, c.Code)
 			if err == nil {
-				// log.Println("ratesCG : ", ratesCG)
 				for _, r := range ratesCG.Rates {
-					if r.Quote == to {
+					if r.Quote == to && !r.Rate.IsZero() {
 						return r.Rate, nil
 					}
 				}
-				// } else {
-				// 	log.Println("gecko.GetExchangeRates :", err)
 			}
-			// } else {
-			// 	log.Println("NewCoinGeckoAPI :", err)
 		}
 	}
 	var layer CoinLayer
 	ratesCL, err := layer.GetExchangeRates(date, to)
 	if err == nil {
-		return decimal.NewFromFloat(ratesCL.Rates[c.Code]), nil
-		// } else {
-		// 	log.Println("CoinLayer.GetExchangeRates :", err)
+		for k, v := range ratesCL.Rates {
+			if k == c.Code && v != 0 {
+				return decimal.NewFromFloat(ratesCL.Rates[c.Code]), nil
+			}
+		}
 	}
 	var api CoinAPI
 	rates, err := api.GetExchangeRates(date, to)
 	if err == nil {
 		for _, r := range rates.Rates {
-			if r.Quote == c.Code {
+			if r.Quote == c.Code && !r.Rate.IsZero() {
 				return r.Rate, nil
 			}
 		}
-		// } else {
-		// 	log.Println("CoinAPI.GetExchangeRates :", err)
 	}
 	return rate, errors.New("Cannot find rate for " + to + c.Code + " at " + date.String())
 }
