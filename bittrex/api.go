@@ -68,33 +68,25 @@ func (api *api) categorize() {
 	const SOURCE = "Bittrex API :"
 	alreadyAsked := []string{}
 	for _, tx := range api.tradeTXs {
-		found := false
-		for i := range api.txsByCategory["Exchanges"] {
-			if tx.ID == api.txsByCategory["Exchanges"][i].ID {
-				found = true
-			}
+		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Direction}
+		symbolSlice := strings.Split(tx.MarketSymbol, "-")
+		t.Items = make(map[string]wallet.Currencies)
+		if tx.Direction == "BUY" {
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+		} else if tx.Direction == "SELL" {
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+		} else {
+			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
 		}
-		if !found {
-			t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Direction}
-			symbolSlice := strings.Split(tx.MarketSymbol, "-")
-			t.Items = make(map[string]wallet.Currencies)
-			if tx.Direction == "BUY" {
-				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
-				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
-			} else if tx.Direction == "SELL" {
-				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
-				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
-			} else {
-				alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
-			}
-			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[0], Amount: tx.Commission})
-			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
-			if tx.Time.Before(api.firstTimeUsed) {
-				api.firstTimeUsed = tx.Time
-			}
-			if tx.Time.After(api.lastTimeUsed) {
-				api.lastTimeUsed = tx.Time
-			}
+		t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[0], Amount: tx.Commission})
+		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		if tx.Time.Before(api.firstTimeUsed) {
+			api.firstTimeUsed = tx.Time
+		}
+		if tx.Time.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Time
 		}
 	}
 	// Process transfer transactions
