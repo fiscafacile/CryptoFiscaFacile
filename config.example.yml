@@ -1,0 +1,42 @@
+---
+options:
+  native: EUR
+exchanges:
+  binance:
+    csv:
+      all:
+        - /var/tmp/Crypto/Binance/All_Statements_2020_Q1.csv
+        - /var/tmp/Crypto/Binance/All_Statements_2020_Q2.csv
+        - /var/tmp/Crypto/Binance/All_Statements_2020_Q3.csv
+        - /var/tmp/Crypto/Binance/All_Statements_2020_Q4.csv
+    api:
+      key: 5LTyTl4J6gZLiD3GLJo0yg0MhvQ8iJ2eSxbeXBJ1dCbvnwjdJGz68qQf6ud12nj3
+      secret: dCbvnwjdJGz68qQf6ud12nj3XVNRvzivBSmlxfOKD6J6p7OFTZvvOdmVJLMZK5Pl
+  bittrex:
+    csv:
+      all:
+        - /var/tmp/Crypto/Bittrex/2017.csv
+        - /var/tmp/Crypto/Bittrex/2018.csv
+        - /var/tmp/Crypto/Bittrex/2019.csv
+        - /var/tmp/Crypto/Bittrex/2020.csv
+    api:
+      key: c2etoUlryIsts2XMD7f2RTsUPLWwTGKi
+      secret: LJwBHjfMBwR3skCsbf1b57w8EtgUeoaj
+  kraken:
+    api:
+      key: zUnTnEbfM22zB082wb/0sNxAR1gaxXE67vdN4pXNfbcLefpcub9OG7r2
+      secret: 8cdRrvHbxud13FwiD0PwJ1vJJ\kgeM3UBgIdC5SH3C5ptlxtEvl2wZsiLN#U6lMn647U61CBRDD7XS5WtV
+  cdc-exchange:
+    csv:
+      all:
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_DEPOSIT.csv
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_SPOT_ORDER.csv
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_SPOT_TRADE.csv
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_WITHDRAWAL.csv
+      staking:
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_SOFT_STAKE_INTEREST.csv
+      - /var/tmp/Crypto/Crypto.Com/exchange/2020_STAKE_INTEREST.csv
+    json: /var/tmp/Crypto/Crypto.Com/exchange/CdC_Ex_ExportJS.json
+    api:
+      key: fwmobcHC5XlzEbaC6D0xZP
+      secret: Bv7K3l6hIIMGzUmHru6nXB
