@@ -15,3 +15,4 @@ Inputs/*
 Cache/
 CryptoFiscaFacile*
 *.xlsx
+config.yml
