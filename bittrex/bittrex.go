@@ -1,6 +1,8 @@
 package bittrex
 
 import (
+	"sync"
+
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
@@ -8,6 +10,7 @@ import (
 type Bittrex struct {
 	api           api
 	done          chan error
+	mutex         sync.Mutex
 	TXsByCategory wallet.TXsByCategory
 	Sources       source.Sources
 }
@@ -26,7 +29,28 @@ func (btrx *Bittrex) GetAPIAllTXs() {
 		btrx.done <- err
 		return
 	}
-	btrx.TXsByCategory.Add(btrx.api.txsByCategory)
+	for k, v := range btrx.api.txsByCategory {
+		if k == "Exchanges" {
+			for _, tx := range v {
+				found := false
+				for _, t := range btrx.TXsByCategory["Exchanges"] {
+					if t.ID == tx.ID {
+						found = true
+						break
+					}
+				}
+				if !found {
+					btrx.mutex.Lock()
+					btrx.TXsByCategory[k] = append(btrx.TXsByCategory[k], tx)
+					btrx.mutex.Unlock()
+				}
+			}
+		} else {
+			btrx.mutex.Lock()
+			btrx.TXsByCategory[k] = append(btrx.TXsByCategory[k], v...)
+			btrx.mutex.Unlock()
+		}
+	}
 	if _, ok := btrx.Sources["Bittrex"]; ok {
 		if btrx.Sources["Bittrex"].OpeningDate.After(btrx.api.firstTimeUsed) {
 			src := btrx.Sources["Bittrex"]
