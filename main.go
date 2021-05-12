@@ -9,6 +9,7 @@ import (
 
 	"github.com/fiscafacile/CryptoFiscaFacile/binance"
 	"github.com/fiscafacile/CryptoFiscaFacile/bitfinex"
+	"github.com/fiscafacile/CryptoFiscaFacile/bitstamp"
 	"github.com/fiscafacile/CryptoFiscaFacile/bittrex"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockchain"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockstream"
@@ -55,6 +56,9 @@ func main() {
 	pBinanceCSV := flag.String("binance", "", "Binance CSV file")
 	pBinanceCSVExtended := flag.Bool("binance_extended", false, "Use Binance CSV file extended format")
 	pBitfinexCSV := flag.String("bitfinex", "", "Bitfinex CSV file")
+	pBitstampCSV := flag.String("bitstamp", "", "Bitstamp CSV file")
+	pBitstampAPIKey := flag.String("bitstamp_api_key", "", "Bitstamp API Key")
+	pBitstampSecretKey := flag.String("bitstamp_secret_key", "", "Bitstamp Secret Key")
 	pBittrexAPIKey := flag.String("bittrex_api_key", "", "Bittrex API key")
 	pBittrexAPISecret := flag.String("bittrex_api_secret", "", "Bittrex API secret")
 	pBittrexCSV := flag.String("bittrex", "", "Bittrex CSV file")
@@ -126,6 +130,11 @@ func main() {
 		ethsc.NewAPI(*pEtherscanAPIKey, *pDebug)
 		go ethsc.GetAPITXs(*categ)
 	}
+	bs := bitstamp.New()
+	if *pBitstampAPIKey != "" && *pBitstampSecretKey != "" {
+		bs.NewAPI(*pBitstampAPIKey, *pBitstampSecretKey, *pDebug)
+		go bs.GetAPIAllTXs()
+	}
 	btrx := bittrex.New()
 	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
 		btrx.NewAPI(*pBittrexAPIKey, *pBittrexAPISecret, *pDebug)
@@ -180,6 +189,16 @@ func main() {
 		err = bf.ParseCSV(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Bitfinex CSV file:", err)
+		}
+	}
+	if *pBitstampCSV != "" {
+		recordFile, err := os.Open(*pBitstampCSV)
+		if err != nil {
+			log.Fatal("Error opening Bitstamp CSV file:", err)
+		}
+		err = bs.ParseCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Bitstamp CSV file:", err)
 		}
 	}
 	if *pBittrexCSV != "" {
@@ -338,6 +357,12 @@ func main() {
 		}
 	}
 	// Wait for API access to finish
+	if *pBitstampAPIKey != "" && *pBitstampSecretKey != "" {
+		err := bs.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting BiTstamp API TXs:", err)
+		}
+	}
 	if *pCdCExAPIKey != "" && *pCdCExSecretKey != "" {
 		err := cdc.WaitFinish()
 		if err != nil {
@@ -390,6 +415,7 @@ func main() {
 		sources := make(source.Sources)
 		sources.Add(b.Sources)
 		sources.Add(bf.Sources)
+		sources.Add(bs.Sources)
 		sources.Add(btrx.Sources)
 		sources.Add(cb.Sources)
 		sources.Add(cdc.Sources)
@@ -406,6 +432,7 @@ func main() {
 	global := make(wallet.TXsByCategory)
 	global.Add(b.TXsByCategory)
 	global.Add(bf.TXsByCategory)
+	global.Add(bs.TXsByCategory)
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
 	global.Add(cdc.TXsByCategory)

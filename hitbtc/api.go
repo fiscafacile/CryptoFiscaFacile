@@ -91,26 +91,6 @@ func (api *api) categorize() {
 			api.lastTimeUsed = tx.UpdatedAt
 		}
 	}
-	/*
-		ID            int             // 9535486,
-		OrderID       int             // 816088377,
-		ClientOrderID string          // "f8dbaab336d44d5ba3ff578098a68454",
-		Symbol        string          // "ETHBTC",
-		Side          string          // "sell",
-		Quantity      decimal.Decimal // "0.061",
-		Price         decimal.Decimal // "0.045487",
-		Fee           decimal.Decimal // "0.000002775",
-		Timestamp     time.Time       // "2017-05-17T12:32:57.848Z"*/
-	/*
-		ID            int
-		OrderID       int
-		ClientOrderID string
-		Symbol        string
-		Side          string
-		Quantity      decimal.Decimal
-		Price         decimal.Decimal
-		Fee           decimal.Decimal
-		Timestamp     time.Time*/
 	for _, tx := range api.tradeTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, ID: strconv.Itoa(tx.ID), Note: SOURCE + " " + tx.ClientOrderID}
 		t.Items = make(map[string]wallet.Currencies)
