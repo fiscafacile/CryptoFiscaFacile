@@ -91,17 +91,15 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 							found = true
 						}
 					}
-					btrx.mutex.Unlock()
 					if !found {
 						t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex CSV : " + tx.Operation, ID: tx.ID}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
-						btrx.mutex.Lock()
 						btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
-						btrx.mutex.Unlock()
 					}
+					btrx.mutex.Unlock()
 				} else {
 					log.Println("Bittrex CSV : Unmanaged operation -> ", tx.Operation)
 				}

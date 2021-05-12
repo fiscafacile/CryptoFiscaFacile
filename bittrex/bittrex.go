@@ -29,6 +29,7 @@ func (btrx *Bittrex) GetAPIAllTXs() {
 		btrx.done <- err
 		return
 	}
+	btrx.mutex.Lock()
 	for k, v := range btrx.api.txsByCategory {
 		if k == "Exchanges" {
 			for _, tx := range v {
@@ -40,17 +41,14 @@ func (btrx *Bittrex) GetAPIAllTXs() {
 					}
 				}
 				if !found {
-					btrx.mutex.Lock()
 					btrx.TXsByCategory[k] = append(btrx.TXsByCategory[k], tx)
-					btrx.mutex.Unlock()
 				}
 			}
 		} else {
-			btrx.mutex.Lock()
 			btrx.TXsByCategory[k] = append(btrx.TXsByCategory[k], v...)
-			btrx.mutex.Unlock()
 		}
 	}
+	btrx.mutex.Unlock()
 	if _, ok := btrx.Sources["Bittrex"]; ok {
 		if btrx.Sources["Bittrex"].OpeningDate.After(btrx.api.firstTimeUsed) {
 			src := btrx.Sources["Bittrex"]

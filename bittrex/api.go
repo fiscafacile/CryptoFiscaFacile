@@ -74,13 +74,18 @@ func (api *api) categorize() {
 		if tx.Direction == "BUY" {
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			if !tx.Commission.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Commission})
+			}
 		} else if tx.Direction == "SELL" {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			if !tx.Commission.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Commission})
+			}
 		} else {
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
 		}
-		t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[0], Amount: tx.Commission})
 		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 		if tx.Time.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Time
