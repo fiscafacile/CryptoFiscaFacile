@@ -111,8 +111,8 @@ func (api *api) getTrades() (fullTradeTx map[string]interface{}, err error) {
 					SetResult(&TradesHistory{}).
 					Post(api.basePath + resource)
 				if err != nil || len((*resp.Result().(*TradesHistory)).Error) > 0 {
-					fmt.Println(SOURCE, "Error Requesting TradesHistory"+strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
-					return fullTradeTx, errors.New(SOURCE + " Error Requesting TradesHistory" + strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
+					fmt.Println(SOURCE, "Error Requesting TradesHistory "+strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
+					return fullTradeTx, errors.New(SOURCE + " Error Requesting TradesHistory " + strings.Join((*resp.Result().(*TradesHistory)).Error, ""))
 				}
 			}
 			result := (*resp.Result().(*TradesHistory)).Result.(map[string]interface{})

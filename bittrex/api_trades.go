@@ -124,7 +124,9 @@ func (api *api) getTrades() (tradesResp GetTradeResponse, err error) {
 			}
 			trades := *resp.Result().(*GetTradeResponse)
 			lastResponseCount = len(trades)
-			lastObjectId = trades[lastResponseCount-1].ID
+			if lastResponseCount > 0 {
+				lastObjectId = trades[lastResponseCount-1].ID
+			}
 			tradesResp = append(tradesResp, trades...)
 			time.Sleep(api.timeBetweenReq)
 		}
