@@ -248,7 +248,7 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 	// plus-values réalisées, quelle que soit leur date de réalisation.
 	date2019Jan1 := time.Date(2019, time.January, 1, 0, 0, 0, 0, loc)
 	globalWallet2019Jan1 := global.GetWallets(date2019Jan1, false, true)
-	// globalWallet2019Jan1.Println("2019 Jan 1st Global")
+	// globalWallet2019Jan1.Println("2019 Jan 1st Global", "")
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs
 	for k := range global {
@@ -262,8 +262,7 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 			globalWallet2019Jan1.Println("2019 Jan 1st Global", "")
 			return errors.New("Erreur : votre stock initial de " + crypto + " au 1 Janvier 2019 a un montant négatif, il doit manquer des transactions !")
 		}
-		var amountToFind decimal.Decimal
-		amountToFind = quantity
+		amountToFind := quantity
 		var fifoValue decimal.Decimal
 		var valuedTXs []ValuedTX
 		for _, tx := range allTXs {
@@ -274,37 +273,43 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 					QtyToFind: amountToFind,
 					TX:        tx,
 				}
-				c := wallet.Currency{Code: crypto}
-				rate, err := c.GetExchangeRate(tx.Timestamp, native)
-				if err != nil {
-					log.Println(err)
-				} else {
-					for _, c := range tx.Items["To"] {
-						if c.Code == crypto {
-							if amountToFind.LessThan(c.Amount) {
-								vtx.QtyIn = vtx.QtyIn.Add(amountToFind)
-							} else {
-								vtx.QtyIn = vtx.QtyIn.Add(c.Amount)
-							}
-							amountToFind = amountToFind.Sub(c.Amount)
+				for _, c := range tx.Items["To"] {
+					if c.Code == crypto {
+						if amountToFind.LessThan(c.Amount) {
+							vtx.QtyIn = vtx.QtyIn.Add(amountToFind)
+						} else {
+							vtx.QtyIn = vtx.QtyIn.Add(c.Amount)
+						}
+						amountToFind = amountToFind.Sub(c.Amount)
+					}
+				}
+				// ... and the ones consumpting the wanted crypto
+				for _, c := range tx.Items["From"] {
+					if c.Code == crypto {
+						vtx.QtyOut = vtx.QtyOut.Add(c.Amount)
+						amountToFind = amountToFind.Add(c.Amount)
+					}
+				}
+				for _, c := range tx.Items["Fee"] {
+					if c.Code == crypto {
+						vtx.QtyOut = vtx.QtyOut.Add(c.Amount)
+						amountToFind = amountToFind.Add(c.Amount)
+					}
+				}
+				vtx.NativeValue = vtx.QtyIn.Sub(vtx.QtyOut)
+				if !vtx.NativeValue.IsZero() {
+					c := wallet.Currency{Code: crypto}
+					rate, err := c.GetExchangeRate(tx.Timestamp, native)
+					if err != nil {
+						// Allow to look for rate on the next day as for Forks, no rate available on fork day !
+						rate, err = c.GetExchangeRate(tx.Timestamp.Add(24*time.Hour), native)
+						if err != nil {
+							log.Println(err)
 						}
 					}
-					// ... and the ones consumpting the wanted crypto
-					for _, c := range tx.Items["From"] {
-						if c.Code == crypto {
-							vtx.QtyOut = vtx.QtyOut.Add(c.Amount)
-							amountToFind = amountToFind.Add(c.Amount)
-						}
-					}
-					for _, c := range tx.Items["Fee"] {
-						if c.Code == crypto {
-							vtx.QtyOut = vtx.QtyOut.Add(c.Amount)
-							amountToFind = amountToFind.Add(c.Amount)
-						}
-					}
-					vtx.NativeValue = rate.Mul(vtx.QtyIn).Sub(rate.Mul(vtx.QtyOut))
-					if !vtx.NativeValue.IsZero() {
+					if err == nil {
 						fmt.Print(".")
+						vtx.NativeValue = vtx.NativeValue.Mul(rate)
 						fifoValue = fifoValue.Add(vtx.NativeValue)
 						vtx.ValeurPEPS = fifoValue
 						valuedTXs = append(valuedTXs, vtx)

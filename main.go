@@ -8,6 +8,7 @@ import (
 
 	"github.com/fiscafacile/CryptoFiscaFacile/binance"
 	"github.com/fiscafacile/CryptoFiscaFacile/bitfinex"
+	"github.com/fiscafacile/CryptoFiscaFacile/bitstamp"
 	"github.com/fiscafacile/CryptoFiscaFacile/bittrex"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockchain"
 	"github.com/fiscafacile/CryptoFiscaFacile/blockstream"
@@ -77,6 +78,17 @@ func main() {
 	if len(config.Blockchains.ETH.CSV) > 0 {
 		ethsc.NewAPI(config.Tools.EtherScan.Key, config.Options.Debug)
 		go ethsc.GetAPITXs(*categ)
+	}
+	bs := bitstamp.New()
+	if *pBitstampAPIKey != "" && *pBitstampSecretKey != "" {
+		bs.NewAPI(*pBitstampAPIKey, *pBitstampSecretKey, *pDebug)
+		go bs.GetAPIAllTXs()
+	}
+	btrx := bittrex.New()
+	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
+		btrx.NewAPI(*pBittrexAPIKey, *pBittrexAPISecret, *pDebug)
+		fmt.Println("Début de récupération des TXs par l'API Bittrex (attention ce processus peut être long la première fois)...")
+		go btrx.GetAPIAllTXs()
 	}
 	cdc := cryptocom.New()
 	if config.Exchanges.CdcEx.API.Key != "" && config.Exchanges.CdcEx.API.Secret != "" {
@@ -291,6 +303,12 @@ func main() {
 		}
 	}
 	// Wait for API access to finish
+	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
+		err := bs.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting BiTstamp API TXs:", err)
+		}
+	}
 	if config.Exchanges.CdcEx.API.Key != "" && config.Exchanges.CdcEx.API.Secret != "" {
 		err := cdc.WaitFinish()
 		if err != nil {
@@ -310,13 +328,9 @@ func main() {
 		}
 	}
 	if config.Exchanges.Bittrex.API.Key != "" && config.Exchanges.Bittrex.API.Secret != "" {
-		errTransfer := btrx.WaitTransfersFinish()
-		if errTransfer != nil {
-			log.Fatalln("Error parsing Bittrex API transfers:", errTransfer)
-		}
-		errTrades := btrx.WaitTradesFinish()
-		if errTrades != nil {
-			log.Fatalln("Error parsing Bittrex API trades:", errTrades)
+		err := btrx.WaitFinish()
+		if err != nil {
+			log.Fatal("Error getting Bittrex API TXs:", err)
 		}
 	}
 	if config.Exchanges.Kraken.API.Key != "" && config.Exchanges.Kraken.API.Secret != "" {
@@ -347,6 +361,8 @@ func main() {
 		sources := make(source.Sources)
 		sources.Add(b.Sources)
 		sources.Add(bf.Sources)
+		sources.Add(bs.Sources)
+		sources.Add(btrx.Sources)
 		sources.Add(cb.Sources)
 		sources.Add(cdc.Sources)
 		sources.Add(hb.Sources)
@@ -362,6 +378,7 @@ func main() {
 	global := make(wallet.TXsByCategory)
 	global.Add(b.TXsByCategory)
 	global.Add(bf.TXsByCategory)
+	global.Add(bs.TXsByCategory)
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
