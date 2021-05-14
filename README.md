@@ -24,6 +24,12 @@ $ go get -u github.com/fiscafacile/CryptoFiscaFacile
 
 Le binaire de l'outil sera généré sur votre PC, vous pourrez le lancer en ligne de commande (donc dans un terminal) avec les [Options](#configuration) nécessaires à vos besoins.
 
+Pour mettre à jour, il suffit de relancer la commande :
+
+```bash
+$ go get -u github.com/fiscafacile/CryptoFiscaFacile
+```
+
 ## Utilisation
 
 ### Principe de fonctionnement
