@@ -9,7 +9,7 @@ require (
 	github.com/go-resty/resty/v2 v2.6.0
 	github.com/google/uuid v1.2.0
 	github.com/jcelliott/lumber v0.0.0-20160324203708-dd349441af25 // indirect
-	github.com/nanmu42/etherscan-api v1.2.0
+	github.com/kr/pretty v0.2.1 // indirect
 	github.com/nanobox-io/golang-scribble v0.0.0-20190309225732-aa3e7c118975
 	github.com/shopspring/decimal v1.2.0
 	github.com/spf13/pflag v1.0.5

@@ -33,9 +33,6 @@ func main() {
 	// Configuration
 	config, err := cfg.LoadConfig()
 	if err != nil {
-	pBitstampCSV := flag.String("bitstamp", "", "Bitstamp CSV file")
-	pBitstampAPIKey := flag.String("bitstamp_api_key", "", "Bitstamp API Key")
-	pBitstampSecretKey := flag.String("bitstamp_secret_key", "", "Bitstamp Secret Key")
 		log.Fatal(err)
 	}
 	if config.Tools.CoinAPI.Key != "" {
@@ -83,14 +80,13 @@ func main() {
 		go ethsc.GetAPITXs(*categ)
 	}
 	bs := bitstamp.New()
-	if *pBitstampAPIKey != "" && *pBitstampSecretKey != "" {
-		bs.NewAPI(*pBitstampAPIKey, *pBitstampSecretKey, *pDebug)
+	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
+		bs.NewAPI(config.Exchanges.Bitstamp.API.Key, config.Exchanges.Bitstamp.API.Secret, config.Options.Debug)
 		go bs.GetAPIAllTXs()
 	}
 	btrx := bittrex.New()
-	if *pBittrexAPIKey != "" && *pBittrexAPISecret != "" {
-		btrx.NewAPI(*pBittrexAPIKey, *pBittrexAPISecret, *pDebug)
-		fmt.Println("Début de récupération des TXs par l'API Bittrex (attention ce processus peut être long la première fois)...")
+	if config.Exchanges.Bittrex.API.Key != "" && config.Exchanges.Bittrex.API.Secret != "" {
+		btrx.NewAPI(config.Exchanges.Bittrex.API.Key, config.Exchanges.Bittrex.API.Secret, config.Options.Debug)
 		go btrx.GetAPIAllTXs()
 	}
 	cdc := cryptocom.New()
@@ -143,8 +139,8 @@ func main() {
 			log.Fatal("Error parsing Bitfinex CSV file:", err)
 		}
 	}
-	if *pBitstampCSV != "" {
-		recordFile, err := os.Open(*pBitstampCSV)
+	for _, file := range config.Exchanges.Bitstamp.CSV.All {
+		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Bitstamp CSV file:", err)
 		}
@@ -152,12 +148,6 @@ func main() {
 		if err != nil {
 			log.Fatal("Error parsing Bitstamp CSV file:", err)
 		}
-	}
-	if config.Exchanges.Bittrex.API.Key != "" && config.Exchanges.Bittrex.API.Secret != "" {
-		go btrx.GetAllTransferTXs(config.Exchanges.Bittrex.API.Key, config.Exchanges.Bittrex.API.Secret, *categ)
-		go btrx.GetAllTradeTXs(config.Exchanges.Bittrex.API.Key, config.Exchanges.Bittrex.API.Secret, *categ)
-	} else if len(config.Exchanges.Bittrex.CSV.All) > 0 {
-		log.Println("Bittrex: Warning, you should provide your API Key/Secret to retrieve Deposits and Withdrawals")
 	}
 	for _, file := range config.Exchanges.Bittrex.CSV.All {
 		recordFile, err := os.Open(file)
@@ -167,6 +157,7 @@ func main() {
 		err = btrx.ParseCSV(recordFile)
 		if err != nil {
 			log.Fatal("Error parsing Bittrex CSV file:", err)
+		}
 	}
 	cb := coinbase.New()
 	for _, file := range config.Exchanges.Coinbase.CSV.All {
@@ -314,7 +305,7 @@ func main() {
 		}
 	}
 	// Wait for API access to finish
-	if *pBitstampAPIKey != "" && *pBitstampSecretKey != "" {
+	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
 		err := bs.WaitFinish()
 		if err != nil {
 			log.Fatal("Error getting BiTstamp API TXs:", err)

@@ -45,6 +45,7 @@ type ExchangeConfig struct {
 type Exchanges struct {
 	Binance       ExchangeConfig `yaml:"binance"`
 	Bitfinex      ExchangeConfig `yaml:"bitfinex"`
+	Bitstamp      ExchangeConfig `yaml:"bitstamp"`
 	Bittrex       ExchangeConfig `yaml:"bittrex"`
 	CdcApp        ExchangeConfig `yaml:"cdc-app"`
 	CdcEx         ExchangeConfig `yaml:"cdc-exchange"`
