@@ -1,14 +1,15 @@
 package binance
 
 import (
-	"time"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
+	"time"
 )
 
 type Binance struct {
-	api            api
+	api           api
 	csvTXs        []csvTX
+	done          chan error
 	TXsByCategory wallet.TXsByCategory
 	Sources       source.Sources
 }
