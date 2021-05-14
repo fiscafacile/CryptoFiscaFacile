@@ -26,9 +26,11 @@ type CsvTX struct {
 func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Bitfinex CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		for _, r := range records {
 			if r[0] != "#" {
 				tx := CsvTX{}
@@ -42,15 +44,15 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				tx.Currency = strings.ReplaceAll(r[2], "BAB", "BCH")
 				tx.Amount, err = decimal.NewFromString(r[3])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[3])
+					log.Println(SOURCE, "Error Parsing Amount", r[3])
 				}
 				tx.Balance, err = decimal.NewFromString(r[4])
 				if err != nil {
-					log.Println("Error Parsing Balance : ", r[4])
+					log.Println(SOURCE, "Error Parsing Balance", r[4])
 				}
 				tx.Date, err = time.Parse("02-01-06 15:04:05", r[5])
 				if err != nil {
-					log.Println("Error Parsing Date : ", r[5])
+					log.Println(SOURCE, "Error Parsing Date", r[5])
 				}
 				tx.Wallet = r[6]
 				bf.CsvTXs = append(bf.CsvTXs, tx)
@@ -171,7 +173,7 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 						}
 					}
 				} else {
-					log.Println("Bitfinex : Unmanaged ", tx.Description)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Description, tx, alreadyAsked)
 				}
 			}
 		}

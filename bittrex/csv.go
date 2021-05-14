@@ -28,9 +28,11 @@ type csvTX struct {
 func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Bittrex CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		for _, r := range records {
 			if r[0] != "Uuid" {
 				tx := csvTX{}
@@ -50,20 +52,20 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				tx.Operation = rplcr.Replace(r[3])
 				quantity, err := decimal.NewFromString(r[5])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[5])
+					log.Println(SOURCE, "Error Parsing quantity", r[5])
 				}
 				quantityRemaining, err := decimal.NewFromString(r[6])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[6])
+					log.Println(SOURCE, "Error Parsing quantityRemaining", r[6])
 				}
 				tx.Fee, err = decimal.NewFromString(r[7])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[7])
+					log.Println(SOURCE, "Error Parsing Fee", r[7])
 				}
 				tx.FeeCurrency = symbolSlice[0]
 				price, err := decimal.NewFromString(r[8])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[8])
+					log.Println(SOURCE, "Error Parsing price", r[8])
 				}
 				if tx.Time.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Time
@@ -101,7 +103,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 					}
 					btrx.mutex.Unlock()
 				} else {
-					log.Println("Bittrex CSV : Unmanaged operation -> ", tx.Operation)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
 				}
 			}
 		}

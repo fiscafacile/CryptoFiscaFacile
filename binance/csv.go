@@ -24,27 +24,29 @@ type csvTX struct {
 func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Binance CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		for _, r := range records {
 			if r[0] != "UTC_Time" {
 				tx := csvTX{}
 				tx.Time, err = time.Parse("2006-01-02 15:04:05", r[0])
 				if err != nil {
-					log.Println("Error Parsing Time : ", r[0])
+					log.Println(SOURCE, "Error Parsing Time", r[0])
 				}
 				tx.Account = r[1]
 				tx.Operation = r[2]
 				tx.Coin = r[3]
 				tx.Change, err = decimal.NewFromString(r[4])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[4])
+					log.Println(SOURCE, "Error Parsing Amount", r[4])
 				}
 				if extended {
 					tx.Fee, err = decimal.NewFromString(r[5])
 					if err != nil {
-						log.Println("Error Parsing Fee : ", r[5])
+						log.Println(SOURCE, "Error Parsing Fee", r[5])
 					}
 					tx.Remark = r[6]
 				} else {
@@ -114,7 +116,7 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 					}
 					b.TXsByCategory["Withdrawals"] = append(b.TXsByCategory["Withdrawals"], t)
 				} else {
-					log.Println("Binance : Unmanaged ", tx.Operation)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
 				}
 			}
 		}

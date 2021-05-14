@@ -24,16 +24,20 @@ type csvTX struct {
 }
 
 func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
+	firstTimeUsed := time.Now()
+	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
+	const SOURCE = "Kraken CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
+		alreadyAsked := []string{}
 		for _, r := range records {
 			// Ignore duplicate when no TxIx
 			if r[0] != "" && r[0] != "txid" {
 				tx := csvTX{}
 				tx.Time, err = time.Parse("2006-01-02 15:04:05", r[2])
 				if err != nil {
-					log.Println("Error Parsing Time : ", r[2])
+					log.Println(SOURCE, "Error Parsing Time", r[2])
 				}
 				tx.TxId = r[0]
 				tx.RefId = r[1]
@@ -43,21 +47,27 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 				tx.Asset = ReplaceAssets(r[6])
 				tx.Amount, err = decimal.NewFromString(r[7])
 				if err != nil {
-					log.Println("Error Parsing Amount : ", r[7])
+					log.Println(SOURCE, "Error Parsing Amount", r[7])
 				}
 				tx.Fee, err = decimal.NewFromString(r[8])
 				if err != nil {
-					log.Println("Error Parsing Fee : ", r[8])
+					log.Println(SOURCE, "Error Parsing Fee", r[8])
 				}
 				if tx.TxId == "" {
 					tx.Balance, err = decimal.NewFromString(r[9])
 					if err != nil {
-						log.Println("Error Parsing Amount : ", r[9])
+						log.Println(SOURCE, "Error Parsing Balance", r[9])
 					}
 				} else {
 					tx.Balance = decimal.NewFromInt(0)
 				}
 				kr.csvTXs = append(kr.csvTXs, tx)
+				if tx.Time.Before(firstTimeUsed) {
+					firstTimeUsed = tx.Time
+				}
+				if tx.Time.After(lastTimeUsed) {
+					lastTimeUsed = tx.Time
+				}
 				// Fill TXsByCategory
 				if tx.Type == "trade" {
 					found := false
@@ -119,7 +129,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					// Ignore transfer because it's a intra-account transfert
 					// is there some Fees to consider ?
 				} else {
-					log.Println("Kraken : Unmanaged ", tx.Type)
+					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
 			}
 		}

@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/fiscafacile/CryptoFiscaFacile/btc"
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -135,6 +134,7 @@ func (blkst *Blockstream) GetAddressBalanceAtDate(add string, date time.Time) (b
 }
 
 func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
+	const SOURCE = "Blockstream API :"
 	for _, btc := range b.CSVAddresses {
 		apiTXs, err := blkst.GetAddressTXs(btc.Address)
 		if err != nil {
@@ -153,6 +153,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 			}
 		}
 	}
+	alreadyAsked := []string{}
 	for i, tx := range blkst.apiTXs {
 		if !tx.used {
 			valueIn := 0
@@ -172,7 +173,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 				}
 			}
 			if isInVinPrevVout && missing != "" {
-				log.Println("Blockstream API : found co-signed address", missing[11:], "with", with)
+				log.Println(SOURCE, "found co-signed address", missing[11:], "with", with)
 			}
 			valueOut := 0
 			isInVout := false
@@ -189,8 +190,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 				}
 			}
 			if valueIn+valueOut == 0 {
-				log.Println("Blockstream API : Detected zero Value TX")
-				// spew.Dump(tx)
+				alreadyAsked = wallet.AskForHelp(SOURCE+" zero Value TX", tx, alreadyAsked)
 			}
 			if isInVinPrevVout {
 				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid + dest + missing}
@@ -250,8 +250,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 				}
 				blkst.apiTXs[i].used = true
 			} else {
-				log.Println("Blockstream API : Unmanaged TX")
-				spew.Dump(tx)
+				alreadyAsked = wallet.AskForHelp(SOURCE, tx, alreadyAsked)
 			}
 		}
 	}
