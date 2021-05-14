@@ -1,0 +1,139 @@
+---
+blockchains:
+  BTC:
+    csv:
+      # - Inputs/BTC/BTC_Addresses.csv
+  BTG:
+    csv:
+      # - Inputs/BTG/BTG_Addresses.csv
+    json: # Inputs/BTG/BTG_Transacations.json
+  ETH:
+    csv:
+      # - Inputs/ETH/ETH_Addresses.csv
+exchanges:
+  binance:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      all:
+        # - Inputs/Binance/All_Statements_2020_Q1.csv
+        # - Inputs/Binance/All_Statements_2020_Q2.csv
+        # - Inputs/Binance/All_Statements_2020_Q3.csv
+        # - Inputs/Binance/All_Statements_2020_Q4.csv
+  bitfinex:
+    csv:
+      all:
+        # - Inputs/Bitfinex/2017.csv
+        # - Inputs/Bitfinex/2018.csv
+        # - Inputs/Bitfinex/2019.csv
+        # - Inputs/Bitfinex/2020.csv
+  bitstamp:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      all:
+        # - Inputs/Bitstamp/All_Statements_2020_Q1.csv
+        # - Inputs/Bitstamp/All_Statements_2020_Q2.csv
+        # - Inputs/Bitstamp/All_Statements_2020_Q3.csv
+        # - Inputs/Bitstamp/All_Statements_2020_Q4.csv
+  bittrex:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      all:
+        # - Inputs/Bittrex/2017.csv
+        # - Inputs/Bittrex/2018.csv
+        # - Inputs/Bittrex/2019.csv
+        # - Inputs/Bittrex/2020.csv
+  coinbase:
+    csv:
+      all:
+        # - Inputs/Coinbase/2017.csv
+        # - Inputs/Coinbase/2018.csv
+        # - Inputs/Coinbase/2019.csv
+        # - Inputs/Coinbase/2020.csv
+  cdc-app:
+    csv:
+      all:
+        # - Inputs/Crypto.com/app/2019.csv
+        # - Inputs/Crypto.com/app/2020.csv
+  cdc-exchange:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      all:
+      # - Inputs/Crypto.Com/exchange/2020_DEPOSIT.csv
+      # - Inputs/Crypto.Com/exchange/2020_SPOT_ORDER.csv
+      # - Inputs/Crypto.Com/exchange/2020_SPOT_TRADE.csv
+      # - Inputs/Crypto.Com/exchange/2020_WITHDRAWAL.csv
+      staking:
+      # - Inputs/Crypto.Com/exchange/2020_SOFT_STAKE_INTEREST.csv
+      # - Inputs/Crypto.Com/exchange/2020_STAKE_INTEREST.csv
+    json: # Inputs/Crypto.Com/exchange/CdC_Ex_ExportJS.json
+  hitbtc:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      trades:
+      # - Inputs/HitBTC/2019_Trades.csv
+      # - Inputs/HitBTC/2020_Trades.csv
+      transfers:
+      # - Inputs/HitBTC/2019_Transactions.csv
+      # - Inputs/HitBTC/2020_Transactions.csv
+  kraken:
+    api:
+      # key: <votre api_key ici>
+      # secret: <votre api_secret ici>
+    csv:
+      all:
+      # - Inputs/Kraken/2017.csv
+      # - Inputs/Kraken/2018.csv
+      # - Inputs/Kraken/2019.csv
+      # - Inputs/Kraken/2020.csv
+  localbitcoin:
+    csv:
+      trades:
+      # - Inputs/LocalBitcoin/2019_Trades.csv
+      # - Inputs/LocalBitcoin/2020_Trades.csv
+      transfers:
+      # - Inputs/LocalBitcoin/2019_Transfers.csv
+      # - Inputs/LocalBitcoin/2020_Transfers.csv
+  revolut:
+    csv:
+      all:
+      # - Inputs/Revolut/2019.csv
+      # - Inputs/Revolut/2020.csv
+options:
+  bcd: yes
+  bch: yes
+  binance-extended: no
+  btg: no
+  lbtc: no
+  location: Europe/Paris
+  native: EUR
+  stats: yes
+  txs-categ: # Inputs/TXS_Categ.csv
+tools:
+  coinapi:
+    api:
+      # key: <votre api_key ici>
+  coinlayer:
+    api:
+      # key: <votre api_key ici>
+  etherscan:
+    api:
+      # key: <votre api_key ici>
+wallets:
+  ledgerlive:
+    csv:
+      all:
+      # - Inputs/LedgerLive/LedgerLive.csv
+  mycelium:
+    csv:
+      all:
+      # - Inputs/MyCelium/MyCelium.csv
