@@ -120,14 +120,11 @@ options:
   txs-categ: # Inputs/TXS_Categ.csv
 tools:
   coinapi:
-    api:
-      # key: <votre api_key ici>
+    # key: <votre api_key ici>
   coinlayer:
-    api:
-      # key: <votre api_key ici>
+    # key: <votre api_key ici>
   etherscan:
-    api:
-      # key: <votre api_key ici>
+    # key: <votre api_key ici>
 wallets:
   ledgerlive:
     csv:

@@ -175,7 +175,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Crypto.com CSV file:", err)
 		}
-		err = cdc.ParseCSVAppCrypto(recordFile)
+		err = cdc.ParseCSVAppCrypto(recordFile, *categ)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
 		}

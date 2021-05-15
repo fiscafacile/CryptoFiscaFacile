@@ -34,7 +34,7 @@ func (api *api) getTradesTXs() {
 		tx.ID = tra.ID
 		tx.OrderID = tra.OrderID
 		tx.ClientOrderID = tra.ClientOrderID
-		tx.Symbol = tra.Symbol
+		tx.Symbol = apiCurrencyCure(tra.Symbol)
 		tx.Side = tra.Side
 		tx.Quantity, err = decimal.NewFromString(tra.Quantity)
 		if err != nil {

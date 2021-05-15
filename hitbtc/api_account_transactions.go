@@ -40,7 +40,7 @@ func (api *api) getAccountTXs() {
 		tx.Type = t.Type
 		tx.Subtype = t.Subtype
 		tx.Status = t.Status
-		tx.Currency = t.Currency
+		tx.Currency = apiCurrencyCure(t.Currency)
 		tx.Amount, err = decimal.NewFromString(t.Amount)
 		if err != nil {
 			log.Println(SOURCE, "Error Parsing Amount : ", t.Amount)

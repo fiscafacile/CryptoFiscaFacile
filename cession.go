@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -14,6 +15,8 @@ import (
 )
 
 type Cession struct {
+	Source                               string
+	Note                                 string
 	Date211                              time.Time
 	ValeurPortefeuille212                decimal.Decimal
 	Prix213                              decimal.Decimal
@@ -75,6 +78,9 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
 			if tx.Items["To"][0].IsFiat() { // CashOut
 				c := Cession{Date211: tx.Timestamp}
+				infos := strings.SplitN(tx.Note, ":", 2)
+				c.Source = infos[0]
+				c.Note = infos[1]
 				// Valeur globale du portefeuille au moment de la cession
 				// Il s’agit de la somme des valeurs, évaluées au moment de la cession
 				// imposable, des différents actifs numériques et droits s'y rapportant,
@@ -437,6 +443,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 			if c.Date211.After(time.Date(year, time.January, 1, 0, 0, 0, 0, time.UTC)) {
 				if c.Date211.Before(time.Date(year, time.December, 31, 23, 59, 59, 999, time.UTC)) {
 					f.SetCellValue(sheet, col+"1", "#"+strconv.Itoa(count))
+					f.AddComment(sheet, col+"1", `{"author":"`+c.Source+`: ","text":"`+c.Note+`"}`)
 					f.SetCellValue(sheet, col+"2", c.Date211.Format("02/01/2006"))
 					f.SetCellValue(sheet, col+"3", c.ValeurPortefeuille212.RoundBank(0).IntPart())
 					f.SetCellValue(sheet, col+"4", c.Prix213.RoundBank(0).IntPart())

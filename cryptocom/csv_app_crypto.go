@@ -1,17 +1,21 @@
 package cryptocom
 
 import (
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
 	"io"
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type csvAppCryptoTX struct {
+	ID              string
 	Timestamp       time.Time
 	Description     string
 	Currency        string
@@ -24,7 +28,7 @@ type csvAppCryptoTX struct {
 	Kind            string
 }
 
-func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
+func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	hasCashback := false
@@ -58,6 +62,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing NativeAmountUSD", r[8])
 				}
 				tx.Kind = r[9]
+				hash := sha256.Sum256([]byte(SOURCE + tx.Timestamp.String()))
+				tx.ID = hex.EncodeToString(hash[:])
 				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
 				if tx.Timestamp.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Timestamp
@@ -91,7 +97,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 						}
 					}
 					if !found {
-						t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+						t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 						t.Items = make(map[string]wallet.Currencies)
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -103,7 +109,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					}
 				} else if tx.Kind == "crypto_exchange" ||
 					tx.Kind == "viban_purchase" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToCurrency, Amount: tx.ToAmount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
@@ -125,7 +131,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "supercharger_withdrawal" ||
 					tx.Kind == "crypto_purchase" ||
 					tx.Kind == "staking_reward" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 					if tx.Kind == "crypto_purchase" {
@@ -157,7 +163,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 					tx.Kind == "crypto_to_exchange_transfer" ||
 					tx.Kind == "supercharger_deposit" ||
 					tx.Kind == "crypto_viban_exchange" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.Kind == "crypto_withdrawal" &&
 						tx.Description == "Withdraw BTC" {
@@ -176,7 +182,12 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader) (err error) {
 						tx.Kind == "reimbursement_reverted" {
 						cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 					} else {
-						cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
+						if is, desc := cat.IsTxGift(tx.ID); is {
+							t.Note += " gift " + desc
+							cdc.TXsByCategory["Gifts"] = append(cdc.TXsByCategory["Gifts"], t)
+						} else {
+							cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
+						}
 					}
 				} else if tx.Kind == "crypto_earn_program_created" ||
 					tx.Kind == "crypto_earn_program_withdrawn" ||

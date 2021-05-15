@@ -46,7 +46,7 @@ func (bc *BlockChain) ParseTXsJSON(reader io.Reader, currency string) (err error
 			for _, w := range tx.From {
 				haveFrom = true
 				t.Note += " " + w.Address
-				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: currency, Amount: w.Amount})
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: currency, Amount: w.Amount.Sub(tx.Fee)})
 			}
 			t.Note += " ->"
 			haveTo := false

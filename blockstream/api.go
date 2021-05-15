@@ -193,7 +193,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 				alreadyAsked = wallet.AskForHelp(SOURCE+" zero Value TX", tx, alreadyAsked)
 			}
 			if isInVinPrevVout {
-				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid + dest + missing}
+				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), ID: tx.Txid, Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + dest + missing}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				if isInVout && dest == "" {
@@ -228,7 +228,7 @@ func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 				}
 				blkst.apiTXs[i].used = true
 			} else if isInVout {
-				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight) + " " + tx.Txid}
+				t := wallet.TX{Timestamp: time.Unix(int64(tx.Status.BlockTime), 0), ID: tx.Txid, Note: "Blockstream API : " + strconv.Itoa(tx.Status.BlockHeight)}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "BTC", Amount: decimal.New(int64(tx.Fee), -8)})
 				if is, desc, val := cat.HasCustody(tx.Txid); is {

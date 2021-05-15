@@ -1,6 +1,8 @@
 package hitbtc
 
 import (
+	"strings"
+
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -47,4 +49,13 @@ func (hb *HitBTC) GetAPIAllTXs() {
 
 func (hb *HitBTC) WaitFinish() error {
 	return <-hb.done
+}
+
+func csvCurrencyCure(c string) string {
+	return strings.ToUpper(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(c, "BCHSV", "BSV"), "BCHABC", "BCH"), "BCCF", "BCH"))
+}
+
+func apiCurrencyCure(c string) string {
+	// https://blog.hitbtc.com/we-will-change-the-ticker-of-bchabc-to-bch-and-bchsv-will-be-displayed-as-bsv/
+	return strings.ReplaceAll(strings.ReplaceAll(c, "BCHA", "BCH"), "BCHOLD", "BCH")
 }

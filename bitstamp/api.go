@@ -146,7 +146,7 @@ func (api *api) sign(req *resty.Request, method, url string) {
 	header := make(map[string]string)
 	header["X-Auth"] = "BITSTAMP" + " " + api.apiKey
 	header["X-Auth-Nonce"] = uuid.NewString()
-	header["X-Auth-Timestamp"] = strconv.FormatInt(time.Now().Add(2*time.Minute).UnixNano()/1e6, 10)
+	header["X-Auth-Timestamp"] = strconv.FormatInt(time.Now().UnixNano()/1e6, 10)
 	header["X-Auth-Version"] = "v2"
 	stringToSign := fmt.Sprintf("%v%s%s", header["X-Auth"], method, strings.TrimPrefix(url, "https://"))
 	if req.FormData != nil {
