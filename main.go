@@ -23,6 +23,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
+	"github.com/fiscafacile/CryptoFiscaFacile/poloniex"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -293,6 +294,47 @@ func main() {
 			log.Fatal("Error parsing MyCelium CSV file:", err)
 		}
 	}
+	pl := poloniex.New()
+	for _, file := range config.Exchanges.Poloniex.CSV.Deposits {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Poloniex Deposits CSV file:", err)
+		}
+		err = pl.ParseDepositsCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Poloniex Deposits CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.Poloniex.CSV.Distributions {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Poloniex Distributions CSV file:", err)
+		}
+		err = pl.ParseDistributionsCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Poloniex Distributions CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.Poloniex.CSV.Trades {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Poloniex Trades CSV file:", err)
+		}
+		err = pl.ParseTradesCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Poloniex Trades CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.Poloniex.CSV.Withdrawals {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Poloniex Withdrawals CSV file:", err)
+		}
+		err = pl.ParseWithdrawalsCSV(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Poloniex Withdrawals CSV file:", err)
+		}
+	}
 	revo := revolut.New()
 	for _, file := range config.Exchanges.Revolut.CSV.All {
 		recordFile, err := os.Open(file)
@@ -370,6 +412,7 @@ func main() {
 		sources.Add(hb.Sources)
 		sources.Add(kr.Sources)
 		sources.Add(lb.Sources)
+		sources.Add(pl.Sources)
 		sources.Add(revo.Sources)
 		err = sources.ToXlsx("3916.xlsx", loc)
 		if err != nil {
@@ -389,6 +432,7 @@ func main() {
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
 	global.Add(mc.TXsByCategory)
+	global.Add(pl.TXsByCategory)
 	global.Add(revo.TXsByCategory)
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)

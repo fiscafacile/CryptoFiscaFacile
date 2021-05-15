@@ -29,11 +29,14 @@ type Blockchains struct {
 
 // Exchanges
 type CSV struct {
-	All          []string `yaml:"all"`
-	Staking      []string `yaml:"staking"`
-	Supercharger []string `yaml:"supercharger"`
-	Trades       []string `yaml:"trades"`
-	Transfers    []string `yaml:"transfers"`
+	All           []string `yaml:"all"`
+	Staking       []string `yaml:"staking"`
+	Supercharger  []string `yaml:"supercharger"`
+	Trades        []string `yaml:"trades"`
+	Transfers     []string `yaml:"transfers"`
+	Deposits      []string `yaml:"deposits"`
+	Withdrawals   []string `yaml:"withdrawals"`
+	Distributions []string `yaml:"distributions"`
 }
 
 type ExchangeConfig struct {
@@ -53,6 +56,7 @@ type Exchanges struct {
 	HitBTC        ExchangeConfig `yaml:"hitbtc"`
 	Kraken        ExchangeConfig `yaml:"kraken"`
 	LocalBitcoins ExchangeConfig `yaml:"localbitcoins"`
+	Poloniex      ExchangeConfig `yaml:"poloniex"`
 	Revolut       ExchangeConfig `yaml:"revolut"`
 }
 
@@ -196,6 +200,10 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Trades, "lb-trade", config.Exchanges.LocalBitcoins.CSV.Trades, "Local Bitcoin Trade CSV file")
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Transfers, "lb-transfer", config.Exchanges.LocalBitcoins.CSV.Transfers, "Local Bitcoin Transfer CSV file")
 	pflag.StringSliceVar(&config.Wallets.MyCelium.CSV.All, "mycelium", config.Wallets.MyCelium.CSV.All, "MyCelium CSV file")
+	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Trades, "poloniex-trades", config.Exchanges.Poloniex.CSV.Trades, "Poloniex Trades CSV file")
+	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Deposits, "poloniex-deposits", config.Exchanges.Poloniex.CSV.Deposits, "Poloniex Deposits CSV file")
+	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Withdrawals, "poloniex-withdrawals", config.Exchanges.Poloniex.CSV.Withdrawals, "Poloniex Withdrawals CSV file")
+	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Distributions, "poloniex-distributions", config.Exchanges.Poloniex.CSV.Distributions, "Poloniex Distributions CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Revolut.CSV.All, "revolut", config.Exchanges.Revolut.CSV.All, "Revolut CSV file")
 	// Output
 	pflag.BoolVar(&config.Options.Display2086, "2086_display", config.Options.Display2086, "Display Cerfa 2086")

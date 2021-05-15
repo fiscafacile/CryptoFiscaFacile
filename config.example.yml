@@ -103,6 +103,20 @@ exchanges:
       transfers:
       # - Inputs/LocalBitcoin/2019_Transfers.csv
       # - Inputs/LocalBitcoin/2020_Transfers.csv
+  poloniex:
+    csv:
+      trades:
+      # - Inputs/Poloniex/2019_Trades.csv
+      # - Inputs/Poloniex/2020_Trades.csv
+      deposits:
+      # - Inputs/Poloniex/2019_Deposits.csv
+      # - Inputs/Poloniex/2020_Deposits.csv
+      withdrawals:
+      # - Inputs/Poloniex/2019_Withdrawals.csv
+      # - Inputs/Poloniex/2020_Withdrawals.csv
+      distributions:
+      # - Inputs/Poloniex/2019_Distributions.csv
+      # - Inputs/Poloniex/2020_Distributions.csv
   revolut:
     csv:
       all:

@@ -101,7 +101,7 @@ Vous pouvez utiliser le fichier de configuration `config.exemple.yaml`, copiez l
 #### Help
 
 ```
-  -h
+  --help
         Display all available arguments
 ```
 Permet d'afficher toutes les options possibles.
@@ -109,7 +109,7 @@ Permet d'afficher toutes les options possibles.
 #### Native Currency
 
 ```
-  -native string
+  --native
         Native Currency for consolidation (default "EUR")
 ```
 Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts français, il faut laisser "EUR".
@@ -117,7 +117,7 @@ Choix de la Fiat pour consolidation. Si vous voulez déclarer aux impôts franç
 #### Location
 
 ```
-  -location string
+  --location
         Date Filter Location (default "Europe/Paris")
 ```
 Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déclarer aux impôts français, il faut laisser "Europe/Paris".
@@ -125,7 +125,7 @@ Permet de choisir le fuseau horaire pour calculer les dates. Si vous voulez déc
 #### Date
 
 ```
-  -date string
+  --date
         Date Filter (default "2021-01-01T00:00:00")
 ```
 Permet d'afficher votre protefeuille global valorisé en Fiat à une date donnée.
@@ -136,7 +136,7 @@ Utile pour vérifier l'état du stock et estimer s'il manque des sources.
 #### Stats
 
 ```
-  -stats
+  --stats
         Display accounts stats
 ```
 Permet d'afficher le nombre de transactions par catégorie (toutes cryptos confondues).
@@ -144,7 +144,7 @@ Permet d'afficher le nombre de transactions par catégorie (toutes cryptos confo
 #### Check
 
 ```
-  -check
+  --check
         Check and Display consistency
 ```
 Lance des vérifications d'intégrité sur les TXs du portefeuille globale et affiche les TXs KO. Les vérifications sont :
@@ -158,9 +158,9 @@ Lance des vérifications d'intégrité sur les TXs du portefeuille globale et af
 #### Display
 
 ```
-  -txs_display string
+  --txs-display
         Display Transactions By Catergory : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc
-  -curr_filter string
+  --currency-filter
         Currencies to be filtered in Transactions Display (comma separated list)
 ```
 Affiche toutes les TXs d'une Catégorie (attention ceci peut être très long...).
@@ -176,7 +176,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
 #### Catégorisation Manuelle [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#catégorisation-manuelle-)
 
 ```
-  -txs_categ string
+  --txs-categ
         Transactions Categories CSV file
 ```
 Il faut fournir un CSV à faire manuellement contenant toutes les transactions que vous voulez catégoriser manuellement (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-txs_categ Inputs/TXS_Categ_exemple.csv -btc_address Inputs/BTC_Addresses_exemple.csv`.
@@ -200,9 +200,9 @@ Les colones du CSV doivent être : `TxID,Type,Description,Value,Currency`
 #### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#binance-)
 
 ```
-  -binance string
+  --binance
         Binance CSV file
-  -binance_extended
+  --binance-extended
         Use Binance CSV file extended format
 ```
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
@@ -214,7 +214,7 @@ Les colones du CSV étendu doivent être : `UTC_Time,Account,Operation,Coin,Chan
 #### Bitfinex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bitfinex-)
 
 ```
-  -bitfinex string
+  --bitfinex
         Bitfinex CSV file
 ```
 Il faut fournir le fichier CSV récupéré dans Bitfinex (https://report.bitfinex.com/ledgers puis choisissez les dates et "Export", choisissez Date Format : DD-MM-YY).
@@ -224,11 +224,11 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
 #### Bittrex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bittrex-)
 
 ```
-  -bittrex string
+  --bittrex
         Bittrex CSV file
-  -bittrex_api_key string
+  --bittrex-api-key
         Bittrex API key
-  -bittrex_api_secret string
+  --bittrex-api-secret
         Bittrex API secret
 ```
 Il faut fournir les fichiers CSV récupérés dans Bittrex (https://global.bittrex.com/history puis "Download Order History").
@@ -242,15 +242,15 @@ Il est nécessaire de fournir l'API et le CSV car chaque support a son défaut :
 #### BTC [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#btc-)
 
 ```
-  -btc_address string
+  --btc_address
         Bitcoin Addresses CSV file
-  -bcd
+  --bcd
         Detect Bitcoin Diamond Fork
-  -bch
+  --bch
         Detect Bitcoin Cash Fork
-  -btg
+  --btg
         Detect Bitcoin Gold Fork
-  -lbtc
+  --lbtc
         Detect Lightning Bitcoin Fork
 ```
 Il faut fournir un CSV à faire manuellement contenant toutes les addresses BTC que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-btc_address Inputs/BTC_Addresses_exemple.csv`.
@@ -264,7 +264,7 @@ Les colones du CSV doivent être : `Address,Description`
 #### BTG [![Support manuel](https://img.shields.io/badge/support-manuel-red)](#btg-)
 
 ```
-  -btg_txs string
+  --btg-txs
         Bitcoin Gold Transactions JSON file
 ```
 Expériemental.
@@ -273,7 +273,7 @@ Expériemental.
 
 - App with CSV:
 ```
-  -cdc_app_crypto string
+  --cdc-app-crypto
         Crypto.com App Crypto Wallet CSV file
 ```
 Il faut fournir les CSV récupérés dans l'App (celui des Transactions du Portefeuille Crypto).
@@ -282,7 +282,7 @@ Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (U
 
 - Exchange with JS and JSON:
 ```
-  -cdc_ex_exportjs string
+  --cdc-ex-exportjs
         Crypto.com Exchange JSON file from json_exporter.js
 ```
 Il faut fournir le JSON récupéré dans l'Exchange Crypto.com avec la méthode décrite [ici](https://github.com/fiscafacile/CryptoFiscaFacile/wiki/Crypto.com-Exchange-JSON-methode)
@@ -291,11 +291,11 @@ Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `
 
 - Exchange with CSV:
 ```
-  -cdc_ex_stake string
+  --cdc-ex-stake
         Crypto.com Exchange Stake CSV file
-  -cdc_ex_supercharger string
+  --cdc-ex-supercharger
         Crypto.com Exchange Supercharger CSV file
-  -cdc_ex_transfer string
+  --cdc-ex-transfer
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
 Il faut fournir les CSV récupérés dans l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
@@ -310,9 +310,9 @@ Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,curre
 
 - Exchange with API:
 ```
-  -cdc_ex_api_key string
+  --cdc-ex-api-key
         Crypto.com Exchange API Key
-  -cdc_ex_secret_key string
+  --cdc-ex-secret-key
         Crypto.com Exchange Secret Key
 ```
 Il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
@@ -324,7 +324,7 @@ Par contre les `Exchanges` sur le Spot Market seront bien récupérés sans droi
 #### Coinbase [![Support bon](https://img.shields.io/badge/support-bon-blue)](#coinbase-)
 
 ```
-  -coinbase string
+  --coinbase
         Coinbase CSV file
 ```
 Il faut fournir le CSV récupéré sur Coinbase.
@@ -338,7 +338,7 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
 #### ETH [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#eth-)
 
 ```
-  -eth_address string
+  --eth-address
         Ethereum Addresses CSV file
 ```
 Il faut fournir un CSV à faire manuellement contenant toutes les addresses ETH que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-eth_address Inputs/ETH_Addresses_exemple.csv`.
@@ -353,9 +353,9 @@ Les colones du CSV doivent être : `Address,Description`
 
 - Via API
 ```
-  -hitbtc_api_key string
+  --hitbtc-api-key
         HitBTC API Key
-  -hitbtc_secret_key string
+  --hitbtc-secret-key
         HitBTC Secret Key
 ```
 L'API est utilisée pour récupérer les transactions du compte `Deposits` et `Withdrawals` afin de les ajouter à votre portefeuille global.
@@ -368,9 +368,9 @@ La clé API doit avoir les droits :
 
 - Via CSV
 ```
-  -hitbtc_trades string
+  --hitbtc-trades
         HitBTC Trades CSV file
-  -hitbtc_transactions string
+  --hitbtc-transactions
         HitBTC Transactions CSV file
 ```
 Il faut fournir les fichiers CSV récupérés dans HitBTC (https://hitbtc.com/reports).
@@ -385,16 +385,16 @@ Les colones du CSV Transactions doivent être : `Email,Date (UTC),Operation id,T
 
 - Via API
 ```
-  -kraken_api_key string
+  --kraken-api-key
         Kraken API key
-  -kraken_api_secret string
+  --kraken-api-secret
         Kraken API secret
 ```
 L'API est utilisée pour récupérer l'ensemble des transactions du ledger afin de les ajouter à votre portefeuille global.
 
 - Via CSV
 ```
-  -kraken string
+  --kraken
         Kraken CSV file
 ```
 Il faut fournir le fichier CSV récupéré dans Kraken (https://www.kraken.com/u/history/export puis sélectionner "Ledgers" et "All fields").
@@ -404,9 +404,9 @@ Les colones du CSV d'origine doivent être : `txid,refid,time,type,subtype,aclas
 #### Local Bitcoin [![Support bon](https://img.shields.io/badge/support-bon-blue)](#local-bitcoin-)
 
 ```
-  -lb_trade string
+  --lb-trade
         Local Bitcoin Trade CSV file
-  -lb_transfer string
+  --lb-transfer
         Local Bitcoin Transfer CSV file
 ```
 
@@ -417,7 +417,7 @@ Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, T
 #### Ledger Live [![Support bon](https://img.shields.io/badge/support-bon-blue)](#ledger-live-)
 
 ```
-  -ledgerlive string
+  --ledgerlive
         LedgerLive CSV file
 ```
 
@@ -428,16 +428,37 @@ Les colones du CSV doivent être : `Operation Date,Currency Ticker,Operation Typ
 Vous devriez exporter les clés publiques de votre wallet et utiliser la "Source" [BTC](#btc-).
 
 ```
-  -mycelium string
+  --mycelium
         MyCelium CSV file
 ```
 
 Les colones du CSV doivent être : `Account,Transaction ID,Destination Address,Timestamp,Value,Currency,Transaction Label`
 
+#### Poloniex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#poloniex-)
+
+```
+  --poloniex-trades
+        Poloniex Trades CSV file
+  --poloniex-deposits
+        Poloniex Deposits CSV file
+  --poloniex-withdrawals
+        Poloniex Withdrawals CSV file
+  --poloniex-distributions
+        Poloniex Distributions CSV file
+```
+
+Les colones du CSV de Trades doivent être : `Date,Market,Category,Type,Price,Amount,Total,Fee,Order Number,Base Total Less Fee,Quote Total Less Fee,Fee Currency,Fee Total`
+
+Les colones du CSV de Deposits doivent être : `Date,Currency,Amount,Address,Status`
+
+Les colones du CSV de Withdrawals doivent être : `Date,Currency,Amount,Fee Deducted,Amount - Fee,Address,Status`
+
+Les colones du CSV de Distributions doivent être : `date,currency,amount,wallet`
+
 #### Revolut [![Support bon](https://img.shields.io/badge/support-bon-blue)](#revolut-)
 
 ```
-  -revolut string
+  --revolut
         Revolut CSV file
 ```
 
@@ -450,21 +471,21 @@ Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux d
 #### CoinAPI.io
 
 ```
-  -coinapi_key string
+  --coinapi-key
         CoinAPI Key (https://www.coinapi.io/pricing?apikey)
 ```
 
 #### CoinLayer.com
 
 ```
-  -coinlayer_key string
+  --coinlayer-key
         CoinLayer Key (https://coinlayer.com/product)
 ```
 
 #### Etherscan.io
 
 ```
-  -etherscan_apikey string
+  --etherscan-apikey
         Etherscan API Key (https://etherscan.io/myapikey)
 ```
 Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes seront limitées à 5 par secondes.
@@ -472,21 +493,21 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
 ### Options de sortie
 
 ```
-  -2086_display
+  --2086_display
         Display Cerfa 2086
-  -2086
+  --2086
         Export Cerfa 2086 in 2086.xlsx
 ```
 Cela vous génère automatiquement le formulaire 2086 !
 
 ```
-  -3916
+  --3916
         Export Cerfa 3916 in 3916.xlsx
 ```
 Cela vous génère automatiquement le formulaire 3916 !
 
 ```
-  -stock
+  --stock
         Export stock balances in stock.xlsx
 ```
 Cela vous génère automatiquement une fiche de stock de tous vos coins !
