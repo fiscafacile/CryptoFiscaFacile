@@ -197,7 +197,7 @@ Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH,
 
 Les colones du CSV doivent être : `TxID,Type,Description,Value,Currency`
 
-#### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#binance-)
+#### Binance [![Support léger](https://img.shields.io/badge/support-bon-blue)](#binance-)
 
 Par API :
 ```
