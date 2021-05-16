@@ -114,6 +114,12 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToCurrency, Amount: tx.ToAmount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 					cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
+				} else if tx.Kind == "card_top_up" {
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
+					cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
 				} else if tx.Kind == "crypto_deposit" ||
 					tx.Kind == "viban_deposit" ||
 					tx.Kind == "exchange_to_crypto_transfer" ||
