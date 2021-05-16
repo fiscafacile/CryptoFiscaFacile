@@ -4,8 +4,13 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
+type Address struct {
+	Address     string
+	Description string
+}
+
 type BTC struct {
-	CSVAddresses  []CSVAddress
+	Addresses     []Address
 	TXsByCategory wallet.TXsByCategory
 }
 
@@ -15,8 +20,14 @@ func New() *BTC {
 	return btc
 }
 
+func (btc *BTC) AddListAddresses(list []string) {
+	for _, add := range list {
+		btc.Addresses = append(btc.Addresses, Address{Address: add})
+	}
+}
+
 func (btc BTC) OwnAddress(add string) bool {
-	for _, a := range btc.CSVAddresses {
+	for _, a := range btc.Addresses {
 		if a.Address == add {
 			return true
 		}

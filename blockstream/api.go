@@ -135,7 +135,7 @@ func (blkst *Blockstream) GetAddressBalanceAtDate(add string, date time.Time) (b
 
 func (blkst *Blockstream) GetAllTXs(b *btc.BTC, cat category.Category) {
 	const SOURCE = "Blockstream API :"
-	for _, btc := range b.CSVAddresses {
+	for _, btc := range b.Addresses {
 		apiTXs, err := blkst.GetAddressTXs(btc.Address)
 		if err != nil {
 			log.Println(err)

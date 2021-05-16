@@ -1,13 +1,20 @@
 package etherscan
 
 import (
+	"strings"
+
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
+type address struct {
+	address     string
+	description string
+}
+
 type Etherscan struct {
 	api           api
-	csvAddresses  []csvAddress
+	addresses     []address
 	done          chan error
 	TXsByCategory wallet.TXsByCategory
 }
@@ -19,9 +26,15 @@ func New() *Etherscan {
 	return ethsc
 }
 
+func (ethsc *Etherscan) AddListAddresses(list []string) {
+	for _, add := range list {
+		ethsc.addresses = append(ethsc.addresses, address{address: strings.ToLower(add)})
+	}
+}
+
 func (ethsc *Etherscan) GetAPITXs(cat category.Category) {
 	addresses := []string{}
-	for _, a := range ethsc.csvAddresses {
+	for _, a := range ethsc.addresses {
 		addresses = append(addresses, a.address)
 	}
 	err := ethsc.api.getAllTXs(addresses, cat)

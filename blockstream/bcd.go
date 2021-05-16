@@ -15,7 +15,7 @@ func (blkst *Blockstream) DetectBCD(b *btc.BTC) {
 	w := b.TXsByCategory.GetWallets(bcdForkDate, false, false)
 	w.Println("BTC (at time of BCD Fork)", "BTC")
 	fmt.Println("Addresses :")
-	for _, a := range b.CSVAddresses {
+	for _, a := range b.Addresses {
 		bal, err := blkst.GetAddressBalanceAtDate(a.Address, bcdForkDate)
 		if err != nil {
 			log.Println("")

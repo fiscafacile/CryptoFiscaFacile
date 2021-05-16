@@ -6,21 +6,16 @@ import (
 	"strings"
 )
 
-type csvAddress struct {
-	address     string
-	description string
-}
-
-func (ethsc *Etherscan) ParseCSV(reader io.Reader) (err error) {
+func (ethsc *Etherscan) ParseCSVAddresses(reader io.Reader) (err error) {
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		for _, r := range records {
 			if r[0] != "Address" {
-				a := csvAddress{}
+				a := address{}
 				a.address = strings.ToLower(r[0])
 				a.description = r[1]
-				ethsc.csvAddresses = append(ethsc.csvAddresses, a)
+				ethsc.addresses = append(ethsc.addresses, a)
 			}
 		}
 	}

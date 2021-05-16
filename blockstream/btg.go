@@ -15,7 +15,7 @@ func (blkst *Blockstream) DetectBTG(b *btc.BTC) {
 	w := b.TXsByCategory.GetWallets(btgForkDate, false, false)
 	w.Println("BTC (at time of BTG Fork)", "BTC")
 	fmt.Println("Addresses :")
-	for _, a := range b.CSVAddresses {
+	for _, a := range b.Addresses {
 		bal, err := blkst.GetAddressBalanceAtDate(a.Address, btgForkDate)
 		if err != nil {
 			log.Println("")

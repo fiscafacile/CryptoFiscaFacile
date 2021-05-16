@@ -242,7 +242,9 @@ Il est nécessaire de fournir l'API et le CSV car chaque support a son défaut :
 #### BTC [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#btc-)
 
 ```
-  --btc_address
+  --btc-address
+        Bitcoin Address
+  --btc-addresses-csv
         Bitcoin Addresses CSV file
   --bcd
         Detect Bitcoin Diamond Fork
@@ -253,7 +255,11 @@ Il est nécessaire de fournir l'API et le CSV car chaque support a son défaut :
   --lbtc
         Detect Lightning Bitcoin Fork
 ```
-Il faut fournir un CSV à faire manuellement contenant toutes les addresses BTC que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-btc_address Inputs/BTC_Addresses_exemple.csv`.
+Il faut fournir :
+
+- soit une ou plusieurs adresses directement dans la ligne de commande : `--btc-address 36BTpmPbZaG2e5DyMpjEfDeEaiwjR8jGUM --btc-address bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9`
+
+- soit un CSV à faire manuellement contenant toutes les addresses BTC que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `--btc-addresses-csv Inputs/BTC_Addresses_exemple.csv`.
 
 L'outil se chargera de récupérer la liste des transactions associées sur Blockstream (pas besoin de API Key).
 
@@ -339,9 +345,15 @@ Les colones du CSV doivent être : `Timestamp,Transaction Type,Asset,Quantity Tr
 
 ```
   --eth-address
+        Ethereum Address
+  --eth-addresses-csv
         Ethereum Addresses CSV file
 ```
-Il faut fournir un CSV à faire manuellement contenant toutes les addresses ETH que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-eth_address Inputs/ETH_Addresses_exemple.csv`.
+Il faut fournir :
+
+- soit une ou plusieurs adresses directement dans la ligne de commande : `--eth-address 0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD --eth-address 0x9302F624d2C35fe880BFce22A36917b5dB5FAFeD`
+
+- soit un CSV à faire manuellement contenant toutes les addresses ETH que vous possédez (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `--eth-addresses-csv Inputs/ETH_Addresses_exemple.csv`.
 
 L'outil se chargera de récupérer la liste des transactions associées sur [Etherscan.io](#etherscan.io) (à une vitesse limitée de 5 requêtes par secondes si vous ne fournissez pas une API Key).
 

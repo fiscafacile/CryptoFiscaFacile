@@ -56,27 +56,34 @@ func main() {
 	}
 	// Launch APIs access in go routines
 	btc := btc.New()
-	blkst := blockstream.New()
+	btc.AddListAddresses(config.Blockchains.BTC.Addresses)
 	for _, file := range config.Blockchains.BTC.CSV {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Bitcoin CSV Addresses file:", err)
 		}
-		btc.ParseCSVAddresses(recordFile)
+		err = btc.ParseCSVAddresses(recordFile)
+		if err != nil {
+			log.Fatal("")
+		}
+	}
+	blkst := blockstream.New()
+	if len(config.Blockchains.BTC.CSV)+len(config.Blockchains.BTC.Addresses) > 0 {
 		go blkst.GetAllTXs(btc, *categ)
 	}
 	ethsc := etherscan.New()
+	ethsc.AddListAddresses(config.Blockchains.ETH.Addresses)
 	for _, file := range config.Blockchains.ETH.CSV {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Ethereum CSV Addresses file:", err)
 		}
-		err = ethsc.ParseCSV(recordFile)
+		err = ethsc.ParseCSVAddresses(recordFile)
 		if err != nil {
 			log.Fatal("")
 		}
 	}
-	if len(config.Blockchains.ETH.CSV) > 0 {
+	if len(config.Blockchains.ETH.CSV)+len(config.Blockchains.ETH.Addresses) > 0 {
 		ethsc.NewAPI(config.Tools.EtherScan.Key, config.Options.Debug)
 		go ethsc.GetAPITXs(*categ)
 	}
@@ -365,7 +372,7 @@ func main() {
 			log.Fatal("Error getting HitBTC API TXs:", err)
 		}
 	}
-	if len(config.Blockchains.ETH.CSV) > 0 {
+	if len(config.Blockchains.ETH.CSV)+len(config.Blockchains.ETH.Addresses) > 0 {
 		err := ethsc.WaitFinish()
 		if err != nil {
 			log.Fatal("Error parsing Ethereum CSV file:", err)
@@ -383,7 +390,7 @@ func main() {
 			log.Fatal("Error getting Kraken API TXs:", err)
 		}
 	}
-	if len(config.Blockchains.BTC.CSV) > 0 {
+	if len(config.Blockchains.BTC.CSV)+len(config.Blockchains.BTC.Addresses) > 0 {
 		err := blkst.WaitFinish()
 		if err != nil {
 			log.Fatal("Error parsing Bitcoin CSV file:", err)

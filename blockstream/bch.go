@@ -14,7 +14,7 @@ func (blkst *Blockstream) DetectBCH(b *btc.BTC) {
 	w := b.TXsByCategory.GetWallets(bchForkDate, false, false)
 	w.Println("BTC (at time of BCH Fork)", "BTC")
 	fmt.Println("Addresses :")
-	for _, a := range b.CSVAddresses {
+	for _, a := range b.Addresses {
 		bal, err := blkst.GetAddressBalanceAtDate(a.Address, bchForkDate)
 		if err != nil {
 			log.Println("")
