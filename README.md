@@ -199,6 +199,15 @@ Les colones du CSV doivent être : `TxID,Type,Description,Value,Currency`
 
 #### Binance [![Support léger](https://img.shields.io/badge/support-l%C3%A9ger-yellow)](#binance-)
 
+Par API :
+```
+  --binance-api-key
+        Binance API key
+  --binance-api-secret
+        Binance API secret
+```
+
+Par CSV :
 ```
   --binance
         Binance CSV file
@@ -277,7 +286,7 @@ Expériemental.
 
 #### Crypto.com [![Support avancé](https://img.shields.io/badge/support-avanc%C3%A9-green)](#crypto.com-)
 
-- App with CSV:
+- App avec CSV:
 ```
   --cdc-app-crypto
         Crypto.com App Crypto Wallet CSV file
@@ -286,7 +295,7 @@ Il faut fournir les CSV récupérés dans l'App (celui des Transactions du Porte
 
 Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (UTC),Transaction Description,Currency,Amount,To Currency,To Amount,Native Currency,Native Amount,Native Amount (in USD),Transaction Kind`
 
-- Exchange with JS and JSON:
+- Exchange avec JS et JSON:
 ```
   --cdc-ex-exportjs
         Crypto.com Exchange JSON file from json_exporter.js
@@ -295,7 +304,7 @@ Il faut fournir le JSON récupéré dans l'Exchange Crypto.com avec la méthode 
 
 Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `Interests` du Staking de CRO et Soft Staking, les `CommercialRebates` du bonus d'inscription et des Syndicates, les `Referrals` du programme de parainage, les `Minings` des Superchargers.
 
-- Exchange with CSV:
+- Exchange avec CSV:
 ```
   --cdc-ex-stake
         Crypto.com Exchange Stake CSV file
@@ -314,7 +323,7 @@ Les colones du CSV de l'Exchange Supercharger doivent être : `create_time_utc,s
 
 Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
 
-- Exchange with API:
+- Exchange avec API:
 ```
   --cdc-ex-api-key
         Crypto.com Exchange API Key
