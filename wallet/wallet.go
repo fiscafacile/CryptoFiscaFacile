@@ -61,7 +61,7 @@ func AskForHelp(id string, tx interface{}, alreadyAsked []string) []string {
 		}
 	}
 	if !found {
-		log.Println("Unmanaged", id, ", please copy this into t.me/cryptofiscafacile so we can add support for it :", base64.StdEncoding.EncodeToString([]byte(spew.Sdump(tx))))
+		log.Println("Nouveau type de transaction détecté", id, "merci de copier ce texte dans t.me/cryptofiscafacile pour que nous puissions ajouter son support :", base64.StdEncoding.EncodeToString([]byte(spew.Sdump(tx))))
 		alreadyAsked = append(alreadyAsked, id)
 	}
 	return alreadyAsked
