@@ -24,6 +24,7 @@ func (api *api) getWithdrawalsTXs(loc *time.Location) {
 	thisYear := today.Year()
 	for y := thisYear; y > 2017; y-- {
 		for t := 6; t > 0; t-- {
+			fmt.Print(".")
 			withHist, err := api.getWithdrawalHistory(y, t, loc)
 			if err != nil {
 				api.doneWit <- err

@@ -82,7 +82,7 @@ func main() {
 	b := binance.New()
 	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
 		b.NewAPI(config.Exchanges.Binance.API.Key, config.Exchanges.Binance.API.Secret, config.Options.Debug)
-		fmt.Println("Début de récupération des TXs par l'API Binance (attention ce processus peut être long la première fois)...")
+		fmt.Print("Début de récupération des TXs par l'API Binance (attention ce processus peut être long la première fois)...")
 		go b.GetAPIAllTXs(loc)
 	}
 	bs := bitstamp.New()

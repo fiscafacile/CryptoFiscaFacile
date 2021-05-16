@@ -24,6 +24,7 @@ func (api *api) getAssetDividendTXs(loc *time.Location) {
 	thisYear := today.Year()
 	for y := thisYear; y > 2017; y-- {
 		for t := 6; t > 0; t-- {
+			fmt.Print(".")
 			assDiv, err := api.getAssetDividend(y, t, loc)
 			if err != nil {
 				api.doneSpotTra <- err

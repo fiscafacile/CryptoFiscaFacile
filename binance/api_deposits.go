@@ -23,6 +23,7 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 	thisYear := today.Year()
 	for y := thisYear; y > 2017; y-- {
 		for t := 6; t > 0; t-- {
+			fmt.Print(".")
 			depoHist, err := api.getDepositHistory(y, t, loc)
 			if err != nil {
 				api.doneDep <- err

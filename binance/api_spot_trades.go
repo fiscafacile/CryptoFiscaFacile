@@ -34,6 +34,7 @@ func (api *api) getSpotTradesTXs() {
 			fmt.Printf("[%v/%v] Récupération des trades du symbole %v\n", i+1, totalSymbols, symbol.Symbol)
 		}
 		for {
+			fmt.Print(".")
 			trades, err := api.getTrades(symbol.Symbol, limit, orderId+1, part)
 			if err != nil {
 				api.doneSpotTra <- err
@@ -93,9 +94,9 @@ func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trad
 	}
 	if useCache {
 		err = db.Read("Binance/api/v3/myTrades", fmt.Sprintf("%v_%v-%v", symbol, part*limit, part*limit+limit), &trades)
-		if err == nil && len(trades) != limit { // If cached data is incomplete
-			useCache = false
-		}
+		// if err == nil && len(trades) != limit { // If cached data is incomplete
+		// 	useCache = false
+		// }
 	}
 	if !useCache || err != nil {
 		endpoint := "api/v3/myTrades"
