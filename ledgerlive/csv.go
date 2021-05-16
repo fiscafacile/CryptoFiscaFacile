@@ -92,6 +92,11 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 						ll.TXsByCategory["Withdrawals"] = append(ll.TXsByCategory["Withdrawals"], t)
 					}
 				}
+			} else if tx.Type == "FEES" {
+				t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
+				t.Items = make(map[string]wallet.Currencies)
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
+				ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)
 			} else {
 				alreadyAsked = wallet.AskForHelp(SOURCE+" : "+tx.Type, tx, alreadyAsked)
 			}
