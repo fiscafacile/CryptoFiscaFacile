@@ -175,6 +175,8 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Blockchains.ETH.CSV, "eth-addresses-csv", config.Blockchains.ETH.CSV, "Ethereum Addresses CSV file")
 	pflag.StringSliceVar(&config.Blockchains.ETH.Addresses, "eth-address", config.Blockchains.ETH.Addresses, "Ethereum Address")
 	pflag.StringVar(&config.Tools.EtherScan.Key, "etherscan-apikey", config.Tools.EtherScan.Key, "Etherscan API Key (https://etherscan.io/myapikey)")
+	pflag.StringVar(&config.Exchanges.Binance.API.Key, "binance-api-key", config.Exchanges.Binance.API.Key, "Binance API key")
+	pflag.StringVar(&config.Exchanges.Binance.API.Secret, "binance-api-secret", config.Exchanges.Binance.API.Secret, "Binance API secret")
 	pflag.StringSliceVar(&config.Exchanges.Binance.CSV.All, "binance", config.Exchanges.Binance.CSV.All, "Binance CSV file")
 	pflag.BoolVar(&config.Options.BinanceExtended, "binance-extended", config.Options.BinanceExtended, "Use Binance CSV file extended format")
 	pflag.StringSliceVar(&config.Exchanges.Bitfinex.CSV.All, "bitfinex", config.Exchanges.Bitfinex.CSV.All, "Bitfinex CSV file")
