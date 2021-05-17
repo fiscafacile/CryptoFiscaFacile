@@ -106,7 +106,39 @@ type ExchangeJson struct {
 		Pagesize int `json:"pageSize"`
 	} `json:"rebs"`
 	Syn struct {
-		Activities []interface{} `json:"activities"`
+		Activities []struct {
+			DeliveredSize          string `json:"deliveredSize"`
+			ActivityCROn           string `json:"activityCron"`
+			UserStatus             string `json:"userStatus"`
+			ID                     string `json:"id"`
+			AllocationTime         string `json:"allocationTime"`
+			MinCommittedCRO        string `json:"minCommittedCRO"`
+			RefundedCRO            string `json:"refundedCRO"`
+			PoolSize               string `json:"poolSize"`
+			DiscountedPrice        string `json:"discountedPrice"`
+			MinPurchased           string `json:"minPurchased"`
+			DiscountRate           string `json:"discountRate"`
+			AnnouncementTime       string `json:"announcementTime"`
+			ActivityStatus         string `json:"activityStatus"`
+			PriceDeterminationTime string `json:"priceDeterminationTime"`
+			AllocatedPriceCRO      string `json:"allocatedPriceCRO"`
+			UserID                 string `json:"userId"`
+			ActivityModifyTime     string `json:"activityModifyTime"`
+			EndTime                string `json:"endTime"`
+			DeliveryTime           int64  `json:"deliveryTime,string"`
+			SyndicateCoin          string `json:"syndicateCoin"`
+			TotalCommittedCRO      string `json:"totalCommittedCro"`
+			ActivityCreateTime     string `json:"activityCreateTime"`
+			UserEmailStatus        string `json:"userEmailStatus"`
+			UserCreateTime         int64  `json:"userCreateTime,string"`
+			PoolSizeCapUSD         string `json:"poolSizeCapUSD"`
+			StartTime              string `json:"startTime"`
+			AllocatedVolume        string `json:"allocatedVolume"`
+			CommittedCRO           string `json:"committedCRO"`
+			AllocatedSize          string `json:"allocatedSize"`
+			AllocatedPriceUSD      string `json:"allocatedPriceUSD"`
+			UserModifyTime         string `json:"userModifyTime"`
+		} `json:"activities"`
 	} `json:"syn"`
 	Sup struct {
 		HistoryList []struct {
@@ -145,7 +177,7 @@ type ExchangeJson struct {
 		} `json:"data"`
 	} `json:"bon"`
 	Rew struct {
-		SignupBonusCreatedAt         string `json:"signUpBonusCreatedAt"`
+		SignupBonusCreatedAt         int64  `json:"signUpBonusCreatedAt,string"`
 		TotalEarnFromReferral        string `json:"totalEarnFromReferral"`
 		TotalNumberOfUsersBeReferred string `json:"totalNumberOfUsersBeReferred"`
 		TotalTradeCommission         string `json:"totalTradeCommission"`
@@ -163,7 +195,6 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 	jsonDecoder := json.NewDecoder(reader)
 	err = jsonDecoder.Decode(&exch)
 	if err == nil {
-		alreadyAsked := []string{}
 		// Fill TXsByCategory
 		for _, w := range exch.Withs.FinanceList {
 			if w.StatusText == "Completed" {
@@ -177,8 +208,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				}
 				if w.Fee != 0 {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: w.Symbol, Amount: decimal.NewFromFloat(w.Fee)})
+					cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 				}
-				cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 			}
 			if time.Unix(w.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(w.UpdateAtTime/1000, 0)
@@ -196,8 +227,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing Amount", d.Amount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: d.Symbol, Amount: amount})
+					cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 				}
-				cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 			}
 			if time.Unix(d.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(d.UpdateAtTime/1000, 0)
@@ -215,8 +246,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing InterestAmount", cs.InterestAmount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: cs.CoinSymbol, Amount: amount})
+					cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 				}
-				cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 			}
 			if time.Unix(cs.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(cs.CreatedAtTime/1000, 0)
@@ -234,8 +265,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing Amount", ss.Amount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ss.CoinSymbol, Amount: amount})
+					cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 				}
-				cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 			}
 			if time.Unix(ss.CalculateDate/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(ss.CalculateDate/1000, 0)
@@ -253,8 +284,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing RebateAmount", r.RebateAmount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: r.CoinSymbol, Amount: amount})
+					cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 				}
-				cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 			}
 			if time.Unix(r.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(r.CreatedAtTime/1000, 0)
@@ -264,16 +295,35 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 			}
 		}
 		for _, s := range exch.Syn.Activities {
-			// t := wallet.TX{Timestamp: time.Unix(s.CalculateDate/1000, 0), ID: strconv.Itoa(s.ID), Note: SOURCE + " Syndicate"}
-			// t.Items = make(map[string]wallet.Currencies)
-			// amount, err := decimal.NewFromString(s.Amount)
-			// if err != nil {
-			// 	log.Println(SOURCE, "Error Parsing Amount", s.Amount)
-			// } else {
-			// 	t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: s.CoinSymbol, Amount: amount})
-			// }
-			// cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
-			alreadyAsked = wallet.AskForHelp(SOURCE+" Syndicate", s, alreadyAsked)
+			t := wallet.TX{Timestamp: time.Unix(s.DeliveryTime/1000, 0), ID: s.ID, Note: SOURCE + " Syndicate"}
+			t.Items = make(map[string]wallet.Currencies)
+			allocatedVolume, err1 := decimal.NewFromString(s.AllocatedVolume)
+			if err1 != nil {
+				log.Println(SOURCE, "Error Parsing AllocatedVolume", s.AllocatedVolume)
+			} else {
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: s.SyndicateCoin, Amount: allocatedVolume})
+			}
+			committedCRO, err2 := decimal.NewFromString(s.CommittedCRO)
+			var err3 error
+			if err2 != nil {
+				log.Println(SOURCE, "Error Parsing CommittedCRO", s.CommittedCRO)
+			} else {
+				refundedCRO, err3 := decimal.NewFromString(s.RefundedCRO)
+				if err3 != nil {
+					log.Println(SOURCE, "Error Parsing RefundedCRO", s.RefundedCRO)
+				} else {
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "CRO", Amount: committedCRO.Sub(refundedCRO)})
+				}
+			}
+			if err1 == nil && err2 == nil && err3 == nil {
+				cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
+			}
+			if time.Unix(s.UserCreateTime/1000, 0).Before(firstTimeUsed) {
+				firstTimeUsed = time.Unix(s.UserCreateTime/1000, 0)
+			}
+			if time.Unix(s.DeliveryTime/1000, 0).After(lastTimeUsed) {
+				lastTimeUsed = time.Unix(s.DeliveryTime/1000, 0)
+			}
 		}
 		for _, s := range exch.Sup.HistoryList {
 			t := wallet.TX{Timestamp: time.Unix(s.CreatedAt/1000, 0), Note: SOURCE + " Supercharger Reward"}
@@ -283,8 +333,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				log.Println(SOURCE, "Error Parsing RewardAmount", s.RewardAmount)
 			} else {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: s.CoinSymbol, Amount: amount})
+				cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
 			}
-			cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
 			if time.Unix(s.CreatedAt/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(s.CreatedAt/1000, 0)
 			}
@@ -301,8 +351,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing Commission", tc.Commission)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
+					cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 				}
-				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 			}
 			if time.Unix(tc.MTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(tc.MTime/1000, 0)
@@ -320,8 +370,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 					log.Println(SOURCE, "Error Parsing ReferralBonusInCRO", b.ReferralBonusInCRO)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
+					cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 				}
-				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 			}
 			if time.Unix(b.MTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(b.MTime/1000, 0)
@@ -331,17 +381,15 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 			}
 		}
 		if exch.Rew.SignupBonus != "0" {
-			alreadyAsked = wallet.AskForHelp(SOURCE+" Referral Reward", exch.Rew, alreadyAsked)
-			/*
-				Rew struct {
-					SignupBonusCreatedAt         string `json:"signUpBonusCreatedAt"`
-					TotalEarnFromReferral        string `json:"totalEarnFromReferral"`
-					TotalNumberOfUsersBeReferred string `json:"totalNumberOfUsersBeReferred"`
-					TotalTradeCommission         string `json:"totalTradeCommission"`
-					SignupBonus                  string `json:"signUpBonus"`
-					TotalReferralBonus           string `json:"totalReferralBonus"`
-					TotalNumberOfUsersSignedUp   string `json:"totalNumberOfUsersSignedUp"`
-				} `json:"rew"`*/
+			t := wallet.TX{Timestamp: time.Unix(exch.Rew.SignupBonusCreatedAt/1000, 0), Note: SOURCE + " Referral Bonus"}
+			t.Items = make(map[string]wallet.Currencies)
+			amount, err := decimal.NewFromString(exch.Rew.SignupBonus)
+			if err != nil {
+				log.Println(SOURCE, "Error Parsing SignupBonus", exch.Rew.SignupBonus)
+			} else {
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
+				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+			}
 		}
 	}
 	if _, ok := cdc.Sources["CdC Exchange"]; !ok {
