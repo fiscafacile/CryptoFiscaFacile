@@ -110,8 +110,10 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 					tx.Operation == "Distribution" ||
 					tx.Operation == "Super BNB Mining" ||
 					tx.Operation == "POS savings interest" ||
+					tx.Operation == "DeFi Staking Interest" ||
 					tx.Operation == "Savings Interest" ||
-					tx.Operation == "Launchpool Interest" {
+					tx.Operation == "Launchpool Interest" ||
+					tx.Operation == "Commission History" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
@@ -119,13 +121,16 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
 					}
 					if tx.Operation == "Distribution" {
-						b.TXsByCategory["CommercialRebates"] = append(b.TXsByCategory["CommercialRebates"], t)
+						b.TXsByCategory["AirDrops"] = append(b.TXsByCategory["AirDrops"], t)
 					} else if tx.Operation == "POS savings interest" ||
-						tx.Operation == "Super BNB Mining" {
+						tx.Operation == "Super BNB Mining" ||
+						tx.Operation == "DeFi Staking Interest" {
 						b.TXsByCategory["Minings"] = append(b.TXsByCategory["Minings"], t)
 					} else if tx.Operation == "Savings Interest" ||
 						tx.Operation == "Launchpool Interest" {
 						b.TXsByCategory["Interests"] = append(b.TXsByCategory["Interests"], t)
+					} else if tx.Operation == "Commission History" {
+						b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
 					} else {
 						b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
 					}
@@ -141,7 +146,9 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 				} else if tx.Operation == "POS savings purchase" ||
 					tx.Operation == "POS savings redemption" ||
 					tx.Operation == "Savings purchase" ||
-					tx.Operation == "Savings Principal redemption" {
+					tx.Operation == "Savings Principal redemption" ||
+					tx.Operation == "DeFi Staking purchase" ||
+					tx.Operation == "DeFi Staking redemption" {
 					// Don't care
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
