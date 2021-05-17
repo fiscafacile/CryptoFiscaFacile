@@ -85,6 +85,16 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader) (err error) {
 					if tx.SubType == "Buy" {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Symbol, Amount: tx.Amount})
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
+						if !tx.Fee.IsZero() && tx.FeeSymbol != "" {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeSymbol, Amount: tx.Fee})
+						}
+						bs.TXsByCategory["Exchanges"] = append(bs.TXsByCategory["Exchanges"], t)
+					} else if tx.SubType == "Sell" {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Symbol, Amount: tx.Amount})
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
+						if !tx.Fee.IsZero() && tx.FeeSymbol != "" {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeSymbol, Amount: tx.Fee})
+						}
 						bs.TXsByCategory["Exchanges"] = append(bs.TXsByCategory["Exchanges"], t)
 					} else {
 						alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type+" "+tx.SubType, tx, alreadyAsked)
