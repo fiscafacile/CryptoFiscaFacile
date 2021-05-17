@@ -99,6 +99,8 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader) (err error) {
 					} else {
 						alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type+" "+tx.SubType, tx, alreadyAsked)
 					}
+				} else if tx.Type == "Crypto currency purchase" {
+					// ignore
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type+" "+tx.SubType, tx, alreadyAsked)
 				}
