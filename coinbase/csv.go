@@ -126,6 +126,14 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
+				} else if tx.Type == "Coinbase Earn" {
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
+					// if !tx.Fee.IsZero() {
+					// 	t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					// }
+					cb.TXsByCategory["Interests"] = append(cb.TXsByCategory["Interests"], t)
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
