@@ -67,21 +67,24 @@ func (api *api) getAllTXs() (err error) {
 func (api *api) categorize() {
 	const SOURCE = "Bittrex API :"
 	alreadyAsked := []string{}
+	symRplcr := strings.NewReplacer(
+		"REPV2", "REP",
+	)
 	for _, tx := range api.tradeTXs {
 		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Direction}
 		symbolSlice := strings.Split(tx.MarketSymbol, "-")
 		t.Items = make(map[string]wallet.Currencies)
 		if tx.Direction == "BUY" {
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds})
 			if !tx.Commission.IsZero() {
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Commission})
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
 			}
 		} else if tx.Direction == "SELL" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symbolSlice[0], Amount: tx.FillQuantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Proceeds})
+			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity})
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds})
 			if !tx.Commission.IsZero() {
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symbolSlice[1], Amount: tx.Commission})
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
 			}
 		} else {
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
