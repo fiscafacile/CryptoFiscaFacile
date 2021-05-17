@@ -117,14 +117,29 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
-					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					if !tx.Fees.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					}
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Buy" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
-					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					if !tx.Fees.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					}
+					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
+				} else if tx.Type == "Convert" {
+					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
+					notes := strings.Split(tx.Notes, " ")
+					amount, _ := decimal.NewFromString(notes[len(notes)-2])
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: notes[len(notes)-1], Amount: amount})
+					if !tx.Fees.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+					}
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Coinbase Earn" {
 					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
