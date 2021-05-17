@@ -202,7 +202,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 					tx.Kind == "lockup_swap_rebate" ||
 					tx.Kind == "dynamic_coin_swap_bonus_exchange_deposit" ||
 					tx.Kind == "dynamic_coin_swap_credited" ||
-					tx.Kind == "dynamic_coin_swap_debited" {
+					tx.Kind == "dynamic_coin_swap_debited" ||
+					tx.Kind == "viban_withdrawal" {
 					// Do nothing
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Kind, tx, alreadyAsked)
