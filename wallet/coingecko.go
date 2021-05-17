@@ -14,6 +14,7 @@ import (
 type CoinGeckoAPI struct {
 	httpClient *http.Client
 	client     *coingecko.Client
+	reqTime    []time.Time
 }
 
 type CoinsListItem struct {
@@ -47,7 +48,17 @@ func NewCoinGeckoAPI() (*CoinGeckoAPI, error) {
 	return cg, err
 }
 
-func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates ExchangeRates, err error) {
+func (api *CoinGeckoAPI) garbageOldReqTime() {
+	var reqT []time.Time
+	for _, t := range api.reqTime {
+		if t.After(time.Now().Add(-time.Minute)) {
+			reqT = append(reqT, t)
+		}
+	}
+	api.reqTime = reqT
+}
+
+func (api *CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates ExchangeRates, err error) {
 	db, err := scribble.New("./Cache", nil)
 	if err != nil {
 		return rates, err
@@ -71,6 +82,10 @@ func (api CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Exc
 			}
 		}
 		if coinID != "" {
+			for len(api.reqTime) > 100 {
+				api.garbageOldReqTime()
+			}
+			api.reqTime = append(api.reqTime, time.Now())
 			hist, err := api.client.CoinsIDHistory(coinID, date.UTC().Format("02-01-2006"), false)
 			if err != nil {
 				return rates, err
