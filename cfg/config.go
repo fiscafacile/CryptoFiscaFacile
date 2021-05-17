@@ -77,6 +77,7 @@ type Options struct {
 	ExportStock     bool   `yaml:"export-stock"`
 	Lbtc            bool   `yaml:"lbtc"`
 	Location        string `yaml:"location"`
+	LogFile         string `yaml:"log"`
 	Native          string `yaml:"native"`
 	Stats           bool   `yaml:"stats"`
 	TxsCategory     string `yaml:"txs-categ"`
@@ -159,6 +160,7 @@ func LoadConfig() (*Config, error) {
 	pflag.BoolVarP(&config.Options.Debug, "debug", "d", config.Options.Debug, "Debug Mode (only for devs)")
 	pflag.BoolVarP(&config.Options.Check, "check", "c", config.Options.Check, "Check and Display consistency")
 	pflag.StringVar(&config.Options.CurrencyFilter, "currency-filter", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
+	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
 	pflag.BoolVar(&config.Options.Debug, "exact", config.Options.Debug, "Display exact amount (no rounding)")
 	pflag.StringVar(&config.Options.TxsDisplay, "txs-display", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	// Sources

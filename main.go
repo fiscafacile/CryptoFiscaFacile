@@ -36,6 +36,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if config.Options.LogFile != "" {
+		f, err := os.OpenFile(config.Options.LogFile, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+		if err != nil {
+			log.Fatalf("error opening file: %v", err)
+		}
+		defer f.Close()
+		log.SetOutput(f)
+	}
 	if config.Tools.CoinAPI.Key != "" {
 		wallet.CoinAPISetKey(config.Tools.CoinAPI.Key)
 	}
