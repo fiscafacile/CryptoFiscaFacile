@@ -142,6 +142,7 @@ type ExchangeJson struct {
 	} `json:"syn"`
 	Sup struct {
 		HistoryList []struct {
+			// CreatedAt string `json:"createdAt"`
 			CreatedAt    int64  `json:"createdAt,string"`
 			CoinSymbol   string `json:"coinSymbol"`
 			Extra        string `json:"extra"`
@@ -177,7 +178,7 @@ type ExchangeJson struct {
 		} `json:"data"`
 	} `json:"bon"`
 	Rew struct {
-		SignupBonusCreatedAt         int64  `json:"signUpBonusCreatedAt,string"`
+		SignupBonusCreatedAt         string `json:"signUpBonusCreatedAt"`
 		TotalEarnFromReferral        string `json:"totalEarnFromReferral"`
 		TotalNumberOfUsersBeReferred string `json:"totalNumberOfUsersBeReferred"`
 		TotalTradeCommission         string `json:"totalTradeCommission"`
@@ -381,7 +382,11 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 			}
 		}
 		if exch.Rew.SignupBonus != "0" {
-			t := wallet.TX{Timestamp: time.Unix(exch.Rew.SignupBonusCreatedAt/1000, 0), Note: SOURCE + " Referral Bonus"}
+			signupBonusCreatedAt, err := strconv.ParseInt(exch.Rew.SignupBonusCreatedAt, 10, 64)
+			if err != nil {
+				log.Println(SOURCE, "Error Parsing SignupBonusCreatedAt", exch.Rew.SignupBonusCreatedAt)
+			}
+			t := wallet.TX{Timestamp: time.Unix(signupBonusCreatedAt/1000, 0), Note: SOURCE + " Referral Bonus"}
 			t.Items = make(map[string]wallet.Currencies)
 			amount, err := decimal.NewFromString(exch.Rew.SignupBonus)
 			if err != nil {
