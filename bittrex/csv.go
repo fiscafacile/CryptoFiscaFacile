@@ -31,6 +31,16 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 	const SOURCE = "Bittrex CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
+	opeRplcr := strings.NewReplacer(
+		"LIMIT_SELL", "SELL",
+		"MARKET_SELL", "SELL",
+		"CEILING_MARKET_BUY", "BUY",
+		"LIMIT_BUY", "BUY",
+		"MARKET_BUY", "BUY",
+	)
+	symRplcr := strings.NewReplacer(
+		"REPV2", "REP",
+	)
 	if err == nil {
 		alreadyAsked := []string{}
 		for _, r := range records {
@@ -42,14 +52,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println("Error Parsing Time : ", r[14])
 				}
-				rplcr := strings.NewReplacer(
-					"LIMIT_SELL", "SELL",
-					"MARKET_SELL", "SELL",
-					"CEILING_MARKET_BUY", "BUY",
-					"LIMIT_BUY", "BUY",
-					"MARKET_BUY", "BUY",
-				)
-				tx.Operation = rplcr.Replace(r[3])
+				tx.Operation = opeRplcr.Replace(r[3])
 				quantity, err := decimal.NewFromString(r[5])
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing quantity", r[5])
@@ -62,7 +65,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Fee", r[7])
 				}
-				tx.FeeCurrency = symbolSlice[0]
+				tx.FeeCurrency = symRplcr.Replace(symbolSlice[0])
 				price, err := decimal.NewFromString(r[8])
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing price", r[8])
@@ -76,14 +79,14 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 				// Fill TXsByCategory
 				if tx.Operation == "BUY" || tx.Operation == "SELL" {
 					if tx.Operation == "BUY" {
-						tx.FromSymbol = symbolSlice[0]
+						tx.FromSymbol = symRplcr.Replace(symbolSlice[0])
 						tx.FromAmount = price
-						tx.ToSymbol = symbolSlice[1]
+						tx.ToSymbol = symRplcr.Replace(symbolSlice[1])
 						tx.ToAmount = quantity.Sub(quantityRemaining)
 					} else if tx.Operation == "SELL" {
-						tx.FromSymbol = symbolSlice[1]
+						tx.FromSymbol = symRplcr.Replace(symbolSlice[1])
 						tx.FromAmount = quantity.Sub(quantityRemaining)
-						tx.ToSymbol = symbolSlice[0]
+						tx.ToSymbol = symRplcr.Replace(symbolSlice[0])
 						tx.ToAmount = price
 					}
 					btrx.mutex.Lock()
