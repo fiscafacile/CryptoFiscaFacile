@@ -300,7 +300,7 @@ Les colones du CSV du portefeuille Crypto de l'APP doivent être : `Timestamp (U
   --cdc-ex-exportjs
         Crypto.com Exchange JSON file from json_exporter.js
 ```
-Il faut fournir le JSON récupéré dans l'Exchange Crypto.com avec la méthode décrite [ici](https://github.com/fiscafacile/CryptoFiscaFacile/wiki/Crypto.com-Exchange-JSON-methode)
+Il faut fournir le JSON récupéré dans l'Exchange Crypto.com avec la méthode décrite [ici](https://github.com/fiscafacile/CryptoFiscaFacile/wiki/Crypto.com-Exchange-JSON-method)
 
 Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `Interests` du Staking de CRO et Soft Staking, les `CommercialRebates` du bonus d'inscription et des Syndicates, les `Referrals` du programme de parainage, les `Minings` des Superchargers.
 
