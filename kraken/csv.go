@@ -126,8 +126,18 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
 				} else if tx.Type == "transfer" {
-					// Ignore transfer because it's a intra-account transfert
-					// is there some Fees to consider ?
+					t := wallet.TX{Timestamp: tx.Time}
+					t.Items = make(map[string]wallet.Currencies)
+					if tx.SubType == "" {
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+						kr.TXsByCategory["AirDrops"] = append(kr.TXsByCategory["AirDrops"], t)
+					} else {
+						// Ignore non void subType transfer because it's a intra-account transfert
+						if !tx.Fee.IsZero() {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+							kr.TXsByCategory["Fees"] = append(kr.TXsByCategory["Fees"], t)
+						}
+					}
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
