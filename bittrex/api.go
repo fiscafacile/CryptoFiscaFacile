@@ -85,14 +85,22 @@ func (api *api) categorize() {
 			skip = true
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
 		}
-		if !skip && (!to.IsFiat() || !from.IsFiat()) {
+		if !skip {
 			t.Items = make(map[string]wallet.Currencies)
 			t.Items["From"] = append(t.Items["From"], from)
 			t.Items["To"] = append(t.Items["To"], to)
 			if !tx.Commission.IsZero() {
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
 			}
-			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+			if to.IsFiat() && from.IsFiat() {
+				//ignore
+			} else if to.IsFiat() {
+				api.txsByCategory["CashOut"] = append(api.txsByCategory["CashOut"], t)
+			} else if from.IsFiat() {
+				api.txsByCategory["CashIn"] = append(api.txsByCategory["CashIn"], t)
+			} else {
+				api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+			}
 		}
 		if tx.Time.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Time
@@ -103,19 +111,25 @@ func (api *api) categorize() {
 	}
 	// Process transfer transactions
 	for _, tx := range api.depositTXs {
-		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
-		t.Items = make(map[string]wallet.Currencies)
-		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity})
-		api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+		to := wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity}
+		if !to.IsFiat() {
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
+			t.Items = make(map[string]wallet.Currencies)
+			t.Items["To"] = append(t.Items["To"], to)
+			api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+		}
 	}
 	for _, tx := range api.withdrawalTXs {
-		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
-		t.Items = make(map[string]wallet.Currencies)
-		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity})
-		if !tx.Fee.IsZero() {
-			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Fee})
+		from := wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Quantity}
+		if !from.IsFiat() {
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Address}
+			t.Items = make(map[string]wallet.Currencies)
+			t.Items["From"] = append(t.Items["From"], from)
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.CurrencySymbol, Amount: tx.Fee})
+			}
+			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 		}
-		api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 	}
 }
 

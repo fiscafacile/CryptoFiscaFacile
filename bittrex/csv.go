@@ -89,22 +89,24 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 						tx.ToSymbol = symRplcr.Replace(symbolSlice[0])
 						tx.ToAmount = price
 					}
-					btrx.mutex.Lock()
-					found := false
-					for _, t := range btrx.TXsByCategory["Exchanges"] {
-						if tx.ID == t.ID {
-							found = true
-						}
-					}
-					if !found {
-						t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex CSV : " + tx.Operation, ID: tx.ID}
-						t.Items = make(map[string]wallet.Currencies)
-						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount})
-						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount})
+					to := wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount}
+					from := wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount}
+					t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex CSV : " + tx.Operation, ID: tx.ID}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["From"] = append(t.Items["From"], from)
+					t.Items["To"] = append(t.Items["To"], to)
+					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
+					}
+					if to.IsFiat() && from.IsFiat() {
+						//ignore
+					} else if to.IsFiat() {
+						btrx.TXsByCategory["CashOut"] = append(btrx.TXsByCategory["CashOut"], t)
+					} else if from.IsFiat() {
+						btrx.TXsByCategory["CashIn"] = append(btrx.TXsByCategory["CashIn"], t)
+					} else {
 						btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
 					}
-					btrx.mutex.Unlock()
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
 				}
