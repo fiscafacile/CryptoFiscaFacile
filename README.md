@@ -230,6 +230,20 @@ Il faut fournir le fichier CSV récupéré dans Bitfinex (https://report.bitfine
 
 Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALANCE,DATE,WALLET`
 
+#### Bitstamp [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bitstamp-)
+
+```
+  --bitstamp
+        Bittrex CSV file
+  --bitstamp-api-key
+        Bittrex API key
+  --bitstamp-api-secret
+        Bittrex API secret
+```
+Il faut fournir les fichiers CSV récupérés dans Bitstamp.
+
+Les colones du CSV d'origine doivent être : `Type,Datetime,Account,Amount,Value,Rate,Fee,Sub Type`
+
 #### Bittrex [![Support bon](https://img.shields.io/badge/support-bon-blue)](#bittrex-)
 
 ```

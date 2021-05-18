@@ -209,8 +209,8 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 				}
 				if w.Fee != 0 {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: w.Symbol, Amount: decimal.NewFromFloat(w.Fee)})
-					cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 				}
+				cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
 			}
 			if time.Unix(w.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(w.UpdateAtTime/1000, 0)
@@ -386,7 +386,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 			if err != nil {
 				log.Println(SOURCE, "Error Parsing SignupBonusCreatedAt", exch.Rew.SignupBonusCreatedAt)
 			}
-			t := wallet.TX{Timestamp: time.Unix(signupBonusCreatedAt/1000, 0), Note: SOURCE + " Referral Bonus"}
+			t := wallet.TX{Timestamp: time.Unix(signupBonusCreatedAt/1000, 0), Note: SOURCE + " Signup Bonus"}
 			t.Items = make(map[string]wallet.Currencies)
 			amount, err := decimal.NewFromString(exch.Rew.SignupBonus)
 			if err != nil {
