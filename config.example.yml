@@ -64,15 +64,6 @@ exchanges:
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
-    csv:
-      all:
-      # - Inputs/Crypto.Com/exchange/2020_DEPOSIT.csv
-      # - Inputs/Crypto.Com/exchange/2020_SPOT_ORDER.csv
-      # - Inputs/Crypto.Com/exchange/2020_SPOT_TRADE.csv
-      # - Inputs/Crypto.Com/exchange/2020_WITHDRAWAL.csv
-      staking:
-      # - Inputs/Crypto.Com/exchange/2020_SOFT_STAKE_INTEREST.csv
-      # - Inputs/Crypto.Com/exchange/2020_STAKE_INTEREST.csv
     json: # Inputs/Crypto.Com/exchange/CdC_Ex_ExportJS.json
   hitbtc:
     api:

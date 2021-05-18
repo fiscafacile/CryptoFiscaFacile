@@ -320,20 +320,12 @@ Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `
 
 - Exchange avec CSV:
 ```
-  --cdc-ex-stake
-        Crypto.com Exchange Stake CSV file
-  --cdc-ex-supercharger
-        Crypto.com Exchange Supercharger CSV file
   --cdc-ex-transfer
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
-Il faut fournir les CSV récupérés dans l'Exchange Crypto.com (pour le SuperCharger, il faut le créer à la main car on ne peut pas le télécharger pour l'instant).
+Il faut fournir les CSV récupérés dans l'Exchange Crypto.com.
 
 Préférez la methode JS+JSON ci dessus, elle est plus complète.
-
-Les colones du CSV de l'Exchange Stake doivent être : `create_time_utc,stake_currency,stake_amount,apr,interest_currency,interest_amount,status`
-
-Les colones du CSV de l'Exchange Supercharger doivent être : `create_time_utc,supercharger_currency,reward_mount,description`
 
 Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
 
