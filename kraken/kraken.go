@@ -29,7 +29,6 @@ func (kr *Kraken) GetAPIAllTXs() {
 		kr.done <- err
 		return
 	}
-	kr.TXsByCategory.Add(kr.api.txsByCategory)
 	kr.Sources["Kraken"] = source.Source{
 		Crypto:        true,
 		AccountNumber: "emailAROBASEdomainPOINTcom",
@@ -43,7 +42,22 @@ func (kr *Kraken) GetAPIAllTXs() {
 }
 
 func (kr *Kraken) WaitFinish() error {
-	return <-kr.done
+	err := <-kr.done
+	for k, v := range kr.api.txsByCategory {
+		for _, tx := range v {
+			found := false
+			for _, t := range kr.TXsByCategory[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				kr.TXsByCategory[k] = append(kr.TXsByCategory[k], tx)
+			}
+		}
+	}
+	return err
 }
 
 func ReplaceAssets(assetToReplace string) string {

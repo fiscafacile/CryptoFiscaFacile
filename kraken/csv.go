@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -69,10 +70,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					lastTimeUsed = tx.Time
 				}
 				// Fill TXsByCategory
-				if tx.Type == "trade" {
+				if tx.Type == "trade" || tx.Type == "spend" || tx.Type == "receive" {
 					found := false
 					for i, ex := range kr.TXsByCategory["Exchanges"] {
-						if ex.SimilarDate(2*time.Second, tx.Time) {
+						if strings.Contains(ex.ID, tx.RefId) {
 							found = true
 							if kr.TXsByCategory["Exchanges"][i].Items == nil {
 								kr.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
@@ -125,6 +126,14 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
+				} else if tx.Type == "margin" || tx.Type == "rollover" {
+					fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+					if !fee.IsFiat() {
+						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
+						t.Items = make(map[string]wallet.Currencies)
+						t.Items["Fee"] = append(t.Items["Fee"], fee)
+						kr.TXsByCategory["Fees"] = append(kr.TXsByCategory["Fees"], t)
+					}
 				} else if tx.Type == "transfer" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
