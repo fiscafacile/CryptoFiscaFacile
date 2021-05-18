@@ -73,23 +73,27 @@ func (api *api) categorize() {
 	for _, tx := range api.tradeTXs {
 		t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Direction}
 		symbolSlice := strings.Split(tx.MarketSymbol, "-")
-		t.Items = make(map[string]wallet.Currencies)
+		skip := false
+		var to, from wallet.Currency
 		if tx.Direction == "BUY" {
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity})
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds})
-			if !tx.Commission.IsZero() {
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
-			}
+			to = wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity}
+			from = wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds}
 		} else if tx.Direction == "SELL" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds})
-			if !tx.Commission.IsZero() {
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
-			}
+			to = wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Proceeds}
+			from = wallet.Currency{Code: symRplcr.Replace(symbolSlice[0]), Amount: tx.FillQuantity}
 		} else {
+			skip = true
 			alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Direction, tx, alreadyAsked)
 		}
-		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		if !skip && (!to.IsFiat() || !from.IsFiat()) {
+			t.Items = make(map[string]wallet.Currencies)
+			t.Items["From"] = append(t.Items["From"], from)
+			t.Items["To"] = append(t.Items["To"], to)
+			if !tx.Commission.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: symRplcr.Replace(symbolSlice[1]), Amount: tx.Commission})
+			}
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
+		}
 		if tx.Time.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Time
 		}
