@@ -115,7 +115,7 @@ func (c Currency) GetExchangeRate(date time.Time, to string) (rate decimal.Decim
 			}
 		}
 	}
-	return rate, errors.New("Cannot find rate for " + to + c.Code + " at " + date.String())
+	return rate, errors.New("Cannot find rate for " + c.Code + " at " + date.String())
 }
 
 func (wc WalletCurrencies) Add(a WalletCurrencies) {
@@ -133,7 +133,7 @@ func (w Wallets) CalculateTotalValue(native string) (totalValue Currency, err er
 			c := Currency{Code: k, Amount: v}
 			rate, err := c.GetExchangeRate(w.Date, native)
 			if err != nil {
-				log.Println("Cannot find rate for", k, "at", w.Date)
+				log.Println(err)
 			} else {
 				totalValue.Amount = totalValue.Amount.Add(rate.Mul(v))
 			}
