@@ -45,8 +45,7 @@ func (api *api) getAPISpotTrades() {
 		} else {
 			tx.Asset = tra["asset"].(string)
 		}
-		rpl := strings.NewReplacer("XBT", "BTC", "XXDG", "DOGE")
-		tx.Asset = rpl.Replace(tx.Asset)
+		tx.Asset = ReplaceAssets(tx.Asset)
 		tx.Class = tra["aclass"].(string)
 		tx.Fee, err = decimal.NewFromString(tra["fee"].(string))
 		if err != nil {
