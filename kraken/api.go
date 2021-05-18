@@ -124,7 +124,11 @@ func (api *api) categorize() {
 			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)
 			if tx.SubType == "" {
-				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+				if tx.Amount.IsPositive() {
+					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+				} else {
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+				}
 				api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)
 			} else {
 				// Ignore non void subType transfer because it's a intra-account transfert

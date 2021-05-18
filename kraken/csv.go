@@ -96,11 +96,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 						}
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-							kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 						} else {
 							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-							kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 						}
+						kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 					}
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
@@ -138,7 +137,11 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.SubType == "" {
-						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+						if tx.Amount.IsPositive() {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+						} else {
+							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+						}
 						kr.TXsByCategory["AirDrops"] = append(kr.TXsByCategory["AirDrops"], t)
 					} else {
 						// Ignore non void subType transfer because it's a intra-account transfert
