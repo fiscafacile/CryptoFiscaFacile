@@ -497,10 +497,13 @@ func main() {
 	}
 	globalWallet := global.GetWallets(filterDate, false, !config.Options.Exact)
 	globalWallet.Println("Global Crypto", "")
+	fmt.Print("Calculating Total native value...")
 	globalWalletTotalValue, err := globalWallet.CalculateTotalValue(config.Options.Native)
 	if err != nil {
+		fmt.Println("Error")
 		log.Fatal("Error Calculating Global Wallet:", err)
 	} else {
+		fmt.Println("Finished")
 		globalWalletTotalValue.Amount = globalWalletTotalValue.Amount.RoundBank(0)
 		fmt.Print("Total Value : ")
 		globalWalletTotalValue.Println("")

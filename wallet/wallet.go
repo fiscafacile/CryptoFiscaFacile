@@ -127,6 +127,7 @@ func (wc WalletCurrencies) Add(a WalletCurrencies) {
 func (w Wallets) CalculateTotalValue(native string) (totalValue Currency, err error) {
 	totalValue.Code = native
 	for k, v := range w.Currencies {
+		fmt.Print(".")
 		if k == native {
 			totalValue.Amount = totalValue.Amount.Add(v)
 		} else {
