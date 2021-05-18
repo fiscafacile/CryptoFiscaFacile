@@ -44,9 +44,11 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 					log.Println(SOURCE, "Error Parsing Amount", r[4])
 				}
 				if extended {
-					tx.Fee, err = decimal.NewFromString(r[5])
-					if err != nil {
-						log.Println(SOURCE, "Error Parsing Fee", r[5])
+					if r[5] != "" {
+						tx.Fee, err = decimal.NewFromString(r[5])
+						if err != nil {
+							log.Println(SOURCE, "Error Parsing Fee", r[5])
+						}
 					}
 					tx.Remark = r[6]
 				} else {
