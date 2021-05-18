@@ -32,7 +32,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 	if err == nil {
 		alreadyAsked := []string{}
 		for _, r := range records {
-			// Ignore duplicate when no TxIx
+			// Ignore duplicate when no TxId
 			if r[0] != "" && r[0] != "txid" {
 				tx := csvTX{}
 				tx.Time, err = time.Parse("2006-01-02 15:04:05", r[2])

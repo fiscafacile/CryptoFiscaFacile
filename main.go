@@ -261,7 +261,7 @@ func main() {
 			log.Fatal("Error parsing HitBTC Transactions CSV file:", err)
 		}
 	}
-	for _, file := range config.Exchanges.Kraken.CSV.Transfers {
+	for _, file := range config.Exchanges.Kraken.CSV.All {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Kraken CSV file:", err)
