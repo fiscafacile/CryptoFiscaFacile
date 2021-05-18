@@ -106,8 +106,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 					if err == nil {
 						c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
 					} else {
-						log.Println("Rate missing : CashOut integration into Prix213")
-						spew.Dump(tx, c)
+						log.Println("Rate missing : CashOut integration into Prix213", spew.Sdump(tx, c))
 					}
 				}
 				// Prix de cession - Frais
@@ -137,8 +136,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 						if err == nil {
 							c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
 						} else {
-							log.Println("Rate missing : CashOut integration into Frais214")
-							spew.Dump(tx, c)
+							log.Println("Rate missing : CashOut integration into Frais214", spew.Sdump(tx, c))
 						}
 					}
 				}
@@ -186,8 +184,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 					if err == nil {
 						c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
 					} else {
-						log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition")
-						spew.Dump(tx)
+						log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
 					}
 				}
 			}
