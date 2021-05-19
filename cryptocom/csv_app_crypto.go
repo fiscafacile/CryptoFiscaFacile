@@ -226,8 +226,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 			AccountNumber: "votre IBAN LTxxxxx",
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
-			LegalName:     "MCO Malta DAX Limited",
-			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+			LegalName:     "MCO Malta DAX Limited (Transactive Systems UAB)",
+			Address:       "Jogailos St 9, Vilnius, 01103, Lithuania",
 			URL:           "https://crypto.com/cards",
 		}
 	}

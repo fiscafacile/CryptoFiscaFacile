@@ -28,10 +28,24 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 		b.done <- err
 		return
 	}
-	b.TXsByCategory.Add(b.api.txsByCategory)
 	b.done <- nil
 }
 
 func (b *Binance) WaitFinish() error {
-	return <-b.done
+	err := <-b.done
+	for k, v := range b.api.txsByCategory {
+		for _, tx := range v {
+			found := false
+			for _, t := range b.TXsByCategory[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				b.TXsByCategory[k] = append(b.TXsByCategory[k], tx)
+			}
+		}
+	}
+	return err
 }
