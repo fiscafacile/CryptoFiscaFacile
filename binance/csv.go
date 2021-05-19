@@ -48,6 +48,10 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 						tx.Fee, err = decimal.NewFromString(r[5])
 						if err != nil {
 							log.Println(SOURCE, "Error Parsing Fee", r[5])
+						} else {
+							if tx.Fee.IsNegative() {
+								tx.Fee = tx.Fee.Neg()
+							}
 						}
 					}
 					tx.Remark = r[6]
