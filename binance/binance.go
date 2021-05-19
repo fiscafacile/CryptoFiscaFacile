@@ -28,6 +28,28 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 		b.done <- err
 		return
 	}
+	if _, ok := b.Sources["Binance"]; ok {
+		if b.Sources["Binance"].OpeningDate.After(b.api.firstTimeUsed) {
+			src := b.Sources["Binance"]
+			src.OpeningDate = b.api.firstTimeUsed
+			b.Sources["Binance"] = src
+		}
+		if b.Sources["Binance"].ClosingDate.Before(b.api.lastTimeUsed) {
+			src := b.Sources["Binance"]
+			src.ClosingDate = b.api.lastTimeUsed
+			b.Sources["Binance"] = src
+		}
+	} else {
+		b.Sources["Binance"] = source.Source{
+			Crypto:        true,
+			AccountNumber: "emailAROBASEdomainPOINTcom",
+			OpeningDate:   b.api.firstTimeUsed,
+			ClosingDate:   b.api.lastTimeUsed,
+			LegalName:     "Binance Europe Services Limited",
+			Address:       "LEVEL G (OFFICE 1/1235), QUANTUM HOUSE,75 ABATE RIGORD STREET, TA' XBIEXXBX 1120\nMalta",
+			URL:           "https://www.binance.com/fr",
+		}
+	}
 	b.done <- nil
 }
 

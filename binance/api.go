@@ -28,7 +28,7 @@ type api struct {
 	apiKey               string
 	secretKey            string
 	firstTimeUsed        time.Time
-	startTime            time.Time
+	lastTimeUsed         time.Time
 	withdrawalTXs        []withdrawalTX
 	depositTXs           []depositTX
 	spotTradeTXs         []spotTradeTX
@@ -77,7 +77,7 @@ func (b *Binance) NewAPI(apiKey, secretKey string, debug bool) {
 	b.api.apiKey = apiKey
 	b.api.secretKey = secretKey
 	b.api.firstTimeUsed = time.Now()
-	b.api.startTime = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
+	b.api.lastTimeUsed = time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
 	b.api.debug = debug
 }
 
@@ -95,10 +95,6 @@ func (api *api) getAllTXs(loc *time.Location) (err error) {
 	return
 }
 
-func (api *api) GetFirstUsedTime() time.Time {
-	return api.firstTimeUsed
-}
-
 func (api *api) categorize() {
 	for _, tx := range api.withdrawalTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Withdrawal " + tx.Description}
@@ -111,6 +107,9 @@ func (api *api) categorize() {
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
+		}
 	}
 	for _, tx := range api.depositTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Deposit " + tx.Description}
@@ -122,6 +121,9 @@ func (api *api) categorize() {
 		api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
+		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
@@ -143,6 +145,9 @@ func (api *api) categorize() {
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
+		}
 	}
 	for _, tx := range api.assetDividendTXs {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Asset Dividend " + tx.Description}
@@ -151,6 +156,9 @@ func (api *api) categorize() {
 		api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
+		}
+		if tx.Timestamp.After(api.lastTimeUsed) {
+			api.lastTimeUsed = tx.Timestamp
 		}
 	}
 }
