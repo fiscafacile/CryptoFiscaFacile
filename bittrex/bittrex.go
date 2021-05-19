@@ -26,32 +26,10 @@ func (btrx *Bittrex) GetAPIAllTXs() {
 		btrx.done <- err
 		return
 	}
-	if _, ok := btrx.Sources["Bittrex"]; ok {
-		if btrx.Sources["Bittrex"].OpeningDate.After(btrx.api.firstTimeUsed) {
-			src := btrx.Sources["Bittrex"]
-			src.OpeningDate = btrx.api.firstTimeUsed
-			btrx.Sources["Bittrex"] = src
-		}
-		if btrx.Sources["Bittrex"].ClosingDate.Before(btrx.api.lastTimeUsed) {
-			src := btrx.Sources["Bittrex"]
-			src.ClosingDate = btrx.api.lastTimeUsed
-			btrx.Sources["Bittrex"] = src
-		}
-	} else {
-		btrx.Sources["Bittrex"] = source.Source{
-			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
-			OpeningDate:   btrx.api.firstTimeUsed,
-			ClosingDate:   btrx.api.lastTimeUsed,
-			LegalName:     "Bittrex International GmbH",
-			Address:       "Dr. Grass-Strasse 12, 9490 Vaduz,\nPrincipality of Liechtenstein",
-			URL:           "https://global.bittrex.com",
-		}
-	}
 	btrx.done <- nil
 }
 
-func (btrx *Bittrex) WaitFinish() error {
+func (btrx *Bittrex) WaitFinish(account string) error {
 	err := <-btrx.done
 	for k, v := range btrx.api.txsByCategory {
 		if k == "Exchanges" || k == "CashIn" || k == "CashOut" {
@@ -69,6 +47,28 @@ func (btrx *Bittrex) WaitFinish() error {
 			}
 		} else {
 			btrx.TXsByCategory[k] = append(btrx.TXsByCategory[k], v...)
+		}
+	}
+	if _, ok := btrx.Sources["Bittrex"]; ok {
+		if btrx.Sources["Bittrex"].OpeningDate.After(btrx.api.firstTimeUsed) {
+			src := btrx.Sources["Bittrex"]
+			src.OpeningDate = btrx.api.firstTimeUsed
+			btrx.Sources["Bittrex"] = src
+		}
+		if btrx.Sources["Bittrex"].ClosingDate.Before(btrx.api.lastTimeUsed) {
+			src := btrx.Sources["Bittrex"]
+			src.ClosingDate = btrx.api.lastTimeUsed
+			btrx.Sources["Bittrex"] = src
+		}
+	} else {
+		btrx.Sources["Bittrex"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   btrx.api.firstTimeUsed,
+			ClosingDate:   btrx.api.lastTimeUsed,
+			LegalName:     "Bittrex International GmbH",
+			Address:       "Dr. Grass-Strasse 12, 9490 Vaduz,\nPrincipality of Liechtenstein",
+			URL:           "https://global.bittrex.com",
 		}
 	}
 	return err

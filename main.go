@@ -144,7 +144,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Binance CSV file:", err)
 		}
-		err = b.ParseCSV(recordFile, config.Options.BinanceExtended)
+		err = b.ParseCSV(recordFile, config.Options.BinanceExtended, config.Exchanges.Binance.Account)
 		if err != nil {
 			log.Fatal("Error parsing Binance CSV file:", err)
 		}
@@ -155,7 +155,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bitfinex CSV file:", err)
 		}
-		err = bf.ParseCSV(recordFile)
+		err = bf.ParseCSV(recordFile, config.Exchanges.Bitfinex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bitfinex CSV file:", err)
 		}
@@ -165,7 +165,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bitstamp CSV file:", err)
 		}
-		err = bs.ParseCSV(recordFile)
+		err = bs.ParseCSV(recordFile, config.Exchanges.Bitstamp.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bitstamp CSV file:", err)
 		}
@@ -175,7 +175,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bittrex CSV file:", err)
 		}
-		err = btrx.ParseCSV(recordFile)
+		err = btrx.ParseCSV(recordFile, config.Exchanges.Bittrex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bittrex CSV file:", err)
 		}
@@ -186,7 +186,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Coinbase CSV file:", err)
 		}
-		err = cb.ParseCSV(recordFile)
+		err = cb.ParseCSV(recordFile, config.Exchanges.Coinbase.Account)
 		if err != nil {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
 		}
@@ -196,7 +196,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Crypto.com CSV file:", err)
 		}
-		err = cdc.ParseCSVAppCrypto(recordFile, *categ)
+		err = cdc.ParseCSVAppCrypto(recordFile, *categ, config.Exchanges.CdcApp.Account)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com CSV file:", err)
 		}
@@ -206,12 +206,12 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange ExportJS JSON file:", err)
 		}
-		err = cdc.ParseJSONExchangeExportJS(recordFile)
+		err = cdc.ParseJSONExchangeExportJS(recordFile, config.Exchanges.CdcEx.Account)
 		if err != nil {
 			log.Fatal("Error parsing Crypto.com Exchange ExportJS JSON file:", err)
 		}
 	}
-	for _, file := range config.Exchanges.CdcApp.CSV.Transfers {
+	for _, file := range config.Exchanges.CdcEx.CSV.Transfers {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Deposit/Withdrawal CSV file:", err)
@@ -221,7 +221,7 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Deposit/Withdrawal CSV file:", err)
 		}
 	}
-	for _, file := range config.Exchanges.CdcApp.CSV.Staking {
+	for _, file := range config.Exchanges.CdcEx.CSV.Staking {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Stake CSV file:", err)
@@ -231,7 +231,7 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Stake CSV file:", err)
 		}
 	}
-	for _, file := range config.Exchanges.CdcApp.CSV.Supercharger {
+	for _, file := range config.Exchanges.CdcEx.CSV.Supercharger {
 		recordFile, err := os.Open(file)
 		if err != nil {
 			log.Fatal("Error opening Crypto.com Exchange Supercharger CSV file:", err)
@@ -266,7 +266,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Kraken CSV file:", err)
 		}
-		err = kr.ParseCSV(recordFile)
+		err = kr.ParseCSV(recordFile, config.Exchanges.Kraken.Account)
 		if err != nil {
 			log.Fatal("Error parsing Kraken CSV file:", err)
 		}
@@ -288,7 +288,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Local Bitcoin Trade CSV file:", err)
 		}
-		err = lb.ParseTradeCSV(recordFile)
+		err = lb.ParseTradeCSV(recordFile, config.Exchanges.LocalBitcoins.Account)
 		if err != nil {
 			log.Fatal("Error parsing Local Bitcoin Trade CSV file:", err)
 		}
@@ -298,7 +298,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Local Bitcoin Transfer CSV file:", err)
 		}
-		err = lb.ParseTransferCSV(recordFile)
+		err = lb.ParseTransferCSV(recordFile, config.Exchanges.LocalBitcoins.Account)
 		if err != nil {
 			log.Fatal("Error parsing Local Bitcoin Transfer CSV file:", err)
 		}
@@ -320,7 +320,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Poloniex Deposits CSV file:", err)
 		}
-		err = pl.ParseDepositsCSV(recordFile)
+		err = pl.ParseDepositsCSV(recordFile, config.Exchanges.Poloniex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Poloniex Deposits CSV file:", err)
 		}
@@ -330,7 +330,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Poloniex Distributions CSV file:", err)
 		}
-		err = pl.ParseDistributionsCSV(recordFile)
+		err = pl.ParseDistributionsCSV(recordFile, config.Exchanges.Poloniex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Poloniex Distributions CSV file:", err)
 		}
@@ -340,7 +340,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Poloniex Trades CSV file:", err)
 		}
-		err = pl.ParseTradesCSV(recordFile)
+		err = pl.ParseTradesCSV(recordFile, config.Exchanges.Poloniex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Poloniex Trades CSV file:", err)
 		}
@@ -350,7 +350,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Poloniex Withdrawals CSV file:", err)
 		}
-		err = pl.ParseWithdrawalsCSV(recordFile)
+		err = pl.ParseWithdrawalsCSV(recordFile, config.Exchanges.Poloniex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Poloniex Withdrawals CSV file:", err)
 		}
@@ -361,32 +361,38 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Revolut CSV file:", err)
 		}
-		err = revo.ParseCSV(recordFile)
+		err = revo.ParseCSV(recordFile, config.Exchanges.Revolut.Account)
 		if err != nil {
 			log.Fatal("Error parsing Revolut CSV file:", err)
 		}
 	}
 	// Wait for API access to finish
-	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
-		err := bs.WaitFinish()
-		if err != nil {
-			log.Fatal("Error getting BiTstamp API TXs:", err)
-		}
-	}
-	if config.Exchanges.CdcEx.API.Key != "" && config.Exchanges.CdcEx.API.Secret != "" {
-		err := cdc.WaitFinish()
-		if err != nil {
-			log.Fatal("Error getting Crypto.com Exchange API TXs:", err)
-		}
-	}
 	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
-		err := b.WaitFinish()
+		err := b.WaitFinish(config.Exchanges.Bitstamp.Account)
 		if err != nil {
 			log.Fatal("Error getting Binance API TXs:", err)
 		}
 	}
+	if config.Exchanges.Bitstamp.API.Key != "" && config.Exchanges.Bitstamp.API.Secret != "" {
+		err := bs.WaitFinish(config.Exchanges.Bitstamp.Account)
+		if err != nil {
+			log.Fatal("Error getting BiTstamp API TXs:", err)
+		}
+	}
+	if config.Exchanges.Bittrex.API.Key != "" && config.Exchanges.Bittrex.API.Secret != "" {
+		err := btrx.WaitFinish(config.Exchanges.Bittrex.Account)
+		if err != nil {
+			log.Fatal("Error getting Bittrex API TXs:", err)
+		}
+	}
+	if config.Exchanges.CdcEx.API.Key != "" && config.Exchanges.CdcEx.API.Secret != "" {
+		err := cdc.WaitFinish(config.Exchanges.CdcEx.Account)
+		if err != nil {
+			log.Fatal("Error getting Crypto.com Exchange API TXs:", err)
+		}
+	}
 	if config.Exchanges.HitBTC.API.Key != "" && config.Exchanges.HitBTC.API.Secret != "" {
-		err := hb.WaitFinish()
+		err := hb.WaitFinish(config.Exchanges.HitBTC.Account)
 		if err != nil {
 			log.Fatal("Error getting HitBTC API TXs:", err)
 		}
@@ -397,14 +403,8 @@ func main() {
 			log.Fatal("Error parsing Ethereum CSV file:", err)
 		}
 	}
-	if config.Exchanges.Bittrex.API.Key != "" && config.Exchanges.Bittrex.API.Secret != "" {
-		err := btrx.WaitFinish()
-		if err != nil {
-			log.Fatal("Error getting Bittrex API TXs:", err)
-		}
-	}
 	if config.Exchanges.Kraken.API.Key != "" && config.Exchanges.Kraken.API.Secret != "" {
-		err := kr.WaitFinish()
+		err := kr.WaitFinish(config.Exchanges.Kraken.Account)
 		if err != nil {
 			log.Fatal("Error getting Kraken API TXs:", err)
 		}

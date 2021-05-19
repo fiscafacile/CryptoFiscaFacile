@@ -188,7 +188,7 @@ type ExchangeJson struct {
 	} `json:"rew"`
 }
 
-func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
+func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Crypto.com Exchange JSON ExportJS :"
@@ -400,7 +400,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader) (err error) {
 	if _, ok := cdc.Sources["CdC Exchange"]; !ok {
 		cdc.Sources["CdC Exchange"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "MCO Malta DAX Limited",

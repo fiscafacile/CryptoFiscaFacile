@@ -25,7 +25,7 @@ type CsvTX struct {
 	Notes     string
 }
 
-func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
+func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Coinbase CSV :"
@@ -157,7 +157,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker) (err error) {
 	}
 	cb.Sources["Coinbase"] = source.Source{
 		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
+		AccountNumber: account,
 		OpeningDate:   firstTimeUsed,
 		ClosingDate:   lastTimeUsed,
 		LegalName:     "Coinbase Europe Limited",

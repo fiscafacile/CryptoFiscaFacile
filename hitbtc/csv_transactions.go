@@ -75,7 +75,7 @@ func (hb *HitBTC) ParseCSVTransactions(reader io.Reader) (err error) {
 		if _, ok := hb.Sources["HitBTC_"+e]; !ok {
 			hb.Sources["HitBTC_"+e] = source.Source{
 				Crypto:        true,
-				AccountNumber: utils.RemoveSymbol(e),
+				AccountNumber: e,
 				OpeningDate:   hb.api.firstTimeUsed,
 				ClosingDate:   hb.api.lastTimeUsed,
 				LegalName:     "Hit Tech Solutions Development Ltd.",

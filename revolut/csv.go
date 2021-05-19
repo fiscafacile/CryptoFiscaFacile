@@ -25,7 +25,7 @@ type CsvTX struct {
 	Notes       string
 }
 
-func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
+func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Revolut CSV :"
@@ -102,7 +102,7 @@ func (revo *Revolut) ParseCSV(reader io.Reader) (err error) {
 	}
 	revo.Sources["Revolut"] = source.Source{
 		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
+		AccountNumber: account,
 		OpeningDate:   firstTimeUsed,
 		ClosingDate:   lastTimeUsed,
 		LegalName:     "Revolut Limited",

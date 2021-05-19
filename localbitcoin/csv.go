@@ -44,7 +44,7 @@ type CsvTXTransfer struct {
 	Notes    string
 }
 
-func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
+func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Local Bitcoin CSV Trade :"
@@ -144,7 +144,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
 	if _, ok := lb.Sources["Local Bitcoin"]; !ok {
 		lb.Sources["Local Bitcoin"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "LocalBitcoins Oy",
@@ -155,7 +155,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader) (err error) {
 	return
 }
 
-func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
+func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Local Bitcoin CSV Transfer :"
@@ -233,7 +233,7 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader) (err error) {
 	if _, ok := lb.Sources["Local Bitcoin"]; !ok {
 		lb.Sources["Local Bitcoin"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "LocalBitcoins Oy",

@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -24,7 +25,7 @@ type csvTX struct {
 	Balance decimal.Decimal
 }
 
-func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
+func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Kraken CSV :"
@@ -154,6 +155,15 @@ func (kr *Kraken) ParseCSV(reader io.Reader) (err error) {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
 			}
+		}
+		kr.Sources["Kraken"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   kr.api.firstTimeUsed,
+			ClosingDate:   kr.api.lastTimeUsed,
+			LegalName:     "Payward Ltd.",
+			Address:       "6th Floor,\nOne London Wall,\nLondon, EC2Y 5EB,\nRoyaume-Uni",
+			URL:           "https://www.kraken.com",
 		}
 	}
 	return

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
-	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -27,7 +26,7 @@ type csvTX struct {
 	SubType   string
 }
 
-func (bs *Bitstamp) ParseCSV(reader io.Reader) (err error) {
+func (bs *Bitstamp) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Bitstamp CSV :"
@@ -112,16 +111,16 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader) (err error) {
 				}
 			}
 		}
-	}
-	if _, ok := bs.Sources["Bitstamp"]; !ok {
-		bs.Sources["Bitstamp"] = source.Source{
-			Crypto:        true,
-			AccountNumber: utils.RemoveSymbol("email@domain.com"),
-			OpeningDate:   firstTimeUsed,
-			ClosingDate:   lastTimeUsed,
-			LegalName:     "Bitstamp Ltd",
-			Address:       "5 New Street Square,\nLondon EC4A 3TW,\nRoyaume-Uni",
-			URL:           "https://bitstamp.com",
+		if _, ok := bs.Sources["Bitstamp"]; !ok {
+			bs.Sources["Bitstamp"] = source.Source{
+				Crypto:        true,
+				AccountNumber: account,
+				OpeningDate:   firstTimeUsed,
+				ClosingDate:   lastTimeUsed,
+				LegalName:     "Bitstamp Ltd",
+				Address:       "5 New Street Square,\nLondon EC4A 3TW,\nRoyaume-Uni",
+				URL:           "https://bitstamp.com",
+			}
 		}
 	}
 	return

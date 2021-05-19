@@ -40,9 +40,10 @@ type CSV struct {
 }
 
 type ExchangeConfig struct {
-	CSV  CSV    `yaml:"csv"`
-	API  API    `yaml:"api"`
-	JSON string `yaml:"json"`
+	CSV     CSV    `yaml:"csv"`
+	API     API    `yaml:"api"`
+	JSON    string `yaml:"json"`
+	Account string `yaml:"account"`
 }
 
 type Exchanges struct {

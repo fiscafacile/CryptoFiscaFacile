@@ -2,6 +2,7 @@ package source
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/360EntSecGroup-Skylar/excelize"
@@ -28,6 +29,11 @@ func (ss Sources) Add(srcs Sources) {
 }
 
 func (ss Sources) ToXlsx(filename string, loc *time.Location) error {
+	sanitize := strings.NewReplacer(
+		"@", "AROBASE",
+		".", "POINT",
+		"-", "TIRET",
+	)
 	if len(ss) > 0 {
 		f := excelize.NewFile()
 		for src, s := range ss {
@@ -35,7 +41,7 @@ func (ss Sources) ToXlsx(filename string, loc *time.Location) error {
 			if s.Crypto {
 				f.SetCellValue(src, "A1", "4.1 Désignation du compte d'actifs numériques ouvert, détenu, utilisé ou clos à l'étranger")
 				f.SetCellValue(src, "A2", "Numéro de compte")
-				f.SetCellValue(src, "B2", s.AccountNumber)
+				f.SetCellValue(src, "B2", sanitize.Replace(s.AccountNumber))
 				f.SetCellValue(src, "A3", "Date d'ouverture*")
 				f.SetCellValue(src, "B3", s.OpeningDate.In(loc).Format("02-01-2006"))
 				f.SetCellValue(src, "A4", "Date de clôture*")

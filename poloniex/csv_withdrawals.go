@@ -21,7 +21,7 @@ type csvWithdrawalsTX struct {
 	Status      string
 }
 
-func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader) (err error) {
+func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Poloniex Withdrawals CSV :"
@@ -71,7 +71,7 @@ func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader) (err error) {
 	if _, ok := pl.Sources["Poloniex"]; !ok {
 		pl.Sources["Poloniex"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "Polo Digital Assets Ltd",

@@ -28,10 +28,12 @@ type csvAppCryptoTX struct {
 	Kind            string
 }
 
-func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category) (err error) {
+func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	hasCashback := false
+	firstTimeCashback := time.Now()
+	lastTimeCashback := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Crypto.com App CSV Crypto :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
@@ -75,6 +77,19 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 				if tx.Kind == "referral_card_cashback" ||
 					tx.Kind == "reimbursement" {
 					hasCashback = true
+					if tx.Timestamp.Before(firstTimeCashback) {
+						firstTimeCashback = tx.Timestamp
+					}
+					if tx.Timestamp.After(lastTimeCashback) {
+						lastTimeCashback = tx.Timestamp
+					}
+				} else {
+					if tx.Timestamp.Before(firstTimeUsed) {
+						firstTimeUsed = tx.Timestamp
+					}
+					if tx.Timestamp.After(lastTimeUsed) {
+						lastTimeUsed = tx.Timestamp
+					}
 				}
 				if tx.Kind == "dust_conversion_credited" ||
 					tx.Kind == "dust_conversion_debited" ||
@@ -213,7 +228,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 	}
 	cdc.Sources["CdC App"] = source.Source{
 		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
+		AccountNumber: account,
 		OpeningDate:   firstTimeUsed,
 		ClosingDate:   lastTimeUsed,
 		LegalName:     "MCO Malta DAX Limited",
@@ -221,14 +236,48 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category)
 		URL:           "https://crypto.com/app",
 	}
 	if hasCashback {
-		cdc.Sources["CdC MCO Card"] = source.Source{
-			Crypto:        false,
-			AccountNumber: "votre IBAN LTxxxxx",
-			OpeningDate:   firstTimeUsed,
-			ClosingDate:   lastTimeUsed,
-			LegalName:     "MCO Malta DAX Limited (Transactive Systems UAB)",
-			Address:       "Jogailos St 9, Vilnius, 01103, Lithuania",
-			URL:           "https://crypto.com/cards",
+		switchGBLT := time.Date(2020, 12, 27, 3, 0, 0, 0, time.UTC)
+		if firstTimeCashback.Before(switchGBLT) {
+			if lastTimeCashback.Before(switchGBLT) {
+				cdc.Sources["CdC MCO Card GB"] = source.Source{
+					Crypto:        false,
+					AccountNumber: "votre IBAN GBxxxxx",
+					OpeningDate:   firstTimeCashback,
+					ClosingDate:   lastTimeCashback,
+					LegalName:     "MCO Malta DAX Limited The Currency Cloud)",
+					Address:       "12 Steward Street, The Steward Building, London, E1 6FQ, Royaume-Uni",
+					URL:           "https://crypto.com/cards",
+				}
+			} else {
+				cdc.Sources["CdC MCO Card GB"] = source.Source{
+					Crypto:        false,
+					AccountNumber: "votre IBAN GBxxxxx",
+					OpeningDate:   firstTimeCashback,
+					ClosingDate:   switchGBLT,
+					LegalName:     "MCO Malta DAX Limited The Currency Cloud)",
+					Address:       "12 Steward Street, The Steward Building, London, E1 6FQ, Royaume-Uni",
+					URL:           "https://crypto.com/cards",
+				}
+				cdc.Sources["CdC MCO Card LT"] = source.Source{
+					Crypto:        false,
+					AccountNumber: "votre IBAN LTxxxxx",
+					OpeningDate:   switchGBLT,
+					ClosingDate:   lastTimeCashback,
+					LegalName:     "MCO Malta DAX Limited (Transactive Systems UAB)",
+					Address:       "Jogailos St 9, Vilnius, 01103, Lithuania",
+					URL:           "https://crypto.com/cards",
+				}
+			}
+		} else {
+			cdc.Sources["CdC MCO Card LT"] = source.Source{
+				Crypto:        false,
+				AccountNumber: "votre IBAN LTxxxxx",
+				OpeningDate:   firstTimeCashback,
+				ClosingDate:   lastTimeCashback,
+				LegalName:     "MCO Malta DAX Limited (Transactive Systems UAB)",
+				Address:       "Jogailos St 9, Vilnius, 01103, Lithuania",
+				URL:           "https://crypto.com/cards",
+			}
 		}
 	}
 	return

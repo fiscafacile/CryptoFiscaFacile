@@ -4,7 +4,6 @@ import (
 	"strings"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
-	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
@@ -32,11 +31,40 @@ func (hb *HitBTC) GetAPIAllTXs() {
 		hb.done <- err
 		return
 	}
-	hb.TXsByCategory.Add(hb.api.txsByCategory)
-	if _, ok := hb.Sources["HitBTC"]; !ok {
+	hb.done <- nil
+}
+
+func (hb *HitBTC) WaitFinish(account string) error {
+	err := <-hb.done
+	for k, v := range hb.api.txsByCategory {
+		for _, tx := range v {
+			found := false
+			for _, t := range hb.TXsByCategory[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				hb.TXsByCategory[k] = append(hb.TXsByCategory[k], tx)
+			}
+		}
+	}
+	if _, ok := hb.Sources["HitBTC"]; ok {
+		if hb.Sources["HitBTC"].OpeningDate.After(hb.api.firstTimeUsed) {
+			src := hb.Sources["HitBTC"]
+			src.OpeningDate = hb.api.firstTimeUsed
+			hb.Sources["HitBTC"] = src
+		}
+		if hb.Sources["HitBTC"].ClosingDate.Before(hb.api.lastTimeUsed) {
+			src := hb.Sources["HitBTC"]
+			src.ClosingDate = hb.api.lastTimeUsed
+			hb.Sources["HitBTC"] = src
+		}
+	} else {
 		hb.Sources["HitBTC"] = source.Source{
 			Crypto:        true,
-			AccountNumber: utils.RemoveSymbol("email@domain.com"),
+			AccountNumber: account,
 			OpeningDate:   hb.api.firstTimeUsed,
 			ClosingDate:   hb.api.lastTimeUsed,
 			LegalName:     "Hit Tech Solutions Development Ltd.",
@@ -44,11 +72,7 @@ func (hb *HitBTC) GetAPIAllTXs() {
 			URL:           "https://hitbtc.com",
 		}
 	}
-	hb.done <- nil
-}
-
-func (hb *HitBTC) WaitFinish() error {
-	return <-hb.done
+	return err
 }
 
 func csvCurrencyCure(c string) string {
@@ -56,6 +80,6 @@ func csvCurrencyCure(c string) string {
 }
 
 func apiCurrencyCure(c string) string {
-	// https://blog.hitbtc.com/we-will-change-the-ticker-of-bchabc-to-bch-and-bchsv-will-be-displayed-as-bsv/
+	// https://blog.hitbtc.com/we-will-change-the-ticker-of-bchabc-to-bch-and-bchsv-will-be-displayed-as-hbv/
 	return strings.ReplaceAll(strings.ReplaceAll(c, "BCHA", "BCH"), "BCHOLD", "BCH")
 }

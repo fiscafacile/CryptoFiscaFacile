@@ -113,7 +113,7 @@ func (hb *HitBTC) ParseCSVTrades(reader io.Reader) (err error) {
 		if _, ok := hb.Sources["HitBTC_"+e]; !ok {
 			hb.Sources["HitBTC_"+e] = source.Source{
 				Crypto:        true,
-				AccountNumber: utils.RemoveSymbol(e),
+				AccountNumber: e,
 				OpeningDate:   firstTimeUsed,
 				ClosingDate:   lastTimeUsed,
 				LegalName:     "Hit Tech Solutions Development Ltd.",

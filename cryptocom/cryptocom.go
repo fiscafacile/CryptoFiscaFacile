@@ -32,21 +32,10 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 		cdc.done <- err
 		return
 	}
-	if _, ok := cdc.Sources["CdC Exchange"]; !ok {
-		cdc.Sources["CdC Exchange"] = source.Source{
-			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
-			OpeningDate:   cdc.apiEx.firstTimeUsed,
-			ClosingDate:   cdc.apiEx.lastTimeUsed,
-			LegalName:     "MCO Malta DAX Limited",
-			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
-			URL:           "https://crypto.com/exchange",
-		}
-	}
 	cdc.done <- nil
 }
 
-func (cdc *CryptoCom) WaitFinish() error {
+func (cdc *CryptoCom) WaitFinish(account string) error {
 	err := <-cdc.done
 	for k, v := range cdc.apiEx.txsByCategory {
 		if k == "Withdrawals" || k == "Deposits" {
@@ -64,6 +53,28 @@ func (cdc *CryptoCom) WaitFinish() error {
 			}
 		} else {
 			cdc.TXsByCategory[k] = append(cdc.TXsByCategory[k], v...)
+		}
+	}
+	if _, ok := cdc.Sources["CdC Exchange"]; ok {
+		if cdc.Sources["CdC Exchange"].OpeningDate.After(cdc.apiEx.firstTimeUsed) {
+			src := cdc.Sources["CdC Exchange"]
+			src.OpeningDate = cdc.apiEx.firstTimeUsed
+			cdc.Sources["CdC Exchange"] = src
+		}
+		if cdc.Sources["CdC Exchange"].ClosingDate.Before(cdc.apiEx.lastTimeUsed) {
+			src := cdc.Sources["CdC Exchange"]
+			src.ClosingDate = cdc.apiEx.lastTimeUsed
+			cdc.Sources["CdC Exchange"] = src
+		}
+	} else {
+		cdc.Sources["CdC Exchange"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   cdc.apiEx.firstTimeUsed,
+			ClosingDate:   cdc.apiEx.lastTimeUsed,
+			LegalName:     "MCO Malta DAX Limited",
+			Address:       "Level 7, Spinola Park, Triq Mikiel Ang Borg,\nSt Julian's SPK 1000,\nMalte",
+			URL:           "https://crypto.com/exchange",
 		}
 	}
 	return err

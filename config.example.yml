@@ -12,6 +12,7 @@ blockchains:
       # - Inputs/ETH/ETH_Addresses.csv
 exchanges:
   binance:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
@@ -22,6 +23,7 @@ exchanges:
         # - Inputs/Binance/All_Statements_2020_Q3.csv
         # - Inputs/Binance/All_Statements_2020_Q4.csv
   bitfinex:
+    account: email@domain.com
     csv:
       all:
         # - Inputs/Bitfinex/2017.csv
@@ -29,6 +31,7 @@ exchanges:
         # - Inputs/Bitfinex/2019.csv
         # - Inputs/Bitfinex/2020.csv
   bitstamp:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
@@ -39,6 +42,7 @@ exchanges:
         # - Inputs/Bitstamp/All_Statements_2020_Q3.csv
         # - Inputs/Bitstamp/All_Statements_2020_Q4.csv
   bittrex:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
@@ -49,6 +53,7 @@ exchanges:
         # - Inputs/Bittrex/2019.csv
         # - Inputs/Bittrex/2020.csv
   coinbase:
+    account: email@domain.com
     csv:
       all:
         # - Inputs/Coinbase/2017.csv
@@ -56,16 +61,19 @@ exchanges:
         # - Inputs/Coinbase/2019.csv
         # - Inputs/Coinbase/2020.csv
   cdc-app:
+    account: email@domain.com
     csv:
       all:
         # - Inputs/Crypto.com/app/2019.csv
         # - Inputs/Crypto.com/app/2020.csv
   cdc-exchange:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
     json: # Inputs/Crypto.Com/exchange/CdC_Ex_ExportJS.json
   hitbtc:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
@@ -77,6 +85,7 @@ exchanges:
       # - Inputs/HitBTC/2019_Transactions.csv
       # - Inputs/HitBTC/2020_Transactions.csv
   kraken:
+    account: email@domain.com
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
@@ -87,6 +96,7 @@ exchanges:
       # - Inputs/Kraken/2019.csv
       # - Inputs/Kraken/2020.csv
   localbitcoin:
+    account: email@domain.com
     csv:
       trades:
       # - Inputs/LocalBitcoin/2019_Trades.csv
@@ -95,6 +105,7 @@ exchanges:
       # - Inputs/LocalBitcoin/2019_Transfers.csv
       # - Inputs/LocalBitcoin/2020_Transfers.csv
   poloniex:
+    account: email@domain.com
     csv:
       trades:
       # - Inputs/Poloniex/2019_Trades.csv
@@ -109,6 +120,7 @@ exchanges:
       # - Inputs/Poloniex/2019_Distributions.csv
       # - Inputs/Poloniex/2020_Distributions.csv
   revolut:
+    account: email@domain.com
     csv:
       all:
       # - Inputs/Revolut/2019.csv

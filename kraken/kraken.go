@@ -29,19 +29,10 @@ func (kr *Kraken) GetAPIAllTXs() {
 		kr.done <- err
 		return
 	}
-	kr.Sources["Kraken"] = source.Source{
-		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
-		OpeningDate:   kr.api.firstTimeUsed,
-		ClosingDate:   kr.api.lastTimeUsed,
-		LegalName:     "Payward Ltd.",
-		Address:       "6th Floor,\nOne London Wall,\nLondon, EC2Y 5EB,\nRoyaume-Uni",
-		URL:           "https://www.kraken.com",
-	}
 	kr.done <- nil
 }
 
-func (kr *Kraken) WaitFinish() error {
+func (kr *Kraken) WaitFinish(account string) error {
 	err := <-kr.done
 	for k, v := range kr.api.txsByCategory {
 		for _, tx := range v {
@@ -55,6 +46,28 @@ func (kr *Kraken) WaitFinish() error {
 			if !found {
 				kr.TXsByCategory[k] = append(kr.TXsByCategory[k], tx)
 			}
+		}
+	}
+	if _, ok := kr.Sources["Kraken"]; ok {
+		if kr.Sources["Kraken"].OpeningDate.After(kr.api.firstTimeUsed) {
+			src := kr.Sources["Kraken"]
+			src.OpeningDate = kr.api.firstTimeUsed
+			kr.Sources["Kraken"] = src
+		}
+		if kr.Sources["Kraken"].ClosingDate.Before(kr.api.lastTimeUsed) {
+			src := kr.Sources["Kraken"]
+			src.ClosingDate = kr.api.lastTimeUsed
+			kr.Sources["Kraken"] = src
+		}
+	} else {
+		kr.Sources["Kraken"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   kr.api.firstTimeUsed,
+			ClosingDate:   kr.api.lastTimeUsed,
+			LegalName:     "Payward Ltd.",
+			Address:       "6th Floor,\nOne London Wall,\nLondon, EC2Y 5EB,\nRoyaume-Uni",
+			URL:           "https://www.kraken.com",
 		}
 	}
 	return err

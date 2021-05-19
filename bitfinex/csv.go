@@ -23,7 +23,7 @@ type CsvTX struct {
 	Wallet      string
 }
 
-func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
+func (bf *Bitfinex) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Bitfinex CSV :"
@@ -177,15 +177,15 @@ func (bf *Bitfinex) ParseCSV(reader io.Reader) (err error) {
 				}
 			}
 		}
-	}
-	bf.Sources["Bitfinex"] = source.Source{
-		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
-		OpeningDate:   firstTimeUsed,
-		ClosingDate:   lastTimeUsed,
-		LegalName:     "Bitfinex",
-		Address:       "1308 Bank of America Tower, 13/F\n12 Harcourt Road, Central\nHong Kong",
-		URL:           "https://www.bitfinex.com",
+		bf.Sources["Bitfinex"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   firstTimeUsed,
+			ClosingDate:   lastTimeUsed,
+			LegalName:     "Bitfinex",
+			Address:       "1308 Bank of America Tower, 13/F\n12 Harcourt Road, Central\nHong Kong",
+			URL:           "https://www.bitfinex.com",
+		}
 	}
 	return
 }

@@ -28,6 +28,25 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 		b.done <- err
 		return
 	}
+	b.done <- nil
+}
+
+func (b *Binance) WaitFinish(account string) error {
+	err := <-b.done
+	for k, v := range b.api.txsByCategory {
+		for _, tx := range v {
+			found := false
+			for _, t := range b.TXsByCategory[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				b.TXsByCategory[k] = append(b.TXsByCategory[k], tx)
+			}
+		}
+	}
 	if _, ok := b.Sources["Binance"]; ok {
 		if b.Sources["Binance"].OpeningDate.After(b.api.firstTimeUsed) {
 			src := b.Sources["Binance"]
@@ -42,31 +61,12 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 	} else {
 		b.Sources["Binance"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   b.api.firstTimeUsed,
 			ClosingDate:   b.api.lastTimeUsed,
 			LegalName:     "Binance Europe Services Limited",
 			Address:       "LEVEL G (OFFICE 1/1235), QUANTUM HOUSE,75 ABATE RIGORD STREET, TA' XBIEXXBX 1120\nMalta",
 			URL:           "https://www.binance.com/fr",
-		}
-	}
-	b.done <- nil
-}
-
-func (b *Binance) WaitFinish() error {
-	err := <-b.done
-	for k, v := range b.api.txsByCategory {
-		for _, tx := range v {
-			found := false
-			for _, t := range b.TXsByCategory[k] {
-				if t.Timestamp == tx.Timestamp {
-					found = true
-					break
-				}
-			}
-			if !found {
-				b.TXsByCategory[k] = append(b.TXsByCategory[k], tx)
-			}
 		}
 	}
 	return err

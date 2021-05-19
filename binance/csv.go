@@ -21,7 +21,7 @@ type csvTX struct {
 	Remark    string
 }
 
-func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
+func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Binance CSV :"
@@ -161,15 +161,15 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool) (err error) {
 				}
 			}
 		}
-	}
-	b.Sources["Binance"] = source.Source{
-		Crypto:        true,
-		AccountNumber: "emailAROBASEdomainPOINTcom",
-		OpeningDate:   firstTimeUsed,
-		ClosingDate:   lastTimeUsed,
-		LegalName:     "Binance Europe Services Limited",
-		Address:       "LEVEL G (OFFICE 1/1235), QUANTUM HOUSE,75 ABATE RIGORD STREET, TA' XBIEXXBX 1120\nMalta",
-		URL:           "https://www.binance.com/fr",
+		b.Sources["Binance"] = source.Source{
+			Crypto:        true,
+			AccountNumber: account,
+			OpeningDate:   firstTimeUsed,
+			ClosingDate:   lastTimeUsed,
+			LegalName:     "Binance Europe Services Limited",
+			Address:       "LEVEL G (OFFICE 1/1235), QUANTUM HOUSE,75 ABATE RIGORD STREET, TA' XBIEXXBX 1120\nMalta",
+			URL:           "https://www.binance.com/fr",
+		}
 	}
 	return
 }

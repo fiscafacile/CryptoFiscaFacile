@@ -2,7 +2,6 @@ package bitstamp
 
 import (
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
-	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
@@ -28,11 +27,40 @@ func (bs *Bitstamp) GetAPIAllTXs() {
 		bs.done <- err
 		return
 	}
-	bs.TXsByCategory.Add(bs.api.txsByCategory)
-	if _, ok := bs.Sources["Bitstamp"]; !ok {
+	bs.done <- nil
+}
+
+func (bs *Bitstamp) WaitFinish(account string) error {
+	err := <-bs.done
+	for k, v := range bs.api.txsByCategory {
+		for _, tx := range v {
+			found := false
+			for _, t := range bs.TXsByCategory[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				bs.TXsByCategory[k] = append(bs.TXsByCategory[k], tx)
+			}
+		}
+	}
+	if _, ok := bs.Sources["Bitstamp"]; ok {
+		if bs.Sources["Bitstamp"].OpeningDate.After(bs.api.firstTimeUsed) {
+			src := bs.Sources["Bitstamp"]
+			src.OpeningDate = bs.api.firstTimeUsed
+			bs.Sources["Bitstamp"] = src
+		}
+		if bs.Sources["Bitstamp"].ClosingDate.Before(bs.api.lastTimeUsed) {
+			src := bs.Sources["Bitstamp"]
+			src.ClosingDate = bs.api.lastTimeUsed
+			bs.Sources["Bitstamp"] = src
+		}
+	} else {
 		bs.Sources["Bitstamp"] = source.Source{
 			Crypto:        true,
-			AccountNumber: utils.RemoveSymbol("email@domain.com"),
+			AccountNumber: account,
 			OpeningDate:   bs.api.firstTimeUsed,
 			ClosingDate:   bs.api.lastTimeUsed,
 			LegalName:     "Bitstamp Ltd",
@@ -40,9 +68,5 @@ func (bs *Bitstamp) GetAPIAllTXs() {
 			URL:           "https://bitstamp.com",
 		}
 	}
-	bs.done <- nil
-}
-
-func (bs *Bitstamp) WaitFinish() error {
-	return <-bs.done
+	return err
 }

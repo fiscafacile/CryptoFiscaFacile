@@ -25,7 +25,7 @@ type csvTX struct {
 	Remark      string
 }
 
-func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
+func (btrx *Bittrex) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Bittrex CSV :"
@@ -127,7 +127,7 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader) (err error) {
 	} else {
 		btrx.Sources["Bittrex"] = source.Source{
 			Crypto:        true,
-			AccountNumber: "emailAROBASEdomainPOINTcom",
+			AccountNumber: account,
 			OpeningDate:   firstTimeUsed,
 			ClosingDate:   lastTimeUsed,
 			LegalName:     "Bittrex International GmbH",
