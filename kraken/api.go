@@ -65,6 +65,8 @@ func (api *api) categorize() {
 	for _, tx := range api.ledgerTX {
 		if tx.Type == "trade" ||
 			tx.Type == "spend" ||
+			tx.Type == "margin" ||
+			tx.Type == "settled" ||
 			tx.Type == "receive" {
 			found := false
 			for i, ex := range api.txsByCategory["Exchanges"] {
@@ -112,7 +114,7 @@ func (api *api) categorize() {
 			}
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
-		} else if tx.Type == "margin" || tx.Type == "rollover" {
+		} else if tx.Type == "rollover" {
 			fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
 			if !fee.IsFiat() {
 				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}

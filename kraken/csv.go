@@ -71,7 +71,11 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 					lastTimeUsed = tx.Time
 				}
 				// Fill TXsByCategory
-				if tx.Type == "trade" || tx.Type == "spend" || tx.Type == "receive" {
+				if tx.Type == "trade" ||
+					tx.Type == "spend" ||
+					tx.Type == "margin" ||
+					tx.Type == "settled" ||
+					tx.Type == "receive" {
 					found := false
 					for i, ex := range kr.TXsByCategory["Exchanges"] {
 						if strings.Contains(ex.ID, tx.RefId) {
@@ -126,7 +130,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
-				} else if tx.Type == "margin" || tx.Type == "rollover" {
+				} else if tx.Type == "rollover" {
 					fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
 					if !fee.IsFiat() {
 						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
