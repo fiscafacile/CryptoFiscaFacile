@@ -34,20 +34,9 @@ func (kr *Kraken) GetAPIAllTXs() {
 
 func (kr *Kraken) WaitFinish(account string) error {
 	err := <-kr.done
-	for k, v := range kr.api.txsByCategory {
-		for _, tx := range v {
-			found := false
-			for _, t := range kr.TXsByCategory[k] {
-				if t.Timestamp == tx.Timestamp {
-					found = true
-					break
-				}
-			}
-			if !found {
-				kr.TXsByCategory[k] = append(kr.TXsByCategory[k], tx)
-			}
-		}
-	}
+	// Merge TX without Duplicates
+	kr.TXsByCategory.AddUniq(kr.api.txsByCategory)
+	// Add 3916 Source infos
 	if _, ok := kr.Sources["Kraken"]; ok {
 		if kr.Sources["Kraken"].OpeningDate.After(kr.api.firstTimeUsed) {
 			src := kr.Sources["Kraken"]

@@ -33,20 +33,9 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 
 func (b *Binance) WaitFinish(account string) error {
 	err := <-b.done
-	for k, v := range b.api.txsByCategory {
-		for _, tx := range v {
-			found := false
-			for _, t := range b.TXsByCategory[k] {
-				if t.Timestamp == tx.Timestamp {
-					found = true
-					break
-				}
-			}
-			if !found {
-				b.TXsByCategory[k] = append(b.TXsByCategory[k], tx)
-			}
-		}
-	}
+	// Merge TX without Duplicates
+	b.TXsByCategory.AddUniq(b.api.txsByCategory)
+	// Add 3916 Source infos
 	if _, ok := b.Sources["Binance"]; ok {
 		if b.Sources["Binance"].OpeningDate.After(b.api.firstTimeUsed) {
 			src := b.Sources["Binance"]

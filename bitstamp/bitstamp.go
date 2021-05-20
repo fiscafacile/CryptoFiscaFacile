@@ -32,20 +32,9 @@ func (bs *Bitstamp) GetAPIAllTXs() {
 
 func (bs *Bitstamp) WaitFinish(account string) error {
 	err := <-bs.done
-	for k, v := range bs.api.txsByCategory {
-		for _, tx := range v {
-			found := false
-			for _, t := range bs.TXsByCategory[k] {
-				if t.Timestamp == tx.Timestamp {
-					found = true
-					break
-				}
-			}
-			if !found {
-				bs.TXsByCategory[k] = append(bs.TXsByCategory[k], tx)
-			}
-		}
-	}
+	// Merge TX without Duplicates
+	bs.TXsByCategory.AddUniq(bs.api.txsByCategory)
+	// Add 3916 Source infos
 	if _, ok := bs.Sources["Bitstamp"]; ok {
 		if bs.Sources["Bitstamp"].OpeningDate.After(bs.api.firstTimeUsed) {
 			src := bs.Sources["Bitstamp"]

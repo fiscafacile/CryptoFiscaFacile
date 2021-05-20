@@ -37,24 +37,9 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 
 func (cdc *CryptoCom) WaitFinish(account string) error {
 	err := <-cdc.done
-	for k, v := range cdc.apiEx.txsByCategory {
-		if k == "Withdrawals" || k == "Deposits" {
-			for _, tx := range v {
-				found := false
-				for _, t := range cdc.TXsByCategory[k] {
-					if t.Timestamp == tx.Timestamp {
-						found = true
-						break
-					}
-				}
-				if !found {
-					cdc.TXsByCategory[k] = append(cdc.TXsByCategory[k], tx)
-				}
-			}
-		} else {
-			cdc.TXsByCategory[k] = append(cdc.TXsByCategory[k], v...)
-		}
-	}
+	// Merge TX without Duplicates
+	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
+	// Add 3916 Source infos
 	if _, ok := cdc.Sources["CdC Exchange"]; ok {
 		if cdc.Sources["CdC Exchange"].OpeningDate.After(cdc.apiEx.firstTimeUsed) {
 			src := cdc.Sources["CdC Exchange"]

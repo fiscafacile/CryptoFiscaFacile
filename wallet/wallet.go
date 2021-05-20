@@ -408,6 +408,23 @@ func (txs TXsByCategory) Add(a TXsByCategory) {
 	}
 }
 
+func (txs TXsByCategory) AddUniq(a TXsByCategory) {
+	for k, v := range a {
+		for _, tx := range v {
+			found := false
+			for _, t := range txs[k] {
+				if t.Timestamp == tx.Timestamp {
+					found = true
+					break
+				}
+			}
+			if !found {
+				txs[k] = append(txs[k], tx)
+			}
+		}
+	}
+}
+
 func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	var realDeposits TXs
 	var realWithdrawals TXs

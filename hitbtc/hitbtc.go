@@ -36,20 +36,9 @@ func (hb *HitBTC) GetAPIAllTXs() {
 
 func (hb *HitBTC) WaitFinish(account string) error {
 	err := <-hb.done
-	for k, v := range hb.api.txsByCategory {
-		for _, tx := range v {
-			found := false
-			for _, t := range hb.TXsByCategory[k] {
-				if t.Timestamp == tx.Timestamp {
-					found = true
-					break
-				}
-			}
-			if !found {
-				hb.TXsByCategory[k] = append(hb.TXsByCategory[k], tx)
-			}
-		}
-	}
+	// Merge TX without Duplicates
+	hb.TXsByCategory.AddUniq(hb.api.txsByCategory)
+	// Add 3916 Source infos
 	if _, ok := hb.Sources["HitBTC"]; ok {
 		if hb.Sources["HitBTC"].OpeningDate.After(hb.api.firstTimeUsed) {
 			src := hb.Sources["HitBTC"]
