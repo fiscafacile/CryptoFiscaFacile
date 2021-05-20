@@ -153,7 +153,7 @@ func (api *api) categorize() {
 		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Asset Dividend " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-		api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)
+		api.txsByCategory["Minings"] = append(api.txsByCategory["Minings"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}

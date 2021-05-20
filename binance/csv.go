@@ -29,10 +29,11 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		alreadyAsked := []string{}
+		loc, _ := time.LoadLocation("Europe/Paris")
 		for _, r := range records {
 			if r[0] != "UTC_Time" {
 				tx := csvTX{}
-				tx.Time, err = time.Parse("2006-01-02 15:04:05", r[0])
+				tx.Time, err = time.ParseInLocation("2006-01-02 15:04:05", r[0], loc)
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Time", r[0])
 				}

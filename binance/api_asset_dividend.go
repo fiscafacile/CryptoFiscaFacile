@@ -32,9 +32,9 @@ func (api *api) getAssetDividendTXs(loc *time.Location) {
 			}
 			for _, div := range assDiv.Rows {
 				tx := assetDividendTX{}
-				tx.Timestamp = time.Unix(div.Divtime/1e3, 0)
-				tx.ID = strconv.FormatInt(div.Tranid, 10)
-				tx.Description = div.Eninfo
+				tx.Timestamp = time.Unix(div.DivTime/1e3, 0)
+				tx.ID = strconv.FormatInt(div.TranID, 10)
+				tx.Description = div.Info
 				tx.Amount, _ = decimal.NewFromString(div.Amount)
 				tx.Asset = div.Asset
 				api.assetDividendTXs = append(api.assetDividendTXs, tx)
@@ -47,9 +47,9 @@ func (api *api) getAssetDividendTXs(loc *time.Location) {
 type Rows []struct {
 	Amount  string `json:"amount"`
 	Asset   string `json:"asset"`
-	Divtime int64  `json:"divTime"`
-	Eninfo  string `json:"enInfo"`
-	Tranid  int64  `json:"tranId"`
+	DivTime int64  `json:"divTime"`
+	Info    string `json:"enInfo"`
+	TranID  int64  `json:"tranId"`
 }
 
 type GetAssetDividendResp struct {
