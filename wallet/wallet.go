@@ -413,7 +413,7 @@ func (txs TXsByCategory) AddUniq(a TXsByCategory) {
 		for _, tx := range v {
 			found := false
 			for _, t := range txs[k] {
-				if t.Timestamp == tx.Timestamp {
+				if t.Timestamp == tx.Timestamp && t.ID == tx.ID {
 					found = true
 					break
 				}
