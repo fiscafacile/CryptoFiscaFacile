@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nanobox-io/golang-scribble"
+	scribble "github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
 )
 
 type spotTradeTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Pair        string
 	Side        string
@@ -34,6 +35,7 @@ func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 			tx := spotTradeTX{}
 			tx.Timestamp = time.Unix(tra.CreateTime/1000, 0)
 			tx.Description = tra.TradeID + " " + tra.LiquidityIndicator
+			tx.ID = tra.TradeID + "-" + tra.OrderID
 			tx.Pair = tra.InstrumentName
 			tx.Side = tra.Side
 			tx.Price = decimal.NewFromFloat(tra.TradedPrice)

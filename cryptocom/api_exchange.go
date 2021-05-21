@@ -113,7 +113,7 @@ func (api *apiEx) categorize() {
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Exchange " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Exchange " + tx.Description, ID: tx.ID}
 		t.Items = make(map[string]wallet.Currencies)
 		curr := strings.Split(tx.Pair, "_")
 		if !tx.Fee.IsZero() {
