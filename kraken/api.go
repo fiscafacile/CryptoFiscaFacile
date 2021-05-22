@@ -65,6 +65,8 @@ func (api *api) categorize() {
 	for _, tx := range api.ledgerTX {
 		if tx.Type == "trade" ||
 			tx.Type == "spend" ||
+			tx.Type == "margin" ||
+			tx.Type == "settled" ||
 			tx.Type == "receive" {
 			found := false
 			for i, ex := range api.txsByCategory["Exchanges"] {
@@ -84,7 +86,7 @@ func (api *api) categorize() {
 				}
 			}
 			if !found {
-				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
+				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 				t.Items = make(map[string]wallet.Currencies)
 				if tx.Amount.IsPositive() {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
@@ -97,7 +99,7 @@ func (api *api) categorize() {
 				api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 			}
 		} else if tx.Type == "deposit" {
-			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)
 			if !tx.Fee.IsZero() {
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
@@ -105,23 +107,23 @@ func (api *api) categorize() {
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 			api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
 		} else if tx.Type == "withdrawal" {
-			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)
 			if !tx.Fee.IsZero() {
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 			}
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 			api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
-		} else if tx.Type == "margin" || tx.Type == "rollover" {
+		} else if tx.Type == "rollover" {
 			fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
 			if !fee.IsFiat() {
-				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
+				t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], fee)
 				api.txsByCategory["Fees"] = append(api.txsByCategory["Fees"], t)
 			}
 		} else if tx.Type == "transfer" {
-			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId, Note: SOURCE + " " + tx.Type}
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)
 			if tx.SubType == "" {
 				if tx.Amount.IsPositive() {
