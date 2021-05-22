@@ -162,6 +162,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 						tx.Kind == "transfer_cashback" ||
 						tx.Kind == "reimbursement" ||
 						tx.Kind == "gift_card_reward" ||
+						tx.Kind == "referral_gift" ||
 						tx.Kind == "pay_checkout_reward" {
 						cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 					} else if tx.Kind == "crypto_earn_interest_paid" ||
@@ -169,8 +170,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 						tx.Kind == "mco_stake_reward" ||
 						tx.Kind == "staking_reward" {
 						cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
-					} else if tx.Kind == "referral_gift" ||
-						tx.Kind == "referral_bonus" {
+					} else if tx.Kind == "referral_bonus" {
 						cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
 					} else {
 						cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)

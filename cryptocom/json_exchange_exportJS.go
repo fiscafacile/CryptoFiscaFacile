@@ -393,7 +393,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				log.Println(SOURCE, "Error Parsing SignupBonus", exch.Rew.SignupBonus)
 			} else {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
-				cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+				cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 			}
 		}
 	}
