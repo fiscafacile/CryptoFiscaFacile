@@ -177,7 +177,6 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					}
 				} else if tx.Kind == "crypto_payment" ||
 					tx.Kind == "crypto_withdrawal" ||
-					tx.Kind == "crypto_transfer" ||
 					tx.Kind == "card_cashback_reverted" ||
 					tx.Kind == "transfer_cashback_reverted" ||
 					tx.Kind == "reimbursement_reverted" ||
@@ -208,6 +207,28 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 							cdc.TXsByCategory["Gifts"] = append(cdc.TXsByCategory["Gifts"], t)
 						} else {
 							cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
+						}
+					}
+				} else if tx.Kind == "crypto_transfer" {
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
+					t.Items = make(map[string]wallet.Currencies)
+					if tx.Amount.IsNegative() {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
+						if is, desc, val, curr := cat.IsTxCashOut(tx.ID); is {
+							t.Note += " " + desc
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+							cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
+						} else {
+							cdc.TXsByCategory["Gifts"] = append(cdc.TXsByCategory["Gifts"], t)
+						}
+					} else {
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
+						if is, desc, val, curr := cat.IsTxCashIn(tx.ID); is {
+							t.Note += " " + desc
+							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
+							cdc.TXsByCategory["CashIn"] = append(cdc.TXsByCategory["CashIn"], t)
+						} else {
+							cdc.TXsByCategory["Gifts"] = append(cdc.TXsByCategory["Gifts"], t)
 						}
 					}
 				} else if tx.Kind == "crypto_earn_program_created" ||
