@@ -255,6 +255,20 @@ func (tx TX) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	return
 }
 
+func (tx TX) SameBalances(t TX) bool {
+	cbs := tx.GetBalances(false, true)
+	b := t.GetBalances(false, true)
+	if len(cbs) != len(b) {
+		return false
+	}
+	for k, v := range cbs {
+		if !b[k].Equal(v) {
+			return false
+		}
+	}
+	return true
+}
+
 func (txs TXs) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	cs = make(WalletCurrencies)
 	for _, tx := range txs {
@@ -481,7 +495,8 @@ func (txs TXsByCategory) AddUniq(a TXsByCategory) {
 		for _, tx := range v {
 			found := false
 			for _, t := range txs[k] {
-				if t.Timestamp == tx.Timestamp && t.ID == tx.ID {
+				if (t.SimilarDate(time.Hour+time.Second, tx.Timestamp) && t.SameBalances(tx)) ||
+					(t.ID == tx.ID && tx.ID != "") {
 					found = true
 					break
 				}
