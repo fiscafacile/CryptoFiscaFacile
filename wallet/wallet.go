@@ -495,7 +495,7 @@ func (txs TXsByCategory) AddUniq(a TXsByCategory) {
 		for _, tx := range v {
 			found := false
 			for _, t := range txs[k] {
-				if (t.SimilarDate(time.Hour+time.Second, tx.Timestamp) && t.SameBalances(tx)) ||
+				if (t.SimilarDate(2*time.Hour+time.Second, tx.Timestamp) && t.SameBalances(tx)) ||
 					(t.ID == tx.ID && tx.ID != "") {
 					found = true
 					break
