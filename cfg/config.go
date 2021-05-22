@@ -61,28 +61,34 @@ type Exchanges struct {
 	Revolut       ExchangeConfig `yaml:"revolut"`
 }
 
+type FiscalYear struct {
+	Y2019 bool `yaml:"2019"`
+	Y2020 bool `yaml:"2020"`
+}
+
 // Options
 type Options struct {
-	Bcd             bool   `yaml:"bcd"`
-	Bch             bool   `yaml:"bch"`
-	BinanceExtended bool   `yaml:"binance-extended"`
-	Btg             bool   `yaml:"btg"`
-	Check           bool   `yaml:"check"`
-	CurrencyFilter  string `yaml:"curr-filter"`
-	Date            string `yaml:"date"`
-	Debug           bool   `yaml:"debug"`
-	Display2086     bool   `yaml:"display-2086"`
-	Exact           bool   `yaml:"exact"`
-	Export2086      bool   `yaml:"export-2086"`
-	Export3916      bool   `yaml:"export-3916"`
-	ExportStock     bool   `yaml:"export-stock"`
-	Lbtc            bool   `yaml:"lbtc"`
-	Location        string `yaml:"location"`
-	LogFile         string `yaml:"log"`
-	Native          string `yaml:"native"`
-	Stats           bool   `yaml:"stats"`
-	TxsCategory     string `yaml:"txs-categ"`
-	TxsDisplay      string `yaml:"txs-display"`
+	Bcd             bool       `yaml:"bcd"`
+	Bch             bool       `yaml:"bch"`
+	BinanceExtended bool       `yaml:"binance-extended"`
+	Btg             bool       `yaml:"btg"`
+	CashInBNC       FiscalYear `yaml:"cashin-bnc"`
+	Check           bool       `yaml:"check"`
+	CurrencyFilter  string     `yaml:"curr-filter"`
+	Date            string     `yaml:"date"`
+	Debug           bool       `yaml:"debug"`
+	Display2086     bool       `yaml:"display-2086"`
+	Exact           bool       `yaml:"exact"`
+	Export2086      bool       `yaml:"export-2086"`
+	Export3916      bool       `yaml:"export-3916"`
+	ExportStock     bool       `yaml:"export-stock"`
+	Lbtc            bool       `yaml:"lbtc"`
+	Location        string     `yaml:"location"`
+	LogFile         string     `yaml:"log"`
+	Native          string     `yaml:"native"`
+	Stats           bool       `yaml:"stats"`
+	TxsCategory     string     `yaml:"txs-categ"`
+	TxsDisplay      string     `yaml:"txs-display"`
 }
 
 // Tools
@@ -159,6 +165,8 @@ func LoadConfig() (*Config, error) {
 	pflag.BoolVarP(&config.Options.Stats, "stats", "s", config.Options.Stats, "Display accounts stats")
 	// Debug
 	pflag.BoolVarP(&config.Options.Debug, "debug", "d", config.Options.Debug, "Debug Mode (only for devs)")
+	pflag.BoolVar(&config.Options.CashInBNC.Y2019, "cashin-bnc-2019", config.Options.CashInBNC.Y2019, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086")
+	pflag.BoolVar(&config.Options.CashInBNC.Y2020, "cashin-bnc-2020", config.Options.CashInBNC.Y2020, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086")
 	pflag.BoolVarP(&config.Options.Check, "check", "c", config.Options.Check, "Check and Display consistency")
 	pflag.StringVar(&config.Options.CurrencyFilter, "currency-filter", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
 	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
@@ -214,7 +222,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Distributions, "poloniex-distributions", config.Exchanges.Poloniex.CSV.Distributions, "Poloniex Distributions CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Revolut.CSV.All, "revolut", config.Exchanges.Revolut.CSV.All, "Revolut CSV file")
 	// Output
-	pflag.BoolVar(&config.Options.Display2086, "2086_display", config.Options.Display2086, "Display Cerfa 2086")
+	pflag.BoolVar(&config.Options.Display2086, "2086-display", config.Options.Display2086, "Display Cerfa 2086")
 	pflag.BoolVar(&config.Options.Export2086, "2086", config.Options.Export2086, "Export Cerfa 2086 to 2086.xlsx")
 	pflag.BoolVar(&config.Options.Export3916, "3916", config.Options.Export3916, "Export Cerfa 3916 to 3916.xlsx")
 	pflag.BoolVar(&config.Options.ExportStock, "stock", config.Options.ExportStock, "Export stock balances to stock.xlsx")

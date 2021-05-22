@@ -10,6 +10,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/fiscafacile/CryptoFiscaFacile/cfg"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -60,137 +61,6 @@ func (c Cession) Println() {
 	fmt.Println("222 Soultes reçues en cas d’échanges antérieurs à la cession :", c.SoulteRecueEnCasDechangeAnterieur222.RoundBank(0))
 	fmt.Println("223 Prix total d’acquisition net :", c.PrixTotalAcquisitionNet223.RoundBank(0))
 	fmt.Println("Plus-values et moins-values :", c.PlusMoinsValue.RoundBank(0))
-}
-
-func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string, loc *time.Location) (err error) {
-	err = c2086.ptafifo.Calculate(global, native, loc)
-	if err != nil {
-		return err
-	}
-	var fractionCapital decimal.Decimal
-	// Consolidate all CashIn/CashOut TXs
-	var cashInOut wallet.TXs
-	cashInOut = append(cashInOut, global["CashIn"]...)
-	cashInOut = append(cashInOut, global["CashOut"]...)
-	cashInOut.SortByDate(true)
-	// Calculate PV starting on 2019 Jan 1st
-	for _, tx := range cashInOut {
-		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
-			if tx.Items["To"][0].IsFiat() { // CashOut
-				c := Cession{Date211: tx.Timestamp}
-				infos := strings.SplitN(tx.Note, ":", 2)
-				c.Source = infos[0]
-				c.Note = infos[1]
-				// Valeur globale du portefeuille au moment de la cession
-				// Il s’agit de la somme des valeurs, évaluées au moment de la cession
-				// imposable, des différents actifs numériques et droits s'y rapportant,
-				// détenus par le cédant avant de procéder à la cession, quel que soit
-				// leur support de conservation (plateformes d’échanges, y compris
-				// étrangères, serveurs personnels, dispositif de stockage hors-ligne,
-				// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
-				// imposable en application de l’article 150 VH bis du CGI.
-				globalWallet := global.GetWallets(tx.Timestamp, false, true)
-				globalWalletTotalValue, err := globalWallet.CalculateTotalValue(native)
-				if err != nil {
-					log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
-				}
-				// spew.Dump(globalWallet)
-				c.ValeurPortefeuille212 = globalWalletTotalValue.Amount
-				// Prix de cession
-				// Il correspond au prix réel perçu ou à la valeur de la contrepartie
-				// obtenue par le cédant lors de la cession.
-				if tx.Items["To"][0].Code == native {
-					c.PrixNetDeFrais215 = tx.Items["To"][0].Amount
-				} else {
-					rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
-					if err == nil {
-						c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
-					} else {
-						log.Println("Rate missing : CashOut integration into Prix213", spew.Sdump(tx, c))
-					}
-				}
-				// Prix de cession - Frais
-				// Il est réduit, sur justificatifs, des frais supportés par le cédant à
-				// l’occasion de cette cession. Ces frais s'entendent, notamment, de
-				// ceux perçus à l’occasion de l’opération imposable par les plateformes
-				// où s'effectuent les cessions à titre onéreux d'actifs numériques ou
-				// de droits s'y rapportant ainsi que de ceux perçus par les membres du
-				// réseau (appelés "mineurs") chargés de vérifier et valider les
-				// transactions qui s'y opèrent. Le paiement de ces frais de transaction
-				// perçus par les plateformes ou les "mineurs" peut s'effectuer au moyen
-				// d'actifs numériques. Or, dans ce cas, ce paiement est la contrepartie
-				// d'un service fourni au cédant et constitue une opération imposable au
-				// sens du I de l'article 150 VH bis du CGI. A titre de mesure de
-				// simplification, il est toutefois admis que la cession en tant que
-				// telle et les différentes prestations de services rendues en
-				// contrepartie des frais perçus par les plateformes et les "mineurs"
-				// soient assimilées à une seule et même opération de cession pour
-				// l'application de l'article 150 VH bis du CGI, pour laquelle le
-				// contribuable détermine une seule plus ou moins-value, en déduisant
-				// ces frais du prix de cession.
-				for _, f := range tx.Items["Fee"] {
-					if f.Code == native {
-						c.Frais214 = c.Frais214.Add(f.Amount)
-					} else {
-						rate, err := f.GetExchangeRate(tx.Timestamp, native)
-						if err == nil {
-							c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
-						} else {
-							log.Println("Rate missing : CashOut integration into Frais214", spew.Sdump(tx, c))
-						}
-					}
-				}
-				// Prix de cession - Soultes
-				// Le prix de cession doit être majoré de la soulte que le cédant a
-				// reçue lors de la cession ou minoré de la soulte qu’il a versée lors
-				// de cette même cession.
-				// c.SoulteRecueOuVersee216 = ???
-				c.PrixTotalAcquisition220 = c2086.ptafifo.PrixTotalAcquisition
-				// Fractions de capital initial
-				// Il s’agit de la fraction de capital contenue dans la valeur ou le
-				// prix de chacune des différentes cessions d'actifs numériques à titre
-				// gratuit ou onéreux réalisées antérieurement, hors opérations d’échange
-				// ayant bénéficié du sursis d’imposition sans soulte.
-				c.FractionDeCapital221 = fractionCapital
-				// Soulte reçue en cas d’échanges antérieurs à la cession
-				// Lorsqu’un ou plusieurs échanges avec soulte reçue par le cédant ont été
-				// réalisés antérieurement à la cession imposable, le prix total d’acquisition
-				// est minoré du montant des soultes. Indiquez donc les montants reçus.
-				// c.SoulteRecueEnCasDechangeAnterieur222 = ???
-				c.Calculate() // to have 217 and 223
-				c2086.cs = append(c2086.cs, c)
-				// Les frais déductibles, quels qu'ils soient, ne viennent pas en
-				// diminution du prix de cession pour la détermination du quotient du
-				// prix de cession sur la valeur globale du portefeuille (ils doivent
-				// seulement être déduits du prix de cession qui constitue le premier
-				// terme de la différence prévue dans la formule de calcul mentionnée
-				// ci-dessus).
-				coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
-				fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
-				fractionCapital = fractionCapital.Add(fractionAcquisition)
-			} else { // CashIn
-				// Prix total d’acquisition du portefeuille
-				// Le prix total d'acquisition du portefeuille d'actifs numériques est
-				// égal à la somme de tous les prix acquittés en monnaie ayant cours
-				// légal à l'occasion de l'ensemble des acquisitions d’actifs numériques
-				// (sauf opérations d'échange ayant bénéficié du sursis d'imposition)
-				// réalisées avant la cession, et de la valeur des biens ou services,
-				// comprenant le cas échéant les soultes versées, fournis en
-				// contrepartie de ces acquisitions.
-				if tx.Items["From"][0].Code == native {
-					c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
-				} else {
-					rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
-					if err == nil {
-						c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
-					} else {
-						log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
-					}
-				}
-			}
-		}
-	}
-	return
 }
 
 type ValuedTX struct {
@@ -338,9 +208,174 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 type Cerfa2086 struct {
 	cs      Cessions
 	ptafifo TotalBuyingPriceFIFO
+	bnc     map[int]wallet.WalletCurrencies
 }
 
-func (c2086 Cerfa2086) Println() {
+func New2086() Cerfa2086 {
+	var c Cerfa2086
+	c.bnc = make(map[int]wallet.WalletCurrencies)
+	return c
+}
+
+func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string, loc *time.Location, cashInBNC cfg.FiscalYear) (err error) {
+	// Calculate initial PTA
+	err = c2086.ptafifo.Calculate(global, native, loc)
+	if err != nil {
+		return err
+	}
+	jan1st2019 := time.Date(2019, time.January, 1, 0, 0, 0, 0, loc)
+	jan1st2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, loc)
+	jan1st2021 := time.Date(2021, time.January, 1, 0, 0, 0, 0, loc)
+	// Consolidate all CashIn/CashOut TXs
+	var cashInOut wallet.TXs
+	cashInOut = append(cashInOut, global["CashIn"].After(jan1st2019)...)
+	cashInOut = append(cashInOut, global["CashOut"].After(jan1st2019)...)
+	if cashInBNC.Y2019 {
+		fmt.Print("Conversion des AirDrops/CommercialRebates/Interets/Minings/Referrals en CashIn pour les transactions de 2019...")
+		var cashInOut2019 wallet.TXs
+		cashInOut2019 = append(cashInOut2019, global["AirDrops"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		cashInOut2019 = append(cashInOut2019, global["CommercialRebates"].After(jan1st2019).Before(jan1st2020).ApplyFromReversal().AddFromNativeValue(native)...)
+		cashInOut2019 = append(cashInOut2019, global["Interets"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		cashInOut2019 = append(cashInOut2019, global["Minings"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		cashInOut2019 = append(cashInOut2019, global["Referrals"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		c2086.bnc[2019] = cashInOut2019.GetBalances(true, false)
+		cashInOut = append(cashInOut, cashInOut2019...)
+	}
+	if cashInBNC.Y2020 {
+		fmt.Print("Conversion des AirDrops/CommercialRebates/Interets/Minings/Referrals en CashIn pour les transactions de 2020...")
+		var cashInOut2020 wallet.TXs
+		cashInOut2020 = append(cashInOut2020, global["AirDrops"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		cashInOut2020 = append(cashInOut2020, global["CommercialRebates"].After(jan1st2020).Before(jan1st2021).ApplyFromReversal().AddFromNativeValue(native)...)
+		cashInOut2020 = append(cashInOut2020, global["Interets"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		cashInOut2020 = append(cashInOut2020, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		cashInOut2020 = append(cashInOut2020, global["Referrals"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		c2086.bnc[2020] = cashInOut2020.GetBalances(true, false)
+		cashInOut = append(cashInOut, cashInOut2020...)
+	}
+	cashInOut.SortByDate(true)
+	// Calculate PV starting on 2019 Jan 1st
+	var fractionCapital decimal.Decimal
+	for _, tx := range cashInOut {
+		if len(tx.Items["To"]) > 1 || len(tx.Items["From"]) > 1 {
+			log.Println("Will be missing values :", spew.Sdump(tx))
+		}
+		if tx.Items["To"][0].IsFiat() { // CashOut
+			c := Cession{Date211: tx.Timestamp}
+			infos := strings.SplitN(tx.Note, ":", 2)
+			c.Source = infos[0]
+			c.Note = infos[1]
+			// Valeur globale du portefeuille au moment de la cession
+			// Il s’agit de la somme des valeurs, évaluées au moment de la cession
+			// imposable, des différents actifs numériques et droits s'y rapportant,
+			// détenus par le cédant avant de procéder à la cession, quel que soit
+			// leur support de conservation (plateformes d’échanges, y compris
+			// étrangères, serveurs personnels, dispositif de stockage hors-ligne,
+			// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
+			// imposable en application de l’article 150 VH bis du CGI.
+			globalWallet := global.GetWallets(tx.Timestamp, false, true)
+			globalWalletTotalValue, err := globalWallet.CalculateTotalValue(native)
+			if err != nil {
+				log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
+			}
+			// spew.Dump(globalWallet)
+			c.ValeurPortefeuille212 = globalWalletTotalValue.Amount
+			// Prix de cession
+			// Il correspond au prix réel perçu ou à la valeur de la contrepartie
+			// obtenue par le cédant lors de la cession.
+			if tx.Items["To"][0].Code == native {
+				c.PrixNetDeFrais215 = tx.Items["To"][0].Amount
+			} else {
+				rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
+				if err == nil {
+					c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
+				} else {
+					log.Println("Rate missing : CashOut integration into Prix213", spew.Sdump(tx, c))
+				}
+			}
+			// Prix de cession - Frais
+			// Il est réduit, sur justificatifs, des frais supportés par le cédant à
+			// l’occasion de cette cession. Ces frais s'entendent, notamment, de
+			// ceux perçus à l’occasion de l’opération imposable par les plateformes
+			// où s'effectuent les cessions à titre onéreux d'actifs numériques ou
+			// de droits s'y rapportant ainsi que de ceux perçus par les membres du
+			// réseau (appelés "mineurs") chargés de vérifier et valider les
+			// transactions qui s'y opèrent. Le paiement de ces frais de transaction
+			// perçus par les plateformes ou les "mineurs" peut s'effectuer au moyen
+			// d'actifs numériques. Or, dans ce cas, ce paiement est la contrepartie
+			// d'un service fourni au cédant et constitue une opération imposable au
+			// sens du I de l'article 150 VH bis du CGI. A titre de mesure de
+			// simplification, il est toutefois admis que la cession en tant que
+			// telle et les différentes prestations de services rendues en
+			// contrepartie des frais perçus par les plateformes et les "mineurs"
+			// soient assimilées à une seule et même opération de cession pour
+			// l'application de l'article 150 VH bis du CGI, pour laquelle le
+			// contribuable détermine une seule plus ou moins-value, en déduisant
+			// ces frais du prix de cession.
+			for _, f := range tx.Items["Fee"] {
+				if f.Code == native {
+					c.Frais214 = c.Frais214.Add(f.Amount)
+				} else {
+					rate, err := f.GetExchangeRate(tx.Timestamp, native)
+					if err == nil {
+						c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
+					} else {
+						log.Println("Rate missing : CashOut integration into Frais214", spew.Sdump(tx, c))
+					}
+				}
+			}
+			// Prix de cession - Soultes
+			// Le prix de cession doit être majoré de la soulte que le cédant a
+			// reçue lors de la cession ou minoré de la soulte qu’il a versée lors
+			// de cette même cession.
+			// c.SoulteRecueOuVersee216 = ???
+			c.PrixTotalAcquisition220 = c2086.ptafifo.PrixTotalAcquisition
+			// Fractions de capital initial
+			// Il s’agit de la fraction de capital contenue dans la valeur ou le
+			// prix de chacune des différentes cessions d'actifs numériques à titre
+			// gratuit ou onéreux réalisées antérieurement, hors opérations d’échange
+			// ayant bénéficié du sursis d’imposition sans soulte.
+			c.FractionDeCapital221 = fractionCapital
+			// Soulte reçue en cas d’échanges antérieurs à la cession
+			// Lorsqu’un ou plusieurs échanges avec soulte reçue par le cédant ont été
+			// réalisés antérieurement à la cession imposable, le prix total d’acquisition
+			// est minoré du montant des soultes. Indiquez donc les montants reçus.
+			// c.SoulteRecueEnCasDechangeAnterieur222 = ???
+			c.Calculate() // to have 217 and 223
+			c2086.cs = append(c2086.cs, c)
+			// Les frais déductibles, quels qu'ils soient, ne viennent pas en
+			// diminution du prix de cession pour la détermination du quotient du
+			// prix de cession sur la valeur globale du portefeuille (ils doivent
+			// seulement être déduits du prix de cession qui constitue le premier
+			// terme de la différence prévue dans la formule de calcul mentionnée
+			// ci-dessus).
+			coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
+			fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
+			fractionCapital = fractionCapital.Add(fractionAcquisition)
+		} else { // CashIn
+			// Prix total d’acquisition du portefeuille
+			// Le prix total d'acquisition du portefeuille d'actifs numériques est
+			// égal à la somme de tous les prix acquittés en monnaie ayant cours
+			// légal à l'occasion de l'ensemble des acquisitions d’actifs numériques
+			// (sauf opérations d'échange ayant bénéficié du sursis d'imposition)
+			// réalisées avant la cession, et de la valeur des biens ou services,
+			// comprenant le cas échéant les soultes versées, fournis en
+			// contrepartie de ces acquisitions.
+			if tx.Items["From"][0].Code == native {
+				c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
+			} else {
+				rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
+				if err == nil {
+					c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
+				} else {
+					log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
+				}
+			}
+		}
+	}
+	return
+}
+
+func (c2086 Cerfa2086) Println(native string) {
 	for year := 2019; year < time.Now().Year(); year++ {
 		var plusMoinsValueGlobale decimal.Decimal
 		fmt.Println("-------------------------")
@@ -358,6 +393,15 @@ func (c2086 Cerfa2086) Println() {
 			}
 		}
 		fmt.Println("224 Plus-value ou moins-value globale :", plusMoinsValueGlobale.RoundBank(0))
+		if !c2086.bnc[year][native].IsZero() {
+			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-PRO.")
+			fmt.Println("Pour information les cryptos recues par ces opérations sont :")
+			for k, v := range c2086.bnc[year] {
+				if k != native {
+					fmt.Println("  -", v, k)
+				}
+			}
+		}
 		fmt.Println("-------------------------")
 	}
 }
@@ -468,6 +512,18 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 			}
 		}
 		f.SetCellValue(sheet, "C16", plusMoinsValueGlobale.RoundBank(0).IntPart())
+		if !c2086.bnc[year][native].IsZero() {
+			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
+			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-PRO.")
+			f.SetCellValue(sheet, "A20", "Pour information les cryptos recues par ces opérations sont :")
+			count := 0
+			for k, v := range c2086.bnc[year] {
+				if k != native {
+					f.SetCellValue(sheet, "A"+strconv.Itoa(21+count), v.String()+" "+k)
+					count += 1
+				}
+			}
+		}
 	}
 	f.DeleteSheet("Sheet1")
 	if err := f.SaveAs(filename); err != nil {

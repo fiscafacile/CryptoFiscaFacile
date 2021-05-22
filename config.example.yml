@@ -130,6 +130,9 @@ options:
   bch: yes
   binance-extended: no
   btg: no
+  cashin-bnc:
+    2019: no
+    2020: yes
   lbtc: no
   location: Europe/Paris
   native: EUR

@@ -255,6 +255,14 @@ func (tx TX) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 	return
 }
 
+func (txs TXs) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
+	cs = make(WalletCurrencies)
+	for _, tx := range txs {
+		cs.Add(tx.GetBalances(includeFiat, includeFee))
+	}
+	return
+}
+
 func (txs TXs) Println(name string, filter string) {
 	fmt.Println(strings.Repeat("-", len(name)+11))
 	fmt.Println("| TXs in " + name + " |")
@@ -278,6 +286,71 @@ func (txs TXs) SortByDate(chrono bool) {
 			return txs[i].Timestamp.After(txs[j].Timestamp)
 		})
 	}
+}
+
+func (txs TXs) After(date time.Time) TXs {
+	var filteredTXs TXs
+	for _, t := range txs {
+		if t.Timestamp.After(date) {
+			filteredTXs = append(filteredTXs, t)
+		}
+	}
+	return filteredTXs
+}
+
+func (txs TXs) Before(date time.Time) TXs {
+	var filteredTXs TXs
+	for _, t := range txs {
+		if t.Timestamp.Before(date) {
+			filteredTXs = append(filteredTXs, t)
+		}
+	}
+	return filteredTXs
+}
+
+func (txs TXs) ApplyFromReversal() TXs {
+	var filteredTXs TXs
+	var toCancel Currencies
+	txs.SortByDate(false)
+	for _, tx := range txs {
+		isReversal := false
+		for _, c := range tx.Items["From"] {
+			toCancel = append(toCancel, c)
+			isReversal = true
+		}
+		if !isReversal {
+			for _, c := range tx.Items["To"] {
+				for i, tc := range toCancel {
+					if c.Code == tc.Code &&
+						c.Amount.Equal(tc.Amount) {
+						toCancel[i] = toCancel[len(toCancel)-1]
+						toCancel = toCancel[:len(toCancel)-1]
+						break
+					}
+				}
+				filteredTXs = append(filteredTXs, tx)
+			}
+		}
+	}
+	if len(toCancel) > 0 {
+		log.Println("Couldn't apply", len(toCancel), "reversals")
+	}
+	return filteredTXs
+}
+
+func (txs TXs) AddFromNativeValue(native string) TXs {
+	for i, t := range txs {
+		for _, c := range t.Items["To"] {
+			fmt.Print(".")
+			rate, err := c.GetExchangeRate(t.Timestamp, native)
+			if err != nil {
+				log.Println(err)
+			} else {
+				txs[i].Items["From"] = append(txs[i].Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
+			}
+		}
+	}
+	return txs
 }
 
 func (txs TXsByCategory) Println(filter string) {
@@ -391,12 +464,7 @@ func (txs TXsByCategory) GetWallets(date time.Time, includeFiat bool, rounding b
 	w.Date = date
 	w.Currencies = make(WalletCurrencies)
 	for _, v := range txs {
-		for _, tx := range v {
-			if tx.Timestamp.Before(date) {
-				txcs := tx.GetBalances(includeFiat, true)
-				w.Currencies.Add(txcs)
-			}
-		}
+		w.Currencies.Add(v.Before(date).GetBalances(includeFiat, true))
 	}
 	w.Round(rounding)
 	return
@@ -527,7 +595,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	return txs
 }
 
-func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal) {
+func (txs TXsByCategory) FindCashInOut(native string) {
 	var realExchanges TXs
 	for _, exTX := range txs["Exchanges"] {
 		fmt.Print(".")
@@ -556,128 +624,6 @@ func (txs TXsByCategory) FindCashInOut(native string) (totalCommercialRebates, t
 	} else {
 		delete(txs, "Exchanges")
 	}
-	// Integrate CommercialRebates into CashIn with Reversal cancelation
-	var realCommercialRebates TXs
-	var toCancel Currencies
-	txs["CommercialRebates"].SortByDate(false)
-	for _, crTx := range txs["CommercialRebates"] {
-		fmt.Print(".")
-		isReversal := false
-		for _, c := range crTx.Items["From"] {
-			toCancel = append(toCancel, c)
-			isReversal = true
-		}
-		if !isReversal {
-			for _, c := range crTx.Items["To"] {
-				canceled := false
-				var toCancelNew Currencies
-				for _, tc := range toCancel {
-					if c.Amount.Equal(tc.Amount) {
-						canceled = true
-					} else {
-						toCancelNew = append(toCancelNew, tc)
-					}
-				}
-				if canceled {
-					toCancel = toCancelNew
-				} else {
-					rate, err := c.GetExchangeRate(crTx.Timestamp, native)
-					if err != nil {
-						log.Println(err)
-						realCommercialRebates = append(realCommercialRebates, crTx)
-					} else {
-						totalCommercialRebates = totalCommercialRebates.Add(c.Amount.Mul(rate))
-						crTx.Items["From"] = append(crTx.Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
-						txs["CashIn"] = append(txs["CashIn"], crTx)
-					}
-				}
-			}
-		}
-	}
-	if len(realCommercialRebates) > 0 {
-		txs["CommercialRebates"] = realCommercialRebates
-	} else {
-		delete(txs, "CommercialRebates")
-	}
-	// Integrate Interests into CashIn
-	var realInterests TXs
-	for _, iTx := range txs["Interests"] {
-		fmt.Print(".")
-		for _, c := range iTx.Items["To"] {
-			rate, err := c.GetExchangeRate(iTx.Timestamp, native)
-			if err != nil {
-				log.Println(err)
-				realInterests = append(realInterests, iTx)
-			} else {
-				totalInterests = totalInterests.Add(c.Amount.Mul(rate))
-				iTx.Items["From"] = append(iTx.Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
-				txs["CashIn"] = append(txs["CashIn"], iTx)
-			}
-		}
-	}
-	if len(realInterests) > 0 {
-		txs["Interests"] = realInterests
-	} else {
-		delete(txs, "Interests")
-	}
-	// Integrate Referrals into CashIn
-	var realRefferals TXs
-	for _, rTx := range txs["Referrals"] {
-		fmt.Print(".")
-		for _, c := range rTx.Items["To"] {
-			rate, err := c.GetExchangeRate(rTx.Timestamp, native)
-			if err != nil {
-				log.Println(err)
-				realRefferals = append(realRefferals, rTx)
-			} else {
-				totalReferrals = totalReferrals.Add(c.Amount.Mul(rate))
-				rTx.Items["From"] = append(rTx.Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
-				txs["CashIn"] = append(txs["CashIn"], rTx)
-			}
-		}
-	}
-	if len(realRefferals) > 0 {
-		txs["Referrals"] = realRefferals
-	} else {
-		delete(txs, "Referrals")
-	}
-	/*
-		var realDeposits TXs
-		for _, depTX := range txs["Deposits"] {
-			toHasFiat := false
-			for _, i := range depTX.Items["To"] {
-				if i.IsFiat() {
-					toHasFiat = true
-				}
-			}
-			if toHasFiat {
-				txs["CashIn"] = append(txs["CashIn"], depTX)
-			} else {
-				realDeposits = append(realDeposits, depTX)
-			}
-		}
-		txs["Deposits"] = realDeposits
-	*/
-	/*
-		var realWithdrawals TXs
-		for _, witTX := range txs["Withdrawals"] {
-			fromHasFiat := false
-			for _, i := range witTX.Items["From"] {
-				if i.IsFiat() {
-					fromHasFiat = true
-				}
-			}
-			if fromHasFiat {
-				txs["CashOut"] = append(txs["CashOut"], witTX)
-				log.Println("Found")
-			} else {
-				realWithdrawals = append(realWithdrawals, witTX)
-			}
-		}
-		if len(realWithdrawals) > 0 {
-			txs["Withdrawals"] = realWithdrawals
-		}
-	*/
 	return
 }
 
@@ -687,7 +633,7 @@ func (txs TXsByCategory) SortTXsByDate(chrono bool) {
 	}
 }
 
-func (txs TXsByCategory) PrintStats(native string, totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal) {
+func (txs TXsByCategory) PrintStats(native string) {
 	fmt.Println("-------------------------------")
 	fmt.Println("| Quantity of TXs By Category |")
 	fmt.Println("-------------------------------")
@@ -698,14 +644,6 @@ func (txs TXsByCategory) PrintStats(native string, totalCommercialRebates, total
 	sort.Strings(keys)
 	for _, k := range keys {
 		fmt.Println(k, ":", len(txs[k]), "TXs")
-	}
-	if !totalCommercialRebates.IsZero() || !totalInterests.IsZero() || !totalReferrals.IsZero() {
-		fmt.Println("----------------------------")
-		fmt.Println("| Total Values By Category |")
-		fmt.Println("----------------------------")
-		fmt.Println("CommercialRebates :", totalCommercialRebates.RoundBank(2), native)
-		fmt.Println("Interests :", totalInterests.RoundBank(2), native)
-		fmt.Println("Referrals :", totalReferrals.RoundBank(2), native)
 	}
 }
 
@@ -743,13 +681,19 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 			}
 		}
 	}
-	fmt.Println("--------------------------------------------------------")
-	fmt.Println("| List of Deposits with some From                      |")
-	for _, tx := range txs["Deposits"] {
-		for k := range tx.Items {
-			if k == "From" {
-				fmt.Println("--------------------------------------------------------")
-				tx.Println("")
+	for _, cat := range []string{"Deposits", "AirDrops", "CommercialRebates", "Interets", "Minings", "Referrals"} {
+		fmt.Println("--------------------------------------------------------")
+		fmt.Println("| List of " + cat + " with some From" + strings.Repeat(" ", 30-len(cat)) + "|")
+		txsCat := txs[cat]
+		if cat == "CommercialRebates" {
+			txsCat = txsCat.ApplyFromReversal()
+		}
+		for _, tx := range txsCat {
+			for k := range tx.Items {
+				if k == "From" {
+					fmt.Println("--------------------------------------------------------")
+					tx.Println("")
+				}
 			}
 		}
 	}

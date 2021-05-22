@@ -27,7 +27,6 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
-	"github.com/shopspring/decimal"
 )
 
 func main() {
@@ -469,15 +468,14 @@ func main() {
 	if config.Options.ExportStock {
 		global.StockToXlsx("stock.xlsx")
 	}
-	var totalCommercialRebates, totalInterests, totalReferrals decimal.Decimal
 	if config.Options.Export2086 || config.Options.Display2086 {
 		fmt.Print("Look for CashIn and CashOut...")
-		totalCommercialRebates, totalInterests, totalReferrals = global.FindCashInOut(config.Options.Native)
+		global.FindCashInOut(config.Options.Native)
 		fmt.Println("Finished")
 	}
 	global.SortTXsByDate(true)
 	if config.Options.Stats {
-		global.PrintStats(config.Options.Native, totalCommercialRebates, totalInterests, totalReferrals)
+		global.PrintStats(config.Options.Native)
 	}
 	if config.Options.Check {
 		global.CheckConsistency(loc)
@@ -509,15 +507,15 @@ func main() {
 		globalWalletTotalValue.Println("")
 	}
 	if config.Options.Export2086 || config.Options.Display2086 {
-		var c2086 Cerfa2086
+		c2086 := New2086()
 		fmt.Print("Début du calcul pour le 2086...")
-		err = c2086.CalculatePVMV(global, config.Options.Native, loc)
+		err = c2086.CalculatePVMV(global, config.Options.Native, loc, config.Options.CashInBNC)
 		fmt.Println("Fini")
 		if err != nil {
 			log.Fatal(err)
 		}
 		if config.Options.Display2086 {
-			c2086.Println()
+			c2086.Println(config.Options.Native)
 		}
 		if config.Options.Export2086 {
 			c2086.ToXlsx("2086.xlsx", config.Options.Native)
