@@ -159,6 +159,7 @@ func (api *api) categorize() {
 			tx.Description == "XVS distribution" || // maybe should be better to get this list by API of by https://launchpad.binance.com/en/viewall/lp
 			tx.Description == "FLM distribution" ||
 			tx.Description == "CTK distribution" ||
+			tx.Description == "ALPHA distribution" ||
 			tx.Description == "HARD distribution" ||
 			tx.Description == "UNFI distribution" ||
 			tx.Description == "JUV distribution" ||
