@@ -127,21 +127,42 @@ func (api *api) categorize() {
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Exchange " + tx.Description}
-		t.Items = make(map[string]wallet.Currencies)
-		if tx.Side == "BUY" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
-		} else if tx.Side == "SELL" {
-			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
-			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
-		} else {
-			fmt.Println("Unknown transaction kind", tx.Side)
+		found := false
+		for i, t := range api.txsByCategory["Exchanges"] {
+			if t.ID == tx.ID {
+				found = true
+				api.txsByCategory["Exchanges"][i].Note += " " + tx.Description
+				if tx.Side == "BUY" {
+					api.txsByCategory["Exchanges"][i].Items["From"] = append(api.txsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
+					api.txsByCategory["Exchanges"][i].Items["To"] = append(api.txsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
+				} else if tx.Side == "SELL" {
+					api.txsByCategory["Exchanges"][i].Items["From"] = append(api.txsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
+					api.txsByCategory["Exchanges"][i].Items["To"] = append(api.txsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
+				} else {
+					fmt.Println("Unknown transaction kind", tx.Side)
+				}
+				if !tx.Fee.IsZero() {
+					api.txsByCategory["Exchanges"][i].Items["Fee"] = append(api.txsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
+				}
+			}
 		}
-		if !tx.Fee.IsZero() {
-			t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
+		if !found {
+			t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Exchange " + tx.Description}
+			t.Items = make(map[string]wallet.Currencies)
+			if tx.Side == "BUY" {
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
+			} else if tx.Side == "SELL" {
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.BaseAsset, Amount: tx.Qty})
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})
+			} else {
+				fmt.Println("Unknown transaction kind", tx.Side)
+			}
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
+			}
+			api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 		}
-		api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 		if tx.Timestamp.Before(api.firstTimeUsed) {
 			api.firstTimeUsed = tx.Timestamp
 		}

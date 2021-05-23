@@ -43,7 +43,7 @@ func (api *api) getSpotTradesTXs() {
 			for _, tra := range trades {
 				tx := spotTradeTX{}
 				tx.Timestamp = time.Unix(tra.Time/1e3, 0)
-				tx.ID = strconv.Itoa(tra.ID)
+				tx.ID = strconv.Itoa(tra.OrderID)
 				tx.Description = fmt.Sprintf("Order ID: %v, Trade ID: %v", tra.OrderID, tra.ID)
 				tx.BaseAsset = symbol.Baseasset
 				tx.QuoteAsset = symbol.Quoteasset
