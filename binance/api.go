@@ -156,6 +156,7 @@ func (api *api) categorize() {
 		if tx.Description == "BNB Vault" ||
 			tx.Description == "Locked Staking" ||
 			tx.Description == "DeFi Staking" ||
+			tx.Description == "Launchpool" ||
 			tx.Description == "XVS distribution" || // maybe should be better to get this list by API of by https://launchpad.binance.com/en/viewall/lp
 			tx.Description == "FLM distribution" ||
 			tx.Description == "CTK distribution" ||
@@ -174,8 +175,7 @@ func (api *api) categorize() {
 			tx.Description == "ALICE distribution" ||
 			tx.Description == "TLM distribution" {
 			api.txsByCategory["Minings"] = append(api.txsByCategory["Minings"], t)
-		} else if tx.Description == "Launchpool" ||
-			tx.Description == "Flexible Savings" {
+		} else if tx.Description == "Flexible Savings" {
 			api.txsByCategory["Interests"] = append(api.txsByCategory["Interests"], t)
 		} else {
 			api.txsByCategory["AirDrops"] = append(api.txsByCategory["AirDrops"], t)

@@ -131,10 +131,10 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 						b.TXsByCategory["AirDrops"] = append(b.TXsByCategory["AirDrops"], t)
 					} else if tx.Operation == "POS savings interest" ||
 						tx.Operation == "Super BNB Mining" ||
-						tx.Operation == "DeFi Staking Interest" {
-						b.TXsByCategory["Minings"] = append(b.TXsByCategory["Minings"], t)
-					} else if tx.Operation == "Savings Interest" ||
+						tx.Operation == "DeFi Staking Interest" ||
 						tx.Operation == "Launchpool Interest" {
+						b.TXsByCategory["Minings"] = append(b.TXsByCategory["Minings"], t)
+					} else if tx.Operation == "Savings Interest" {
 						b.TXsByCategory["Interests"] = append(b.TXsByCategory["Interests"], t)
 					} else if tx.Operation == "Commission History" {
 						b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
