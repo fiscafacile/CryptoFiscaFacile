@@ -165,9 +165,9 @@ Lance des vérifications d'intégrité sur les TXs du portefeuille globale et af
 ```
 Affiche toutes les TXs d'une Catégorie (attention ceci peut être très long...).
 
-Vous pouvez afficher toutes les Catégories avec `-txs_display Alls`.
+Vous pouvez afficher toutes les Catégories avec `--txs-display Alls`.
 
-Vous pouvez aussi afficher que les TXs concernant certaines cryptos, par exemple pour n'afficher que le BTC et le BCH : `-curr_filter BTC,BCH`.
+Vous pouvez aussi afficher que les TXs concernant certaines cryptos, par exemple pour n'afficher que le BTC et le BCH : `--currency-filter BTC,BCH`.
 
 ### Options de "Sources"
 
@@ -179,7 +179,7 @@ Pour chaque Source, je vous indique le taux de support fourni par l'outil (l'exa
   --txs-categ
         Transactions Categories CSV file
 ```
-Il faut fournir un CSV à faire manuellement contenant toutes les transactions que vous voulez catégoriser manuellement (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `-txs_categ Inputs/TXS_Categ_exemple.csv -btc_address Inputs/BTC_Addresses_exemple.csv`.
+Il faut fournir un CSV à faire manuellement contenant toutes les transactions que vous voulez catégoriser manuellement (attention les champs dans le CSV doivent être séparés par des virgules, pas des points virgules comme le fait Excel en Français, le plus simple est de le faire dans un editeur de texte simple comme Notepad). Un CSV d'exemple est disponible, essayez `--txs-categ Inputs/TXS_Categ_exemple.csv --btc-address Inputs/BTC_Addresses_exemple.csv`.
 
 Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH, ou autre) et donne un `Type`. Les différents `Type` supportés sont :
 
@@ -215,7 +215,7 @@ Par CSV :
         Use Binance CSV file extended format
 ```
 Il faut fournir le fichier CSV récupéré dans Binance (https://www.binance.com/fr/my/wallet/history puis "Générer un relevé complet").
-Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `-binance_extended`.
+Vous pouvez modifier ce fichier CSV pour ajouter une colone `Fee` entre `Change` et `Remark`, et donc reseigner la part de frais dans les `Withdraw` qui ont un `Remark` avec `Withdraw fee is included`, cela permet de bien fusioner ce `Withdrawals` avec un autre `Deposits` pour en faire un `Transfers` lors de l'analyse des TXs. Dans ce cas, n'oubliez pas de rajouter l'option `--binance-extended`. Ces frais seront automatiquement déduits du montant du retrait, veuillez donc ne pas toucher à la valeur `Change`.
 
 Les colones du CSV d'origine doivent être : `UTC_Time,Account,Operation,Coin,Change,Remark`
 Les colones du CSV étendu doivent être : `UTC_Time,Account,Operation,Coin,Change,Fee,Remark`
@@ -336,7 +336,7 @@ Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,curre
   --cdc-ex-secret-key
         Crypto.com Exchange Secret Key
 ```
-Il faut donner le api_key et secret_key que vous pouvez créer dans votre compte.
+Il faut donner le api-key et secret-key que vous pouvez créer dans votre compte.
 
 Il faut activer le droit de "Withdrawal" (si disponible pour vous) si vous voulez récupérer les `Withdrawals` et `Deposits` (je ne l'ai pas donc je n'ai pas pu tester). Dans le cas contraire, le CSV Transfers  ou le JSON permet de les mettre dans l'outil sans l'API.
 

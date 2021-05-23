@@ -145,8 +145,10 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "transfer_out" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
-					if !tx.Fee.IsZero() {
+					if tx.Fee.IsZero() {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+					} else {
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg().Sub(tx.Fee)})
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
 					}
 					b.TXsByCategory["Withdrawals"] = append(b.TXsByCategory["Withdrawals"], t)
