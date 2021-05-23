@@ -256,8 +256,8 @@ func (tx TX) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 }
 
 func (tx TX) SameBalances(t TX) bool {
-	cbs := tx.GetBalances(false, true)
-	b := t.GetBalances(false, true)
+	cbs := tx.GetBalances(false, false)
+	b := t.GetBalances(false, false)
 	if len(cbs) != len(b) {
 		return false
 	}
