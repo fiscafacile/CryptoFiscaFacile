@@ -155,7 +155,23 @@ func (api *api) categorize() {
 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 		if tx.Description == "BNB Vault" ||
 			tx.Description == "Locked Staking" ||
-			tx.Description == "DeFi Staking" {
+			tx.Description == "DeFi Staking" ||
+			tx.Description == "XVS distribution" || // maybe should be better to get this list by API of by https://launchpad.binance.com/en/viewall/lp
+			tx.Description == "FLM distribution" ||
+			tx.Description == "CTK distribution" ||
+			tx.Description == "HARD distribution" ||
+			tx.Description == "UNFI distribution" ||
+			tx.Description == "JUV distribution" ||
+			tx.Description == "PSG distribution" ||
+			tx.Description == "REEF distribution" ||
+			tx.Description == "ASR distribution" ||
+			tx.Description == "ATM distribution" ||
+			tx.Description == "OG distribution" ||
+			tx.Description == "BTCST distribution" ||
+			tx.Description == "LIT distribution" ||
+			tx.Description == "DODO distribution" ||
+			tx.Description == "ALICE distribution" ||
+			tx.Description == "TLM distribution" {
 			api.txsByCategory["Minings"] = append(api.txsByCategory["Minings"], t)
 		} else if tx.Description == "Launchpool" ||
 			tx.Description == "Flexible Savings" {
