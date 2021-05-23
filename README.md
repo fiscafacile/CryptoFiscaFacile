@@ -520,12 +520,26 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
 ### Options de sortie
 
 ```
-  --2086_display
+  --2086-display
         Display Cerfa 2086
   --2086
         Export Cerfa 2086 in 2086.xlsx
+  --cashin-bnc-2019
+        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086
+  --cashin-bnc-2020
+        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086
 ```
 Cela vous génère automatiquement le formulaire 2086 !
+
+Il y a deux façons de considérer les AirDrops/CommercialRebates/Interets/Minings/Referrals :
+
+- soit ils sont ajoutés simplement au portefeuille avec une valeur de 0€
+
+- soit ils sont ajoutés au portefeuille avec leur valeur du jour en EUR (donc convertis en CashIn), ce qui va accroitre votre Prix Total d'Acquisition et faire baisser votre Plus-Value, mais en contrepartie, il convient de les déclarer en bénéfices non commerciaux (BNC) dans la case 5KU de votre 2042-C-PRO.
+
+Pour activer la seconde méthode d'intégration, vous pouvez utiliser les options `--cashin-bnc-2019` et/ou `--cashin-bnc-2020`.
+
+En attendant que la loi soit plus claire à ce sujet, nous vous laissons le choix. Vous pouvez venir demander de l'aide à ce sujet sur le groupe [![Fiscalité crypto FR](https://img.shields.io/badge/Telegram-Fiscalité%20crypto%20FR-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNCAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS40MTcgMTUuMTgxLS4zOTcgNS41ODRjLjU2OCAwIC44MTQtLjI0NCAxLjEwOS0uNTM3bDIuNjYzLTIuNTQ1IDUuNTE4IDQuMDQxYzEuMDEyLjU2NCAxLjcyNS4yNjcgMS45OTgtLjkzMWwzLjYyMi0xNi45NzIuMDAxLS4wMDFjLjMyMS0xLjQ5Ni0uNTQxLTIuMDgxLTEuNTI3LTEuNzE0bC0yMS4yOSA4LjE1MWMtMS40NTMuNTY0LTEuNDMxIDEuMzc0LS4yNDcgMS43NDFsNS40NDMgMS42OTMgMTIuNjQzLTcuOTExYy41OTUtLjM5NCAxLjEzNi0uMTc2LjY5MS4yMTh6IiBmaWxsPSIjMDM5YmU1Ii8+PC9zdmc+)](https://telegram.me/fiscalitecryptofr).
 
 ```
   --3916

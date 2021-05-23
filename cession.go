@@ -394,7 +394,7 @@ func (c2086 Cerfa2086) Println(native string) {
 		}
 		fmt.Println("224 Plus-value ou moins-value globale :", plusMoinsValueGlobale.RoundBank(0))
 		if !c2086.bnc[year][native].IsZero() {
-			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-PRO.")
+			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
 			fmt.Println("Pour information les cryptos recues par ces opérations sont :")
 			for k, v := range c2086.bnc[year] {
 				if k != native {
@@ -514,7 +514,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 		f.SetCellValue(sheet, "C16", plusMoinsValueGlobale.RoundBank(0).IntPart())
 		if !c2086.bnc[year][native].IsZero() {
 			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
-			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-PRO.")
+			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
 			f.SetCellValue(sheet, "A20", "Pour information les cryptos recues par ces opérations sont :")
 			count := 0
 			for k, v := range c2086.bnc[year] {
