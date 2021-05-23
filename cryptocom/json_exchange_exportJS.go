@@ -188,7 +188,12 @@ type ExchangeJson struct {
 	} `json:"rew"`
 }
 
+type jsonEx struct {
+	txsByCategory wallet.TXsByCategory
+}
+
 func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string) (err error) {
+	cdc.jsonEx.txsByCategory = make(map[string]wallet.TXs)
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Crypto.com Exchange JSON ExportJS :"
@@ -210,7 +215,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				if w.Fee != 0 {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: w.Symbol, Amount: decimal.NewFromFloat(w.Fee)})
 				}
-				cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
+				cdc.jsonEx.txsByCategory["Withdrawals"] = append(cdc.jsonEx.txsByCategory["Withdrawals"], t)
 			}
 			if time.Unix(w.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(w.UpdateAtTime/1000, 0)
@@ -228,7 +233,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing Amount", d.Amount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: d.Symbol, Amount: amount})
-					cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
+					cdc.jsonEx.txsByCategory["Deposits"] = append(cdc.jsonEx.txsByCategory["Deposits"], t)
 				}
 			}
 			if time.Unix(d.UpdateAtTime/1000, 0).Before(firstTimeUsed) {
@@ -247,7 +252,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing InterestAmount", cs.InterestAmount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: cs.CoinSymbol, Amount: amount})
-					cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
+					cdc.jsonEx.txsByCategory["Interests"] = append(cdc.jsonEx.txsByCategory["Interests"], t)
 				}
 			}
 			if time.Unix(cs.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
@@ -266,7 +271,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing Amount", ss.Amount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ss.CoinSymbol, Amount: amount})
-					cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
+					cdc.jsonEx.txsByCategory["Interests"] = append(cdc.jsonEx.txsByCategory["Interests"], t)
 				}
 			}
 			if time.Unix(ss.CalculateDate/1000, 0).Before(firstTimeUsed) {
@@ -285,7 +290,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing RebateAmount", r.RebateAmount)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: r.CoinSymbol, Amount: amount})
-					cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
+					cdc.jsonEx.txsByCategory["CommercialRebates"] = append(cdc.jsonEx.txsByCategory["CommercialRebates"], t)
 				}
 			}
 			if time.Unix(r.CreatedAtTime/1000, 0).Before(firstTimeUsed) {
@@ -317,7 +322,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				}
 			}
 			if err1 == nil && err2 == nil && err3 == nil {
-				cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
+				cdc.jsonEx.txsByCategory["Exchanges"] = append(cdc.jsonEx.txsByCategory["Exchanges"], t)
 			}
 			if time.Unix(s.UserCreateTime/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(s.UserCreateTime/1000, 0)
@@ -334,7 +339,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				log.Println(SOURCE, "Error Parsing RewardAmount", s.RewardAmount)
 			} else {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: s.CoinSymbol, Amount: amount})
-				cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
+				cdc.jsonEx.txsByCategory["Minings"] = append(cdc.jsonEx.txsByCategory["Minings"], t)
 			}
 			if time.Unix(s.CreatedAt/1000, 0).Before(firstTimeUsed) {
 				firstTimeUsed = time.Unix(s.CreatedAt/1000, 0)
@@ -352,7 +357,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing Commission", tc.Commission)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
-					cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+					cdc.jsonEx.txsByCategory["Referrals"] = append(cdc.jsonEx.txsByCategory["Referrals"], t)
 				}
 			}
 			if time.Unix(tc.MTime/1000, 0).Before(firstTimeUsed) {
@@ -371,7 +376,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 					log.Println(SOURCE, "Error Parsing ReferralBonusInCRO", b.ReferralBonusInCRO)
 				} else {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
-					cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+					cdc.jsonEx.txsByCategory["Referrals"] = append(cdc.jsonEx.txsByCategory["Referrals"], t)
 				}
 			}
 			if time.Unix(b.MTime/1000, 0).Before(firstTimeUsed) {
@@ -393,7 +398,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				log.Println(SOURCE, "Error Parsing SignupBonus", exch.Rew.SignupBonus)
 			} else {
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "CRO", Amount: amount})
-				cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
+				cdc.jsonEx.txsByCategory["CommercialRebates"] = append(cdc.jsonEx.txsByCategory["CommercialRebates"], t)
 			}
 		}
 	}
