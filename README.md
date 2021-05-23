@@ -535,7 +535,7 @@ Il y a deux façons de considérer les AirDrops/CommercialRebates/Interets/Minin
 
 - soit ils sont ajoutés simplement au portefeuille avec une valeur de 0€
 
-- soit ils sont ajoutés au portefeuille avec leur valeur du jour en EUR (donc convertis en CashIn), ce qui va accroitre votre Prix Total d'Acquisition et faire baisser votre Plus-Value, mais en contrepartie, il convient de les déclarer en bénéfices non commerciaux (BNC) dans la case 5KU de votre 2042-C-PRO.
+- soit ils sont ajoutés au portefeuille avec leur valeur du jour en EUR (donc convertis en CashIn), ce qui va accroitre votre Prix Total d'Acquisition et faire baisser votre Plus-Value, mais en contrepartie, il convient de les déclarer en revenus non commerciaux non professionnels (régime déclaratif spécial ou micro BNC) dans la case 5KU/5LU/5MU de votre 2042-C-PRO.
 
 Pour activer la seconde méthode d'intégration, vous pouvez utiliser les options `--cashin-bnc-2019` et/ou `--cashin-bnc-2020`.
 
