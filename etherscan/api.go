@@ -76,7 +76,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 	alreadyAsked := []string{}
 	for i, tx := range api.nftTXs {
 		if !tx.used {
-			if is, _ := cat.IsTxShit(tx.Hash); is {
+			if is, _, _, _ := cat.IsTxShit(tx.Hash); is {
 				api.nftTXs[i].used = true
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
@@ -125,7 +125,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 	}
 	for i, tx := range api.tokenTXs {
 		if !tx.used {
-			if is, _ := cat.IsTxShit(tx.Hash); is {
+			if is, _, _, _ := cat.IsTxShit(tx.Hash); is {
 				api.tokenTXs[i].used = true
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
@@ -286,7 +286,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 	}
 	for i, tx := range api.internalTXs {
 		if !tx.used {
-			if is, _ := cat.IsTxShit(tx.Hash); is {
+			if is, _, _, _ := cat.IsTxShit(tx.Hash); is {
 				api.internalTXs[i].used = true
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
@@ -344,7 +344,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 	}
 	for i, tx := range api.normalTXs {
 		if !tx.used {
-			if is, _ := cat.IsTxShit(tx.Hash); is {
+			if is, _, _, _ := cat.IsTxShit(tx.Hash); is {
 				api.normalTXs[i].used = true
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {

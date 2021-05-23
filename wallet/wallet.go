@@ -244,7 +244,7 @@ func (tx TX) GetBalances(includeFiat, includeFee bool) (cs WalletCurrencies) {
 		for _, c := range i {
 			if c.Code != "" &&
 				(includeFiat || !c.IsFiat()) {
-				if (k == "Fee" && includeFee) || k == "From" {
+				if (k == "Fee" && includeFee) || k == "From" || k == "Lost" {
 					cs[c.Code] = cs[c.Code].Sub(c.Amount)
 				} else if k == "To" {
 					cs[c.Code] = cs[c.Code].Add(c.Amount)
@@ -440,7 +440,7 @@ func (txs TXsByCategory) StockToXlsx(filename string) {
 						if k == "To" {
 							input = input.Add(c.Amount)
 							balance = balance.Add(c.Amount)
-						} else if k == "From" || k == "Fee" {
+						} else if k == "From" || k == "Fee" || k == "Lost" {
 							output = output.Add(c.Amount)
 							balance = balance.Sub(c.Amount)
 						}

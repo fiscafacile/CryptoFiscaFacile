@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -14,23 +15,23 @@ import (
 
 type csvTradesTX struct {
 	Date              time.Time
-	Market            string          // DOGE/BTC
-	FirstCurrency     string          // DOGE
-	SecondCurrency    string          // BTC
-	Category          string          // Exchange
-	Type              string          // Sell
-	Price             decimal.Decimal // 0.00000107
-	Amount            decimal.Decimal // 24234.19729729
-	Total             decimal.Decimal // 0.02593059
-	Fee               string          // 0.125%
-	OrderNumber       string          // 39236960790
-	BaseTotalLessFee  decimal.Decimal // 0.02589818
-	QuoteTotalLessFee decimal.Decimal // -24234.19729729
-	FeeCurrency       string          // BTC
-	FeeTotal          decimal.Decimal // 0.00003241
+	Market            string
+	FirstCurrency     string
+	SecondCurrency    string
+	Category          string
+	Type              string
+	Price             decimal.Decimal
+	Amount            decimal.Decimal
+	Total             decimal.Decimal
+	Fee               string
+	OrderNumber       string
+	BaseTotalLessFee  decimal.Decimal
+	QuoteTotalLessFee decimal.Decimal
+	FeeCurrency       string
+	FeeTotal          decimal.Decimal
 }
 
-func (pl *Poloniex) ParseTradesCSV(reader io.Reader, account string) (err error) {
+func (pl *Poloniex) ParseTradesCSV(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Poloniex Trades CSV :"
@@ -88,6 +89,10 @@ func (pl *Poloniex) ParseTradesCSV(reader io.Reader, account string) (err error)
 				// Fill TXsByCategory
 				t := wallet.TX{Timestamp: tx.Date, ID: tx.OrderNumber, Note: SOURCE + " " + tx.Market + " " + tx.Type}
 				t.Items = make(map[string]wallet.Currencies)
+				if is, desc, val, curr := cat.IsTxShit(tx.OrderNumber); is {
+					t.Note += " " + desc
+					t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+				}
 				if tx.Type == "Buy" {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Amount.Sub(tx.QuoteTotalLessFee)})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.FirstCurrency, Amount: tx.Amount})

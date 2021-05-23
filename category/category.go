@@ -92,12 +92,14 @@ func (cat Category) IsTxAirDrop(txid string) (is bool, desc string) {
 	return
 }
 
-func (cat Category) IsTxShit(txid string) (is bool, desc string) {
+func (cat Category) IsTxShit(txid string) (is bool, desc string, val decimal.Decimal, curr string) {
 	is = false
 	for _, a := range cat.csvCategories {
 		if a.txID == txid && a.kind == "SHIT" {
 			is = true
 			desc = a.description
+			val = a.value
+			curr = a.currency
 			return
 		}
 	}
