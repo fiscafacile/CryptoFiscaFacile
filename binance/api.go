@@ -97,7 +97,7 @@ func (api *api) getAllTXs(loc *time.Location) (err error) {
 
 func (api *api) categorize() {
 	for _, tx := range api.withdrawalTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Withdrawal " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Withdrawal " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 		if !tx.Fee.IsZero() {
@@ -112,7 +112,7 @@ func (api *api) categorize() {
 		}
 	}
 	for _, tx := range api.depositTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Deposit " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Deposit " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 		if !tx.Fee.IsZero() {
@@ -127,7 +127,7 @@ func (api *api) categorize() {
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Exchange " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Exchange " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		if tx.Side == "BUY" {
 			t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.QuoteAsset, Amount: tx.QuoteQty})

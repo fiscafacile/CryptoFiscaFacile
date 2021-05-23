@@ -349,7 +349,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Poloniex Withdrawals CSV file:", err)
 		}
-		err = pl.ParseWithdrawalsCSV(recordFile, config.Exchanges.Poloniex.Account)
+		err = pl.ParseWithdrawalsCSV(recordFile, *categ, config.Exchanges.Poloniex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Poloniex Withdrawals CSV file:", err)
 		}

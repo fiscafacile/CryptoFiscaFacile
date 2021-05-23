@@ -13,6 +13,7 @@ import (
 
 type withdrawalTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Currency    string
 	Amount      decimal.Decimal
@@ -36,6 +37,7 @@ func (api *api) getWithdrawalsTXs(loc *time.Location) {
 				if err != nil {
 					log.Println("Error Parsing Time : ", wit.ApplyTime)
 				}
+				tx.ID = wit.TxID
 				tx.Description = "to " + wit.Address
 				tx.Currency = wit.Coin
 				tx.Amount, _ = decimal.NewFromString(wit.Amount)
@@ -54,7 +56,7 @@ type GetWithdrawalHistoryResp []struct {
 	Status          int    `json:"status"`
 	Address         string `json:"address"`
 	ID              string `json:"id"`
-	Txid            string `json:"txId"`
+	TxID            string `json:"txId"`
 	Transfertype    int    `json:"transferType"`
 	WithdrawOrderId string `json:"withdrawOrderId"`
 }

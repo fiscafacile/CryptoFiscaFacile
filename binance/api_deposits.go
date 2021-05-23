@@ -12,6 +12,7 @@ import (
 
 type depositTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Currency    string
 	Amount      decimal.Decimal
@@ -32,6 +33,7 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 			for _, dep := range depoHist {
 				tx := depositTX{}
 				tx.Timestamp = time.Unix(dep.Inserttime/1e3, 0)
+				tx.ID = dep.Txid
 				tx.Description = "from " + dep.Address
 				tx.Currency = dep.Coin
 				tx.Amount, _ = decimal.NewFromString(dep.Amount)

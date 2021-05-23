@@ -1,11 +1,14 @@
 package poloniex
 
 import (
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
 	"io"
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -13,6 +16,7 @@ import (
 
 type csvWithdrawalsTX struct {
 	Date        time.Time
+	ID          string
 	Currency    string
 	Amount      decimal.Decimal
 	FeeDeducted decimal.Decimal
@@ -21,7 +25,7 @@ type csvWithdrawalsTX struct {
 	Status      string
 }
 
-func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader, account string) (err error) {
+func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Poloniex Withdrawals CSV :"
@@ -50,6 +54,8 @@ func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader, account string) (err e
 				}
 				tx.Address = r[5]
 				tx.Status = r[6]
+				hash := sha256.Sum256([]byte(SOURCE + tx.Date.String()))
+				tx.ID = hex.EncodeToString(hash[:])
 				pl.csvWithdrawalsTXs = append(pl.csvWithdrawalsTXs, tx)
 				if tx.Date.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Date
@@ -58,8 +64,12 @@ func (pl *Poloniex) ParseWithdrawalsCSV(reader io.Reader, account string) (err e
 					lastTimeUsed = tx.Date
 				}
 				// Fill TXsByCategory
-				t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.Address + " " + tx.Status}
+				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Address + " " + tx.Status}
 				t.Items = make(map[string]wallet.Currencies)
+				if is, desc, val, curr := cat.IsTxShit(tx.ID); is {
+					t.Note += " " + desc
+					t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+				}
 				if !tx.FeeDeducted.IsZero() {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.FeeDeducted})
 				}

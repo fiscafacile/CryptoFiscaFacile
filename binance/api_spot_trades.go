@@ -12,6 +12,7 @@ import (
 
 type spotTradeTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	BaseAsset   string
 	QuoteAsset  string
@@ -21,7 +22,6 @@ type spotTradeTX struct {
 	QuoteQty    decimal.Decimal
 	Fee         decimal.Decimal
 	FeeCurrency string
-	ID          string
 }
 
 func (api *api) getSpotTradesTXs() {
@@ -44,19 +44,19 @@ func (api *api) getSpotTradesTXs() {
 				tx := spotTradeTX{}
 				tx.Timestamp = time.Unix(tra.Time/1e3, 0)
 				tx.ID = strconv.Itoa(tra.ID)
-				tx.Description = fmt.Sprintf("Order ID: %v, Trade ID: %v", tra.Orderid, tra.ID)
+				tx.Description = fmt.Sprintf("Order ID: %v, Trade ID: %v", tra.OrderID, tra.ID)
 				tx.BaseAsset = symbol.Baseasset
 				tx.QuoteAsset = symbol.Quoteasset
-				if tra.Isbuyer {
+				if tra.IsBuyer {
 					tx.Side = "BUY"
 				} else {
 					tx.Side = "SELL"
 				}
 				tx.Price, _ = decimal.NewFromString(tra.Price)
 				tx.Qty, _ = decimal.NewFromString(tra.Qty)
-				tx.QuoteQty, _ = decimal.NewFromString(tra.Quoteqty)
+				tx.QuoteQty, _ = decimal.NewFromString(tra.QuoteQty)
 				tx.Fee, _ = decimal.NewFromString(tra.Commission)
-				tx.FeeCurrency = tra.Commissionasset
+				tx.FeeCurrency = tra.CommissionAsset
 				api.spotTradeTXs = append(api.spotTradeTXs, tx)
 			}
 			if len(trades) == limit {
@@ -73,17 +73,17 @@ func (api *api) getSpotTradesTXs() {
 type GetTradesResp []struct {
 	Symbol          string `json:"symbol"`
 	ID              int    `json:"id"`
-	Orderid         int    `json:"orderId"`
-	Orderlistid     int    `json:"orderListId"`
+	OrderID         int    `json:"orderId"`
+	OrderListID     int    `json:"orderListId"`
 	Price           string `json:"price"`
 	Qty             string `json:"qty"`
-	Quoteqty        string `json:"quoteQty"`
+	QuoteQty        string `json:"quoteQty"`
 	Commission      string `json:"commission"`
-	Commissionasset string `json:"commissionAsset"`
+	CommissionAsset string `json:"commissionAsset"`
 	Time            int64  `json:"time"`
-	Isbuyer         bool   `json:"isBuyer"`
-	Ismaker         bool   `json:"isMaker"`
-	Isbestmatch     bool   `json:"isBestMatch"`
+	IsBuyer         bool   `json:"isBuyer"`
+	IsMaker         bool   `json:"isMaker"`
+	IsBestMatch     bool   `json:"isBestMatch"`
 }
 
 func (api *api) getTrades(symbol string, limit int, orderId int, part int) (trades GetTradesResp, err error) {
