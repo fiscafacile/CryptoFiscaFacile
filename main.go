@@ -447,6 +447,11 @@ func main() {
 			cdc.TXsByCategory.RemoveDelistedCoins(dc)
 		}
 	}
+	if len(config.Exchanges.CdcApp.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.CdcApp.DelistedCoins {
+			cdc.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
 	if len(config.Exchanges.HitBTC.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.HitBTC.DelistedCoins {
 			hb.TXsByCategory.RemoveDelistedCoins(dc)
