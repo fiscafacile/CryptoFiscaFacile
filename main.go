@@ -426,9 +426,50 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	// Set delisted coins balances to zero
+	if len(config.Exchanges.Binance.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Binance.DelistedCoins {
+			b.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.Bitstamp.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Bitstamp.DelistedCoins {
+			bs.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
 	if len(config.Exchanges.Bittrex.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.Bittrex.DelistedCoins {
 			btrx.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.CdcEx.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.CdcEx.DelistedCoins {
+			cdc.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.HitBTC.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.HitBTC.DelistedCoins {
+			hb.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.Kraken.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Kraken.DelistedCoins {
+			kr.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.Bitfinex.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Bitfinex.DelistedCoins {
+			bf.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.Coinbase.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Coinbase.DelistedCoins {
+			cb.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
+	if len(config.Exchanges.Poloniex.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Poloniex.DelistedCoins {
+			pl.TXsByCategory.RemoveDelistedCoins(dc)
 		}
 	}
 	if config.Options.Export3916 {
