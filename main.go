@@ -426,6 +426,11 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	if len(config.Exchanges.Bittrex.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.Bittrex.DelistedCoins {
+			btrx.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
 	if config.Options.Export3916 {
 		sources := make(source.Sources)
 		sources.Add(b.Sources)

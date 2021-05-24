@@ -639,7 +639,34 @@ func (txs TXsByCategory) FindCashInOut(native string) {
 	} else {
 		delete(txs, "Exchanges")
 	}
-	return
+}
+
+func (txs TXsByCategory) RemoveDelistedCoins(coin string) {
+	coinBalance := decimal.NewFromInt(0)
+	var lastTx *TX
+	for k, v := range txs {
+		for tk, tv := range v {
+			for ik, iv := range tv.Items {
+				for id := range iv {
+					if iv[id].Code == coin {
+						lastTx = &txs[k][tk]
+						if ik == "From" {
+							coinBalance = coinBalance.Sub(iv[id].Amount)
+						} else if ik == "To" {
+							coinBalance = coinBalance.Add(iv[id].Amount)
+						}
+						// fmt.Println("Coin delisted -> https://bittrex.zendesk.com/hc/en-us/search?query=" + coin)
+					}
+				}
+			}
+		}
+	}
+	lastTx.Items["Lost"] = Currencies{
+		Currency{
+			Amount: coinBalance,
+			Code:   coin,
+		},
+	}
 }
 
 func (txs TXsByCategory) SortTXsByDate(chrono bool) {
