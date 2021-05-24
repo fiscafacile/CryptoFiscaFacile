@@ -174,7 +174,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bittrex CSV file:", err)
 		}
-		err = btrx.ParseCSV(recordFile, config.Exchanges.Bittrex.Account)
+		err = btrx.ParseCSV(recordFile, *categ, config.Exchanges.Bittrex.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bittrex CSV file:", err)
 		}

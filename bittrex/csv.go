@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -25,7 +26,7 @@ type csvTX struct {
 	Remark      string
 }
 
-func (btrx *Bittrex) ParseCSV(reader io.Reader, account string) (err error) {
+func (btrx *Bittrex) ParseCSV(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Bittrex CSV :"
@@ -91,12 +92,16 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader, account string) (err error) {
 					}
 					to := wallet.Currency{Code: tx.ToSymbol, Amount: tx.ToAmount}
 					from := wallet.Currency{Code: tx.FromSymbol, Amount: tx.FromAmount}
-					t := wallet.TX{Timestamp: tx.Time, Note: "Bittrex CSV : " + tx.Operation, ID: tx.ID}
+					t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: "Bittrex CSV : " + tx.Operation}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], from)
 					t.Items["To"] = append(t.Items["To"], to)
 					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.Fee})
+					}
+					if is, desc, val, curr := cat.IsTxShit(tx.ID); is {
+						t.Note += " " + desc
+						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
 					if to.IsFiat() && from.IsFiat() {
 						//ignore
