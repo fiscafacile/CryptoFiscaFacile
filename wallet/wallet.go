@@ -514,7 +514,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	similarTimeDelta := 12 * time.Hour
 	for _, depTX := range txs["Deposits"] {
 		found := false
-		depFees := decimal.NewFromInt(0)
+		var depFees decimal.Decimal
 		if _, ok := depTX.Items["Fee"]; ok {
 			for _, f := range depTX.Items["Fee"] {
 				depFees = depFees.Add(f.Amount)
@@ -524,7 +524,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 			if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
 				depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
 				strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
-				witFees := decimal.NewFromInt(0)
+				var witFees decimal.Decimal
 				if _, ok := witTX.Items["Fee"]; ok {
 					for _, f := range witTX.Items["Fee"] {
 						witFees = witFees.Add(f.Amount)
@@ -563,6 +563,12 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 							}
 						}
 					}
+					if _, ok := witTX.Items["Lost"]; ok {
+						t.Items["Lost"] = append(t.Items["Lost"], witTX.Items["Lost"]...)
+					}
+					if _, ok := depTX.Items["Lost"]; ok {
+						t.Items["Lost"] = append(t.Items["Lost"], depTX.Items["Lost"]...)
+					}
 					txs["Transfers"] = append(txs["Transfers"], t)
 					break
 					// } else {
@@ -577,14 +583,14 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	}
 	for _, witTX := range txs["Withdrawals"] {
 		found := false
-		witFees := decimal.NewFromInt(0)
+		var witFees decimal.Decimal
 		if _, ok := witTX.Items["Fee"]; ok {
 			for _, f := range witTX.Items["Fee"] {
 				witFees = witFees.Add(f.Amount)
 			}
 		}
 		for _, depTX := range txs["Deposits"] {
-			depFees := decimal.NewFromInt(0)
+			var depFees decimal.Decimal
 			if _, ok := depTX.Items["Fee"]; ok {
 				for _, f := range depTX.Items["Fee"] {
 					depFees = depFees.Add(f.Amount)
