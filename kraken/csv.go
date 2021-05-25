@@ -97,7 +97,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 					if !found {
 						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 						t.Items = make(map[string]wallet.Currencies)
-						if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+						if is, desc, val, curr := cat.IsTxShit(t.ID); is {
 							t.Note += " " + desc
 							t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 						}
@@ -114,7 +114,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
-					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+					if is, desc, val, curr := cat.IsTxShit(t.ID); is {
 						t.Note += " " + desc
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
@@ -126,7 +126,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 				} else if tx.Type == "withdrawal" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
-					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+					if is, desc, val, curr := cat.IsTxShit(t.ID); is {
 						t.Note += " " + desc
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
@@ -134,7 +134,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 					}
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
-					if is, desc := cat.IsTxGift(tx.TxId); is {
+					if is, desc := cat.IsTxGift(t.ID); is {
 						t.Note += " gift " + desc
 						kr.TXsByCategory["Gifts"] = append(kr.TXsByCategory["Gifts"], t)
 					} else {
@@ -143,7 +143,7 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 				} else if tx.Type == "staking" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
-					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+					if is, desc, val, curr := cat.IsTxShit(t.ID); is {
 						t.Note += " " + desc
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
