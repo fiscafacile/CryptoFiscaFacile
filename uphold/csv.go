@@ -110,9 +110,9 @@ func (uh *Uphold) ParseCSV(reader io.Reader, account string) (err error) {
 		AccountNumber: account,
 		OpeningDate:   firstTimeUsed,
 		ClosingDate:   lastTimeUsed,
-		LegalName:     "Uphold Limited",
-		Address:       "4th Floor, 7 Westferry Circus\nE14 4HD Londres, Royaume-Uni",
-		URL:           "https://www.uphold.com",
+		LegalName:     "Uphold Europe Limited",
+		Address:       "Suite A, 6 Honduras Street, London, England, EC1Y 0TH\nRoyaume-Uni",
+		URL:           "https://uphold.com",
 	}
 	return
 }
