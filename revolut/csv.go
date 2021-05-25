@@ -1,8 +1,10 @@
 package revolut
 
 import (
+	"bytes"
 	"encoding/csv"
 	"io"
+	"io/ioutil"
 	"log"
 	"strings"
 	"time"
@@ -29,7 +31,10 @@ func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Revolut CSV :"
-	csvReader := csv.NewReader(reader)
+	raw, _ := ioutil.ReadAll(reader)
+	raw = bytes.ReplaceAll(raw, []byte(" , "), []byte(","))
+	raw = bytes.ReplaceAll(raw, []byte(", "), []byte(","))
+	csvReader := csv.NewReader(bytes.NewReader(raw))
 	records, err := csvReader.ReadAll()
 	if err == nil {
 		alreadyAsked := []string{}
@@ -42,13 +47,21 @@ func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 				tx := CsvTX{}
 				tx.Timestamp, err = time.Parse("2 Jan 2006", f2e(r[0]))
 				if err != nil {
-					log.Println(SOURCE, "Error Parsing Timestamp :", r[0])
+					tx.Timestamp, err = time.Parse("Jan 2, 2006", r[0])
+					if err != nil {
+						log.Println(SOURCE, "Error Parsing Timestamp :", r[0])
+					}
 				}
 				tx.Description = strings.ReplaceAll(r[1], "\u00a0", "")
-				// spew.Dump(strings.Split(r[1], " "))
-				tx.Rate, err = decimal.NewFromString(strings.Split(r[1], " ")[7][:9])
-				if err != nil {
-					log.Println(SOURCE, "Error Parsing Rate :", strings.Split(r[1], " ")[7][:9])
+				fields := strings.Split(tx.Description, " ")
+				for i := 0; i < len(fields); i++ {
+					if strings.Contains(fields[i], "€") {
+						tx.Rate, err = decimal.NewFromString(strings.ReplaceAll(fields[i], "€", ""))
+						if err != nil {
+							log.Println(SOURCE, "Error Parsing Rate :", strings.ReplaceAll(fields[i], "€", ""))
+						}
+						break
+					}
 				}
 				if r[2] != "" {
 					tx.PaidOut, err = decimal.NewFromString(r[2])
