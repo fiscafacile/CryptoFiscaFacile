@@ -128,6 +128,12 @@ exchanges:
       all:
       # - Inputs/Revolut/2019.csv
       # - Inputs/Revolut/2020.csv
+  uphold:
+    account: email@domain.com
+    csv:
+      all:
+      # - Inputs/Uphold/2019.csv
+      # - Inputs/Uphold/2020.csv
 options:
   bcd: yes
   bch: yes

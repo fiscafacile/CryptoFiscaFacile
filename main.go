@@ -26,6 +26,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/poloniex"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/uphold"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
@@ -365,6 +366,17 @@ func main() {
 			log.Fatal("Error parsing Revolut CSV file:", err)
 		}
 	}
+	uh := uphold.New()
+	for _, file := range config.Exchanges.Uphold.CSV.All {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Uphold CSV file:", err)
+		}
+		err = uh.ParseCSV(recordFile, config.Exchanges.Uphold.Account)
+		if err != nil {
+			log.Fatal("Error parsing Uphold CSV file:", err)
+		}
+	}
 	// Wait for API access to finish
 	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
 		err := b.WaitFinish(config.Exchanges.Bitstamp.Account)
@@ -490,6 +502,7 @@ func main() {
 		sources.Add(lb.Sources)
 		sources.Add(pl.Sources)
 		sources.Add(revo.Sources)
+		sources.Add(uh.Sources)
 		err = sources.ToXlsx("3916.xlsx", loc)
 		if err != nil {
 			log.Fatal(err)
@@ -510,6 +523,7 @@ func main() {
 	global.Add(mc.TXsByCategory)
 	global.Add(pl.TXsByCategory)
 	global.Add(revo.TXsByCategory)
+	global.Add(uh.TXsByCategory)
 	global.Add(ethsc.TXsByCategory)
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)

@@ -60,6 +60,7 @@ type Exchanges struct {
 	LocalBitcoins ExchangeConfig `yaml:"localbitcoins"`
 	Poloniex      ExchangeConfig `yaml:"poloniex"`
 	Revolut       ExchangeConfig `yaml:"revolut"`
+	Uphold        ExchangeConfig `yaml:"uphold"`
 }
 
 type FiscalYear struct {
@@ -222,6 +223,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Withdrawals, "poloniex-withdrawals", config.Exchanges.Poloniex.CSV.Withdrawals, "Poloniex Withdrawals CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Distributions, "poloniex-distributions", config.Exchanges.Poloniex.CSV.Distributions, "Poloniex Distributions CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Revolut.CSV.All, "revolut", config.Exchanges.Revolut.CSV.All, "Revolut CSV file")
+	pflag.StringSliceVar(&config.Exchanges.Uphold.CSV.All, "uphold", config.Exchanges.Uphold.CSV.All, "Uphold CSV file")
 	// Output
 	pflag.BoolVar(&config.Options.Display2086, "2086-display", config.Options.Display2086, "Display Cerfa 2086")
 	pflag.BoolVar(&config.Options.Export2086, "2086", config.Options.Export2086, "Export Cerfa 2086 to 2086.xlsx")

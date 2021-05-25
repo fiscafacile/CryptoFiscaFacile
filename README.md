@@ -491,6 +491,15 @@ Les colones du CSV de Distributions doivent être : `date,currency,amount,wallet
 
 Les colones du CSV doivent être : `Completed Date,Description,Paid Out (BTC),Paid In (BTC),Exchange Out, Exchange In, Balance (BTC), Category, Notes`
 
+#### Uphold [![Support bon](https://img.shields.io/badge/support-bon-blue)](#uphold-)
+
+```
+  --uphold
+        Uphold CSV file
+```
+
+Les colones du CSV doivent être : `Date,Destination,Destination Amount,Destination Currency,Fee Amount,Fee Currency,Id,Origin,Origin Amount,Origin Currency,Status,Type`
+
 ### Options de "Providers"
 
 Cet outil utilise plusieurs APIs de plateformes pour récupérer soit des taux de changes (CoinGecko, CoinLayer et CoinAPI), soit des transactions sur une blockchain particulière (Blockstream pour BTC et Etherscan pour ETH). Certaines de ces APIs ont besoins d'une clé.
