@@ -10,6 +10,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type csvSupercharger struct {
+	txsByCategory wallet.TXsByCategory
+}
+
 type csvExSuperchargerTX struct {
 	Time        time.Time
 	Currency    string
@@ -38,7 +42,7 @@ func (cdc *CryptoCom) ParseCSVExchangeSupercharger(reader io.Reader) (err error)
 				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange SuperCharger CSV : " + tx.Description}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-				cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
+				cdc.csvSupercharger.txsByCategory["Minings"] = append(cdc.csvSupercharger.txsByCategory["Minings"], t)
 			}
 		}
 	}

@@ -10,6 +10,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type csvTransfer struct {
+	txsByCategory wallet.TXsByCategory
+}
+
 type csvExTransferTX struct {
 	Time     time.Time
 	Currency string
@@ -47,13 +51,13 @@ func (cdc *CryptoCom) ParseCSVExchangeTransfer(reader io.Reader) (err error) {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-					cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
+					cdc.csvTransfer.txsByCategory["Deposits"] = append(cdc.csvTransfer.txsByCategory["Deposits"], t)
 				} else {
 					cdc.csvExTransferTXs = append(cdc.csvExTransferTXs, tx)
 					t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Transfer CSV : " + tx.Address}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-					cdc.TXsByCategory["Withdrawals"] = append(cdc.TXsByCategory["Withdrawals"], t)
+					cdc.csvTransfer.txsByCategory["Withdrawals"] = append(cdc.csvTransfer.txsByCategory["Withdrawals"], t)
 				}
 			}
 		}

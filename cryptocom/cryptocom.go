@@ -10,6 +10,9 @@ import (
 type CryptoCom struct {
 	apiEx                apiEx
 	jsonEx               jsonEx
+	csvStake             csvStake
+	csvSupercharger      csvSupercharger
+	csvTransfer          csvTransfer
 	csvAppCryptoTXs      []csvAppCryptoTX
 	csvExTransferTXs     []csvExTransferTX
 	csvExStakeTXs        []csvExStakeTX
@@ -38,8 +41,11 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 
 func (cdc *CryptoCom) MergeTXs() {
 	// Merge TX without Duplicates
-	cdc.TXsByCategory.AddUniq(cdc.jsonEx.txsByCategory)
+	cdc.TXsByCategory.Add(cdc.jsonEx.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
+	cdc.TXsByCategory.AddUniq(cdc.csvStake.txsByCategory)
+	cdc.TXsByCategory.AddUniq(cdc.csvSupercharger.txsByCategory)
+	cdc.TXsByCategory.AddUniq(cdc.csvTransfer.txsByCategory)
 }
 
 func (cdc *CryptoCom) WaitFinish(account string) error {
