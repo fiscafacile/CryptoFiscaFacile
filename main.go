@@ -16,6 +16,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/cfg"
 	"github.com/fiscafacile/CryptoFiscaFacile/coinbase"
+	"github.com/fiscafacile/CryptoFiscaFacile/coinbasepro"
 	"github.com/fiscafacile/CryptoFiscaFacile/cryptocom"
 	"github.com/fiscafacile/CryptoFiscaFacile/etherscan"
 	"github.com/fiscafacile/CryptoFiscaFacile/hitbtc"
@@ -189,6 +190,27 @@ func main() {
 		err = cb.ParseCSV(recordFile, config.Exchanges.Coinbase.Account)
 		if err != nil {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
+		}
+	}
+	cbp := coinbasepro.New()
+	for _, file := range config.Exchanges.CoinbasePro.CSV.Trades {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Coinbase Pro Fills CSV file:", err)
+		}
+		err = cbp.ParseFillsCSV(recordFile, config.Exchanges.CoinbasePro.Account)
+		if err != nil {
+			log.Fatal("Error parsing Coinbase Pro Fills CSV file:", err)
+		}
+	}
+	for _, file := range config.Exchanges.CoinbasePro.CSV.Transfers {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Coinbase Pro Account CSV file:", err)
+		}
+		err = cbp.ParseAccountCSV(recordFile, config.Exchanges.CoinbasePro.Account)
+		if err != nil {
+			log.Fatal("Error parsing Coinbase Pro Account CSV file:", err)
 		}
 	}
 	for _, file := range config.Exchanges.CdcApp.CSV.All {
@@ -484,6 +506,11 @@ func main() {
 			cb.TXsByCategory.RemoveDelistedCoins(dc)
 		}
 	}
+	if len(config.Exchanges.CoinbasePro.DelistedCoins) > 0 {
+		for _, dc := range config.Exchanges.CoinbasePro.DelistedCoins {
+			cbp.TXsByCategory.RemoveDelistedCoins(dc)
+		}
+	}
 	if len(config.Exchanges.Poloniex.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.Poloniex.DelistedCoins {
 			pl.TXsByCategory.RemoveDelistedCoins(dc)
@@ -496,6 +523,7 @@ func main() {
 		sources.Add(bs.Sources)
 		sources.Add(btrx.Sources)
 		sources.Add(cb.Sources)
+		sources.Add(cbp.Sources)
 		sources.Add(cdc.Sources)
 		sources.Add(hb.Sources)
 		sources.Add(kr.Sources)
@@ -515,6 +543,7 @@ func main() {
 	global.Add(bs.TXsByCategory)
 	global.Add(btrx.TXsByCategory)
 	global.Add(cb.TXsByCategory)
+	global.Add(cbp.TXsByCategory)
 	global.Add(cdc.TXsByCategory)
 	global.Add(hb.TXsByCategory)
 	global.Add(kr.TXsByCategory)

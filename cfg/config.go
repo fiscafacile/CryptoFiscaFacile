@@ -55,6 +55,7 @@ type Exchanges struct {
 	CdcApp        ExchangeConfig `yaml:"cdc-app"`
 	CdcEx         ExchangeConfig `yaml:"cdc-exchange"`
 	Coinbase      ExchangeConfig `yaml:"coinbase"`
+	CoinbasePro   ExchangeConfig `yaml:"coinbase-pro"`
 	HitBTC        ExchangeConfig `yaml:"hitbtc"`
 	Kraken        ExchangeConfig `yaml:"kraken"`
 	LocalBitcoins ExchangeConfig `yaml:"localbitcoins"`
@@ -204,6 +205,8 @@ func LoadConfig() (*Config, error) {
 	pflag.StringVar(&config.Exchanges.HitBTC.API.Key, "hitbtc-api-key", config.Exchanges.HitBTC.API.Key, "HitBTC API Key")
 	pflag.StringVar(&config.Exchanges.HitBTC.API.Secret, "hitbtc-api-secret", config.Exchanges.HitBTC.API.Secret, "HitBTC API Secret")
 	pflag.StringSliceVar(&config.Exchanges.Coinbase.CSV.All, "coinbase", config.Exchanges.Coinbase.CSV.All, "Coinbase CSV file")
+	pflag.StringSliceVar(&config.Exchanges.CoinbasePro.CSV.Trades, "coinbase-pro-fills", config.Exchanges.CoinbasePro.CSV.Trades, "CoinbasePro Fills CSV file")
+	pflag.StringSliceVar(&config.Exchanges.CoinbasePro.CSV.Transfers, "coinbase-pro-account", config.Exchanges.CoinbasePro.CSV.Transfers, "CoinbasePro Account CSV file")
 	pflag.StringSliceVar(&config.Exchanges.CdcApp.CSV.All, "cdc-app-crypto", config.Exchanges.CdcApp.CSV.All, "Crypto.com App Crypto Wallet CSV file")
 	pflag.StringVar(&config.Exchanges.CdcEx.API.Key, "cdc-ex-api-key", config.Exchanges.CdcEx.API.Key, "Crypto.com Exchange API Key")
 	pflag.StringVar(&config.Exchanges.CdcEx.API.Secret, "cdc-ex-api-secret", config.Exchanges.CdcEx.API.Secret, "Crypto.com Exchange Secret Key")

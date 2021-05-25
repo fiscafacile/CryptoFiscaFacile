@@ -63,6 +63,15 @@ exchanges:
         # - Inputs/Coinbase/2018.csv
         # - Inputs/Coinbase/2019.csv
         # - Inputs/Coinbase/2020.csv
+  coinbasepro:
+    account: email@domain.com
+    csv:
+      trades:
+        # - Inputs/CoinbasePro/2019_fills.csv
+        # - Inputs/CoinbasePro/2020_fills.csv
+      transfers:
+        # - Inputs/CoinbasePro/2019_account.csv
+        # - Inputs/CoinbasePro/2020_account.csv
   cdc-app:
     account: email@domain.com
     csv:
@@ -82,11 +91,11 @@ exchanges:
       # secret: <votre api_secret ici>
     csv:
       trades:
-      # - Inputs/HitBTC/2019_Trades.csv
-      # - Inputs/HitBTC/2020_Trades.csv
+        # - Inputs/HitBTC/2019_Trades.csv
+        # - Inputs/HitBTC/2020_Trades.csv
       transfers:
-      # - Inputs/HitBTC/2019_Transactions.csv
-      # - Inputs/HitBTC/2020_Transactions.csv
+        # - Inputs/HitBTC/2019_Transactions.csv
+        # - Inputs/HitBTC/2020_Transactions.csv
   kraken:
     account: email@domain.com
     api:
@@ -94,46 +103,46 @@ exchanges:
       # secret: <votre api_secret ici>
     csv:
       all:
-      # - Inputs/Kraken/2017.csv
-      # - Inputs/Kraken/2018.csv
-      # - Inputs/Kraken/2019.csv
-      # - Inputs/Kraken/2020.csv
+        # - Inputs/Kraken/2017.csv
+        # - Inputs/Kraken/2018.csv
+        # - Inputs/Kraken/2019.csv
+        # - Inputs/Kraken/2020.csv
   localbitcoin:
     account: email@domain.com
     csv:
       trades:
-      # - Inputs/LocalBitcoin/2019_Trades.csv
-      # - Inputs/LocalBitcoin/2020_Trades.csv
+        # - Inputs/LocalBitcoin/2019_Trades.csv
+        # - Inputs/LocalBitcoin/2020_Trades.csv
       transfers:
-      # - Inputs/LocalBitcoin/2019_Transfers.csv
-      # - Inputs/LocalBitcoin/2020_Transfers.csv
+        # - Inputs/LocalBitcoin/2019_Transfers.csv
+        # - Inputs/LocalBitcoin/2020_Transfers.csv
   poloniex:
     account: email@domain.com
     csv:
       trades:
-      # - Inputs/Poloniex/2019_Trades.csv
-      # - Inputs/Poloniex/2020_Trades.csv
+        # - Inputs/Poloniex/2019_Trades.csv
+        # - Inputs/Poloniex/2020_Trades.csv
       deposits:
-      # - Inputs/Poloniex/2019_Deposits.csv
-      # - Inputs/Poloniex/2020_Deposits.csv
+        # - Inputs/Poloniex/2019_Deposits.csv
+        # - Inputs/Poloniex/2020_Deposits.csv
       withdrawals:
-      # - Inputs/Poloniex/2019_Withdrawals.csv
-      # - Inputs/Poloniex/2020_Withdrawals.csv
+        # - Inputs/Poloniex/2019_Withdrawals.csv
+        # - Inputs/Poloniex/2020_Withdrawals.csv
       distributions:
-      # - Inputs/Poloniex/2019_Distributions.csv
-      # - Inputs/Poloniex/2020_Distributions.csv
+        # - Inputs/Poloniex/2019_Distributions.csv
+        # - Inputs/Poloniex/2020_Distributions.csv
   revolut:
     account: email@domain.com
     csv:
       all:
-      # - Inputs/Revolut/2019.csv
-      # - Inputs/Revolut/2020.csv
+        # - Inputs/Revolut/2019.csv
+        # - Inputs/Revolut/2020.csv
   uphold:
     account: email@domain.com
     csv:
       all:
-      # - Inputs/Uphold/2019.csv
-      # - Inputs/Uphold/2020.csv
+        # - Inputs/Uphold/2019.csv
+        # - Inputs/Uphold/2020.csv
 options:
   bcd: yes
   bch: yes
@@ -162,4 +171,4 @@ wallets:
   mycelium:
     csv:
       all:
-      # - Inputs/MyCelium/MyCelium.csv
+        # - Inputs/MyCelium/MyCelium.csv
