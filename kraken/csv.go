@@ -137,6 +137,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 					if is, desc := cat.IsTxGift(t.ID); is {
 						t.Note += " gift " + desc
 						kr.TXsByCategory["Gifts"] = append(kr.TXsByCategory["Gifts"], t)
+					} else if is, desc, val, curr := cat.IsTxExchange(t.ID); is {
+						t.Note += " " + desc
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+						kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
 					} else {
 						kr.TXsByCategory["Withdrawals"] = append(kr.TXsByCategory["Withdrawals"], t)
 					}
