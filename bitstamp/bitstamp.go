@@ -30,10 +30,13 @@ func (bs *Bitstamp) GetAPIAllTXs() {
 	bs.done <- nil
 }
 
-func (bs *Bitstamp) WaitFinish(account string) error {
-	err := <-bs.done
+func (bs *Bitstamp) MergeTXs() {
 	// Merge TX without Duplicates
 	bs.TXsByCategory.AddUniq(bs.api.txsByCategory)
+}
+
+func (bs *Bitstamp) WaitFinish(account string) error {
+	err := <-bs.done
 	// Add 3916 Source infos
 	if _, ok := bs.Sources["Bitstamp"]; ok {
 		if bs.Sources["Bitstamp"].OpeningDate.After(bs.api.firstTimeUsed) {

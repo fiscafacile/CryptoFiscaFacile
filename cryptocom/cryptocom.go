@@ -36,11 +36,14 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 	cdc.done <- nil
 }
 
+func (cdc *CryptoCom) MergeTXs() {
+	// Merge TX without Duplicates
+	cdc.TXsByCategory.AddUniq(cdc.jsonEx.txsByCategory)
+	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
+}
+
 func (cdc *CryptoCom) WaitFinish(account string) error {
 	err := <-cdc.done
-	// Merge TX without Duplicates
-	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
-	cdc.TXsByCategory.AddUniq(cdc.jsonEx.txsByCategory)
 	// Add 3916 Source infos
 	if _, ok := cdc.Sources["CdC Exchange"]; ok {
 		if cdc.Sources["CdC Exchange"].OpeningDate.After(cdc.apiEx.firstTimeUsed) {

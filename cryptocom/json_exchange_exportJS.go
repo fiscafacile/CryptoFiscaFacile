@@ -12,6 +12,10 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type jsonEx struct {
+	txsByCategory wallet.TXsByCategory
+}
+
 type ExchangeJson struct {
 	Withs struct {
 		FinanceList []struct {
@@ -188,10 +192,6 @@ type ExchangeJson struct {
 	} `json:"rew"`
 }
 
-type jsonEx struct {
-	txsByCategory wallet.TXsByCategory
-}
-
 func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string) (err error) {
 	cdc.jsonEx.txsByCategory = make(map[string]wallet.TXs)
 	firstTimeUsed := time.Now()
@@ -200,7 +200,9 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 	var exch ExchangeJson
 	jsonDecoder := json.NewDecoder(reader)
 	err = jsonDecoder.Decode(&exch)
-	if err == nil {
+	if err != nil {
+		log.Println(err)
+	} else {
 		// Fill TXsByCategory
 		for _, w := range exch.Withs.FinanceList {
 			if w.StatusText == "Completed" {

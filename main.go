@@ -472,6 +472,13 @@ func main() {
 			blkst.DetectLBTC(btc)
 		}
 	}
+	// Merge TXs from differents methods within same Source
+	b.MergeTXs()
+	bs.MergeTXs()
+	btrx.MergeTXs()
+	cdc.MergeTXs()
+	hb.MergeTXs()
+	kr.MergeTXs()
 	// Set delisted coins balances to zero
 	if len(config.Exchanges.Binance.DelistedCoins) > 0 {
 		for _, dc := range config.Exchanges.Binance.DelistedCoins {

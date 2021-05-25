@@ -32,10 +32,13 @@ func (kr *Kraken) GetAPIAllTXs() {
 	kr.done <- nil
 }
 
-func (kr *Kraken) WaitFinish(account string) error {
-	err := <-kr.done
+func (kr *Kraken) MergeTXs() {
 	// Merge TX without Duplicates
 	kr.TXsByCategory.AddUniq(kr.api.txsByCategory)
+}
+
+func (kr *Kraken) WaitFinish(account string) error {
+	err := <-kr.done
 	// Add 3916 Source infos
 	if _, ok := kr.Sources["Kraken"]; ok {
 		if kr.Sources["Kraken"].OpeningDate.After(kr.api.firstTimeUsed) {

@@ -31,10 +31,13 @@ func (b *Binance) GetAPIAllTXs(loc *time.Location) {
 	b.done <- nil
 }
 
-func (b *Binance) WaitFinish(account string) error {
-	err := <-b.done
+func (b *Binance) MergeTXs() {
 	// Merge TX without Duplicates
 	b.TXsByCategory.AddUniq(b.api.txsByCategory)
+}
+
+func (b *Binance) WaitFinish(account string) error {
+	err := <-b.done
 	// Add 3916 Source infos
 	if _, ok := b.Sources["Binance"]; ok {
 		if b.Sources["Binance"].OpeningDate.After(b.api.firstTimeUsed) {

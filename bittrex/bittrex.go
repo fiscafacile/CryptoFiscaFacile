@@ -29,10 +29,13 @@ func (btrx *Bittrex) GetAPIAllTXs() {
 	btrx.done <- nil
 }
 
-func (btrx *Bittrex) WaitFinish(account string) error {
-	err := <-btrx.done
+func (btrx *Bittrex) MergeTXs() {
 	// Merge TX without Duplicates
 	btrx.TXsByCategory.AddUniq(btrx.api.txsByCategory)
+}
+
+func (btrx *Bittrex) WaitFinish(account string) error {
+	err := <-btrx.done
 	// Add 3916 Source infos
 	if _, ok := btrx.Sources["Bittrex"]; ok {
 		if btrx.Sources["Bittrex"].OpeningDate.After(btrx.api.firstTimeUsed) {

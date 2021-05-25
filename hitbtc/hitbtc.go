@@ -34,10 +34,13 @@ func (hb *HitBTC) GetAPIAllTXs() {
 	hb.done <- nil
 }
 
-func (hb *HitBTC) WaitFinish(account string) error {
-	err := <-hb.done
+func (hb *HitBTC) MergeTXs() {
 	// Merge TX without Duplicates
 	hb.TXsByCategory.AddUniq(hb.api.txsByCategory)
+}
+
+func (hb *HitBTC) WaitFinish(account string) error {
+	err := <-hb.done
 	// Add 3916 Source infos
 	if _, ok := hb.Sources["HitBTC"]; ok {
 		if hb.Sources["HitBTC"].OpeningDate.After(hb.api.firstTimeUsed) {
