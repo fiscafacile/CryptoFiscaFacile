@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -25,7 +26,7 @@ type csvTX struct {
 	Balance decimal.Decimal
 }
 
-func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
+func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Kraken CSV :"
@@ -96,6 +97,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 					if !found {
 						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 						t.Items = make(map[string]wallet.Currencies)
+						if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+							t.Note += " " + desc
+							t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+						}
 						if !tx.Fee.IsZero() {
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 						}
@@ -109,6 +114,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
+					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+						t.Note += " " + desc
+						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+					}
 					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 					}
@@ -117,6 +126,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 				} else if tx.Type == "withdrawal" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
+					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+						t.Note += " " + desc
+						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+					}
 					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 					}
@@ -125,6 +138,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 				} else if tx.Type == "staking" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
+					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+						t.Note += " " + desc
+						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+					}
 					if !tx.Fee.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
 					}
@@ -135,12 +152,20 @@ func (kr *Kraken) ParseCSV(reader io.Reader, account string) (err error) {
 					if !fee.IsFiat() {
 						t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 						t.Items = make(map[string]wallet.Currencies)
+						if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+							t.Note += " " + desc
+							t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+						}
 						t.Items["Fee"] = append(t.Items["Fee"], fee)
 						kr.TXsByCategory["Fees"] = append(kr.TXsByCategory["Fees"], t)
 					}
 				} else if tx.Type == "transfer" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 					t.Items = make(map[string]wallet.Currencies)
+					if is, desc, val, curr := cat.IsTxShit(tx.TxId); is {
+						t.Note += " " + desc
+						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+					}
 					if tx.SubType == "" {
 						if tx.Amount.IsPositive() {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})

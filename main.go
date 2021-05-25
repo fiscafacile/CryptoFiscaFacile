@@ -265,7 +265,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Kraken CSV file:", err)
 		}
-		err = kr.ParseCSV(recordFile, config.Exchanges.Kraken.Account)
+		err = kr.ParseCSV(recordFile, *categ, config.Exchanges.Kraken.Account)
 		if err != nil {
 			log.Fatal("Error parsing Kraken CSV file:", err)
 		}
