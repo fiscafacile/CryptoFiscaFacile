@@ -168,6 +168,10 @@ wallets:
     csv:
       all:
       # - Inputs/LedgerLive/LedgerLive.csv
+  monero:
+    csv:
+      all:
+        # - Inputs/Monero/Monero.csv
   mycelium:
     csv:
       all:

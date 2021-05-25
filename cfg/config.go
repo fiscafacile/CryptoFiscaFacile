@@ -108,6 +108,7 @@ type WalletConfig struct {
 
 type Wallets struct {
 	LedgerLive WalletConfig `yaml:"ledgerlive"`
+	Monero     WalletConfig `yaml:"monero"`
 	MyCelium   WalletConfig `yaml:"mycelium"`
 }
 
@@ -220,6 +221,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringSliceVar(&config.Wallets.LedgerLive.CSV.All, "ledgerlive", config.Wallets.LedgerLive.CSV.All, "LedgerLive CSV file")
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Trades, "lb-trade", config.Exchanges.LocalBitcoins.CSV.Trades, "Local Bitcoin Trade CSV file")
 	pflag.StringSliceVar(&config.Exchanges.LocalBitcoins.CSV.Transfers, "lb-transfer", config.Exchanges.LocalBitcoins.CSV.Transfers, "Local Bitcoin Transfer CSV file")
+	pflag.StringSliceVar(&config.Wallets.Monero.CSV.All, "monero", config.Wallets.Monero.CSV.All, "Monero CSV file")
 	pflag.StringSliceVar(&config.Wallets.MyCelium.CSV.All, "mycelium", config.Wallets.MyCelium.CSV.All, "MyCelium CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Trades, "poloniex-trades", config.Exchanges.Poloniex.CSV.Trades, "Poloniex Trades CSV file")
 	pflag.StringSliceVar(&config.Exchanges.Poloniex.CSV.Deposits, "poloniex-deposits", config.Exchanges.Poloniex.CSV.Deposits, "Poloniex Deposits CSV file")

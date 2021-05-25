@@ -464,6 +464,15 @@ Les colones du CSV de Transfer doivent être : `TXID, Created, Received, Sent, T
 
 Les colones du CSV doivent être : `Operation Date,Currency Ticker,Operation Type,Operation Amount,Operation Fees,Operation Hash,Account Name,Account xpub`
 
+#### Monero Wallet [![Support bon](https://img.shields.io/badge/support-bon-blue)](#monero-wallet-)
+
+```
+  --monero
+        Monero Wallet CSV file
+```
+
+Les colones du CSV doivent être : `blockHeight,epoch,date,direction,amount,atomicAmount,fee,txid,label,subaddrAccount,paymentId`
+
 #### MyCelium [![Support déprécié](https://img.shields.io/badge/support-d%C3%A9pr%C3%A9ci%C3%A9-red)](#mycelium-)
 
 Vous devriez exporter les clés publiques de votre wallet et utiliser la "Source" [BTC](#btc-).

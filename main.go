@@ -23,6 +23,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/kraken"
 	"github.com/fiscafacile/CryptoFiscaFacile/ledgerlive"
 	"github.com/fiscafacile/CryptoFiscaFacile/localbitcoin"
+	"github.com/fiscafacile/CryptoFiscaFacile/monero"
 	"github.com/fiscafacile/CryptoFiscaFacile/mycelium"
 	"github.com/fiscafacile/CryptoFiscaFacile/poloniex"
 	"github.com/fiscafacile/CryptoFiscaFacile/revolut"
@@ -325,6 +326,17 @@ func main() {
 			log.Fatal("Error parsing Local Bitcoin Transfer CSV file:", err)
 		}
 	}
+	xmr := monero.New()
+	for _, file := range config.Wallets.Monero.CSV.All {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Monero CSV file:", err)
+		}
+		err = xmr.ParseCSV(recordFile, *categ)
+		if err != nil {
+			log.Fatal("Error parsing Monero CSV file:", err)
+		}
+	}
 	mc := mycelium.New()
 	for _, file := range config.Wallets.MyCelium.CSV.All {
 		recordFile, err := os.Open(file)
@@ -549,6 +561,7 @@ func main() {
 	global.Add(kr.TXsByCategory)
 	global.Add(ll.TXsByCategory)
 	global.Add(lb.TXsByCategory)
+	global.Add(xmr.TXsByCategory)
 	global.Add(mc.TXsByCategory)
 	global.Add(pl.TXsByCategory)
 	global.Add(revo.TXsByCategory)
