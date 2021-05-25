@@ -95,7 +95,7 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 						}
 					}
 					if !found {
-						t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : Buy Sell Fee " + tx.Remark}
+						t := wallet.TX{Timestamp: tx.Time, Note: SOURCE + " Buy Sell Fee " + tx.Remark}
 						t.Items = make(map[string]wallet.Currencies)
 						if !tx.Fee.IsZero() {
 							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
@@ -121,7 +121,7 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "Savings Interest" ||
 					tx.Operation == "Launchpool Interest" ||
 					tx.Operation == "Commission History" {
-					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
+					t := wallet.TX{Timestamp: tx.Time, Note: SOURCE + " " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
 					if !tx.Fee.IsZero() {
@@ -137,13 +137,22 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					} else if tx.Operation == "Savings Interest" {
 						b.TXsByCategory["Interests"] = append(b.TXsByCategory["Interests"], t)
 					} else if tx.Operation == "Commission History" {
-						b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
+						found := false
+						for _, ref := range b.TXsByCategory["Referrals"] {
+							if ref.Timestamp == tx.Time &&
+								ref.Note == SOURCE+" "+tx.Operation+" "+tx.Remark {
+								found = true
+							}
+						}
+						if !found {
+							b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
+						}
 					} else {
 						b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
 					}
 				} else if tx.Operation == "Withdraw" ||
 					tx.Operation == "transfer_out" {
-					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
+					t := wallet.TX{Timestamp: tx.Time, Note: SOURCE + " " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.Fee.IsZero() {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
