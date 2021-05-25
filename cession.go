@@ -125,9 +125,7 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs
 	for k := range global {
-		if k != "Transfers" { // Do not consider Transfers TXs as they are internal moves
-			allTXs = append(allTXs, global[k]...)
-		}
+		allTXs = append(allTXs, global[k]...)
 	}
 	allTXs.SortByDate(false)
 	for crypto, quantity := range globalWallet2019Jan1.Currencies {

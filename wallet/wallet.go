@@ -401,22 +401,22 @@ func (txs TXsByCategory) StockToXlsx(filename string) {
 	var allTXs TXs
 	for cat, list := range txs {
 		for _, tx := range list {
-			if cat != "Transfers" {
-				if cat == "Withdrawals" {
-					tx.Category = "Retrait"
-				} else if cat == "Deposits" {
-					tx.Category = "Dépot"
-				} else if cat == "Exchanges" {
-					tx.Category = "Echange"
-				} else if cat == "Fees" {
-					tx.Category = "Frais"
-				} else if cat == "Gifts" {
-					tx.Category = "Don"
-				} else {
-					tx.Category = cat
-				}
-				allTXs = append(allTXs, tx)
+			if cat == "Withdrawals" {
+				tx.Category = "Retrait"
+			} else if cat == "Deposits" {
+				tx.Category = "Dépot"
+			} else if cat == "Exchanges" {
+				tx.Category = "Echange"
+			} else if cat == "Fees" {
+				tx.Category = "Frais"
+			} else if cat == "Gifts" {
+				tx.Category = "Don"
+			} else if cat == "Transfers" {
+				tx.Category = "Transfert"
+			} else {
+				tx.Category = cat
 			}
+			allTXs = append(allTXs, tx)
 		}
 	}
 	allTXs.SortByDate(true)
