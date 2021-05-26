@@ -88,7 +88,7 @@ func (xmr *Monero) ParseCSV(reader io.Reader, cat category.Category) (err error)
 				if !tx.Fee.IsZero() {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "XMR", Amount: tx.Fee})
 				}
-				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "XMR", Amount: tx.AtomicAmount.Sub(tx.Fee)})
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "XMR", Amount: tx.AtomicAmount})
 				if is, desc, val, curr := cat.IsTxCashOut(tx.TxID); is {
 					t.Note += " crypto_payment " + desc
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
