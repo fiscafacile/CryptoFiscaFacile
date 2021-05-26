@@ -41,7 +41,7 @@ func (cdc *CryptoCom) GetAPIExchangeTXs(loc *time.Location) {
 
 func (cdc *CryptoCom) MergeTXs() {
 	// Merge TX without Duplicates
-	cdc.TXsByCategory.Add(cdc.jsonEx.txsByCategory)
+	cdc.TXsByCategory.Add(cdc.jsonEx.txsByCategory) // Add only because UNI Supercharger as a date bug
 	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.csvStake.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.csvSupercharger.txsByCategory)
