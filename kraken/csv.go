@@ -141,6 +141,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Note += " " + desc
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
 						kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
+					} else if is, desc, val, curr := cat.IsTxCashOut(t.ID); is {
+						t.Note += " crypto_payment " + desc
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
+						kr.TXsByCategory["CashOut"] = append(kr.TXsByCategory["CashOut"], t)
 					} else {
 						kr.TXsByCategory["Withdrawals"] = append(kr.TXsByCategory["Withdrawals"], t)
 					}
