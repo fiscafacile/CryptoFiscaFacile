@@ -18,7 +18,7 @@ type CsvTX struct {
 	Date           string
 	Direction      string
 	Amount         decimal.Decimal
-	AtomicAmount   string
+	AtomicAmount   decimal.Decimal
 	Fee            decimal.Decimal
 	TxID           string
 	Label          string
@@ -48,7 +48,12 @@ func (xmr *Monero) ParseCSV(reader io.Reader, cat category.Category) (err error)
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Amount", r[4])
 				}
-				tx.AtomicAmount = r[5]
+				atomic, err := strconv.ParseInt(r[5], 10, 64)
+				if err != nil {
+					log.Println(SOURCE, "Error Parsing AtomicAmount", r[5])
+				} else {
+					tx.AtomicAmount = decimal.New(atomic, -12)
+				}
 				if r[6] != "" {
 					tx.Fee, err = decimal.NewFromString(r[6])
 					if err != nil {
@@ -66,7 +71,7 @@ func (xmr *Monero) ParseCSV(reader io.Reader, cat category.Category) (err error)
 			if tx.Direction == "in" {
 				t := wallet.TX{Timestamp: tx.Epoch, ID: tx.TxID, Note: SOURCE + " " + tx.BlockHeight + " " + tx.Label}
 				t.Items = make(map[string]wallet.Currencies)
-				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "XMR", Amount: tx.Amount})
+				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "XMR", Amount: tx.AtomicAmount})
 				if !tx.Fee.IsZero() {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "XMR", Amount: tx.Fee})
 				}
@@ -83,7 +88,7 @@ func (xmr *Monero) ParseCSV(reader io.Reader, cat category.Category) (err error)
 				if !tx.Fee.IsZero() {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "XMR", Amount: tx.Fee})
 				}
-				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "XMR", Amount: tx.Amount.Sub(tx.Fee)})
+				t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "XMR", Amount: tx.AtomicAmount.Sub(tx.Fee)})
 				if is, desc, val, curr := cat.IsTxCashOut(tx.TxID); is {
 					t.Note += " crypto_payment " + desc
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
