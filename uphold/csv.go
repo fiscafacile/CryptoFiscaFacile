@@ -71,7 +71,7 @@ func (uh *Uphold) ParseCSV(reader io.Reader, account string) (err error) {
 					lastTimeUsed = tx.Date
 				}
 				// Fill TXsByCategory
-				if tx.Origin != tx.Destination {
+				if tx.OriginCurrency != tx.DestinationCurrency {
 					t := wallet.TX{Timestamp: tx.Date, ID: "e" + tx.ID, Note: SOURCE + " exchange"}
 					t.Items = make(map[string]wallet.Currencies)
 					if tx.FeeCurrency == tx.DestinationCurrency &&
