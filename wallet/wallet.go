@@ -672,6 +672,7 @@ func (txs TXsByCategory) RemoveDelistedCoins(coin string) {
 			Code:   coin,
 		},
 	}
+	lastTx.Note += " Force balance to 0 for " + coin + " as it has been delisted"
 }
 
 func (txs TXsByCategory) SortTXsByDate(chrono bool) {
