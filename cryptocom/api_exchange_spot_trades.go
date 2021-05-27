@@ -3,6 +3,7 @@ package cryptocom
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -28,8 +29,10 @@ func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 		fmt.Print(".")
 		trades, err := api.getTrades(date.Year(), date.Month(), date.Day(), loc)
 		if err != nil {
-			api.doneSpotTra <- err
-			return
+			// api.doneSpotTra <- err
+			// return
+			log.Println(err)
+			break
 		}
 		for _, tra := range trades.Result.TradeList {
 			tx := spotTradeTX{}
