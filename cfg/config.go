@@ -172,7 +172,7 @@ func LoadConfig() (*Config, error) {
 	pflag.BoolVar(&config.Options.CashInBNC.Y2019, "cashin-bnc-2019", config.Options.CashInBNC.Y2019, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086")
 	pflag.BoolVar(&config.Options.CashInBNC.Y2020, "cashin-bnc-2020", config.Options.CashInBNC.Y2020, "Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086")
 	pflag.BoolVarP(&config.Options.Check, "check", "c", config.Options.Check, "Check and Display consistency")
-	pflag.StringVar(&config.Options.CurrencyFilter, "currency-filter", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
+	pflag.StringVarP(&config.Options.CurrencyFilter, "currency-filter", "f", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
 	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
 	pflag.BoolVar(&config.Options.Debug, "exact", config.Options.Debug, "Display exact amount (no rounding)")
 	pflag.StringVarP(&config.Options.TxsDisplay, "txs-display", "t", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
