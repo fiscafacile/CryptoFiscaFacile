@@ -53,8 +53,8 @@ exchanges:
         # - Inputs/Bittrex/2019.csv
         # - Inputs/Bittrex/2020.csv
     delisted-coins:
-      - GLD
-      - TRST
+      # - GLD
+      # - TRST
   coinbase:
     account: email@domain.com
     csv:
