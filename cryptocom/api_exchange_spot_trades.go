@@ -23,8 +23,8 @@ type spotTradeTX struct {
 }
 
 func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
-	date := time.Now().Add(-24 * time.Hour)
-	for date.After(api.startTime) {
+	date := api.startTime
+	for date.Before(time.Now().Add(-24 * time.Hour)) {
 		fmt.Print(".")
 		trades, err := api.getTrades(date.Year(), date.Month(), date.Day(), loc)
 		if err != nil {
@@ -44,7 +44,7 @@ func (api *apiEx) getSpotTradesTXs(loc *time.Location) {
 			tx.FeeCurrency = tra.FeeCurrency
 			api.spotTradeTXs = append(api.spotTradeTXs, tx)
 		}
-		date = date.Add(-24 * time.Hour)
+		date = date.Add(24 * time.Hour)
 	}
 	api.doneSpotTra <- nil
 }

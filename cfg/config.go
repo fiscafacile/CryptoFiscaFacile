@@ -175,7 +175,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringVar(&config.Options.CurrencyFilter, "currency-filter", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
 	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
 	pflag.BoolVar(&config.Options.Debug, "exact", config.Options.Debug, "Display exact amount (no rounding)")
-	pflag.StringVar(&config.Options.TxsDisplay, "txs-display", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
+	pflag.StringVarP(&config.Options.TxsDisplay, "txs-display", "t", config.Options.TxsDisplay, "Display Transactions By Category : Exchanges|Deposits|Withdrawals|CashIn|CashOut|etc")
 	// Sources
 	pflag.StringVar(&config.Options.TxsCategory, "txs-categ", config.Options.TxsCategory, "Transactions Categories CSV file")
 	pflag.StringVar(&config.Tools.CoinAPI.Key, "coinapi-key", config.Tools.CoinAPI.Key, "CoinAPI Key (https://www.coinapi.io/pricing?apikey)")

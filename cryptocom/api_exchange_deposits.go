@@ -19,10 +19,8 @@ type depositTX struct {
 }
 
 func (api *apiEx) getDepositsTXs(loc *time.Location) {
-	today := time.Now()
-	thisYear := today.Year()
-	for y := thisYear; y > 2019; y-- {
-		for q := 4; q > 0; q-- {
+	for y := 2019; y <= time.Now().Year(); y++ {
+		for q := 1; q < 5; q++ {
 			fmt.Print(".")
 			depoHist, err := api.getDepositHistory(y, q, loc)
 			if err != nil {
