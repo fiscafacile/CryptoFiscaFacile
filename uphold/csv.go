@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -26,7 +27,7 @@ type CsvTX struct {
 	Type                string
 }
 
-func (uh *Uphold) ParseCSV(reader io.Reader, account string) (err error) {
+func (uh *Uphold) ParseCSV(reader io.Reader, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Uphold CSV :"
@@ -98,7 +99,12 @@ func (uh *Uphold) ParseCSV(reader io.Reader, account string) (err error) {
 					if !tx.FeeAmount.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
 					}
-					uh.TXsByCategory["Withdrawals"] = append(uh.TXsByCategory["Withdrawals"], t)
+					if is, desc := cat.IsTxGift(t.ID); is {
+						t.Note += " gift " + desc
+						uh.TXsByCategory["Gifts"] = append(uh.TXsByCategory["Gifts"], t)
+					} else {
+						uh.TXsByCategory["Withdrawals"] = append(uh.TXsByCategory["Withdrawals"], t)
+					}
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
 				}
