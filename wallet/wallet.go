@@ -579,22 +579,20 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 		}
 	}
 	// Purge used TXs
-	for di, depTX := range txs["Deposits"] {
-		if depTX.used {
-			if len(txs["Deposits"]) > 1 {
-				txs["Deposits"][di] = txs["Deposits"][len(txs["Deposits"])-1]
-			}
-			txs["Deposits"] = txs["Deposits"][:len(txs["Deposits"])-1]
+	var realDeposits TXs
+	for _, depTX := range txs["Deposits"] {
+		if !depTX.used {
+			realDeposits = append(realDeposits, depTX)
 		}
 	}
-	for wi, witTX := range txs["Withdrawals"] {
-		if witTX.used {
-			if len(txs["Withdrawals"]) > 1 {
-				txs["Withdrawals"][wi] = txs["Withdrawals"][len(txs["Withdrawals"])-1]
-			}
-			txs["Withdrawals"] = txs["Withdrawals"][:len(txs["Withdrawals"])-1]
+	txs["Deposits"] = realDeposits
+	var realWithdrawals TXs
+	for _, witTX := range txs["Withdrawals"] {
+		if !witTX.used {
+			realWithdrawals = append(realWithdrawals, witTX)
 		}
 	}
+	txs["Withdrawals"] = realWithdrawals
 	return txs
 }
 
