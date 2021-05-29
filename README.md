@@ -557,13 +557,13 @@ Utilisé pour la Source [ETH](#eth-), si vous ne la fournissez pas les requêtes
   --2086
         Export Cerfa 2086 in 2086.xlsx
   --cashin-bnc-2019
-        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2019's Txs in 2086
+        Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2019's Txs in 2086
   --cashin-bnc-2020
-        Convert AirDrops/CommercialRebates/Interets/Minings/Referrals into CashIn for 2020's Txs in 2086
+        Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2020's Txs in 2086
 ```
 Cela vous génère automatiquement le formulaire 2086 !
 
-Il y a deux façons de considérer les AirDrops/CommercialRebates/Interets/Minings/Referrals :
+Il y a deux façons de considérer les AirDrops/CommercialRebates/Interests/Minings/Referrals :
 
 - soit ils sont ajoutés simplement au portefeuille avec une valeur de 0€
 

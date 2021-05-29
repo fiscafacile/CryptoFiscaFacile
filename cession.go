@@ -229,22 +229,22 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	cashInOut = append(cashInOut, global["CashIn"].After(jan1st2019)...)
 	cashInOut = append(cashInOut, global["CashOut"].After(jan1st2019)...)
 	if cashInBNC.Y2019 {
-		fmt.Print("Conversion des AirDrops/CommercialRebates/Interets/Minings/Referrals en CashIn pour les transactions de 2019...")
+		fmt.Print("Conversion des AirDrops/CommercialRebates/Interests/Minings/Referrals en CashIn pour les transactions de 2019...")
 		var cashInOut2019 wallet.TXs
 		cashInOut2019 = append(cashInOut2019, global["AirDrops"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		cashInOut2019 = append(cashInOut2019, global["CommercialRebates"].After(jan1st2019).Before(jan1st2020).ApplyFromReversal().AddFromNativeValue(native)...)
-		cashInOut2019 = append(cashInOut2019, global["Interets"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		cashInOut2019 = append(cashInOut2019, global["Interests"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		cashInOut2019 = append(cashInOut2019, global["Minings"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		cashInOut2019 = append(cashInOut2019, global["Referrals"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		c2086.bnc[2019] = cashInOut2019.GetBalances(true, false)
 		cashInOut = append(cashInOut, cashInOut2019...)
 	}
 	if cashInBNC.Y2020 {
-		fmt.Print("Conversion des AirDrops/CommercialRebates/Interets/Minings/Referrals en CashIn pour les transactions de 2020...")
+		fmt.Print("Conversion des AirDrops/CommercialRebates/Interests/Minings/Referrals en CashIn pour les transactions de 2020...")
 		var cashInOut2020 wallet.TXs
 		cashInOut2020 = append(cashInOut2020, global["AirDrops"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		cashInOut2020 = append(cashInOut2020, global["CommercialRebates"].After(jan1st2020).Before(jan1st2021).ApplyFromReversal().AddFromNativeValue(native)...)
-		cashInOut2020 = append(cashInOut2020, global["Interets"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		cashInOut2020 = append(cashInOut2020, global["Interests"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		cashInOut2020 = append(cashInOut2020, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		cashInOut2020 = append(cashInOut2020, global["Referrals"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		c2086.bnc[2020] = cashInOut2020.GetBalances(true, false)
@@ -392,7 +392,7 @@ func (c2086 Cerfa2086) Println(native string) {
 		}
 		fmt.Println("224 Plus-value ou moins-value globale :", plusMoinsValueGlobale.RoundBank(0))
 		if !c2086.bnc[year][native].IsZero() {
-			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
+			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interests/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
 			fmt.Println("Pour information les cryptos recues par ces opérations sont :")
 			for k, v := range c2086.bnc[year] {
 				if k != native {
@@ -511,7 +511,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 		}
 		f.SetCellValue(sheet, "C16", plusMoinsValueGlobale.RoundBank(0).IntPart())
 		if !c2086.bnc[year][native].IsZero() {
-			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interets/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
+			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interests/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
 			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
 			f.SetCellValue(sheet, "A20", "Pour information les cryptos recues par ces opérations sont :")
 			count := 0

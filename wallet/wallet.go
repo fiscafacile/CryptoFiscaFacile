@@ -711,7 +711,7 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 			}
 		}
 	}
-	for _, cat := range []string{"Deposits", "AirDrops", "CommercialRebates", "Interets", "Minings", "Referrals"} {
+	for _, cat := range []string{"Deposits", "AirDrops", "CommercialRebates", "Interests", "Minings", "Referrals"} {
 		fmt.Println("--------------------------------------------------------")
 		fmt.Println("| List of " + cat + " with some From" + strings.Repeat(" ", 30-len(cat)) + "|")
 		txsCat := txs[cat]
