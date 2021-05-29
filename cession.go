@@ -257,115 +257,119 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 		if len(tx.Items["To"]) > 1 || len(tx.Items["From"]) > 1 {
 			log.Println("Will be missing values :", spew.Sdump(tx))
 		}
-		if tx.Items["To"][0].IsFiat() { // CashOut
-			c := Cession{Date211: tx.Timestamp}
-			infos := strings.SplitN(tx.Note, ":", 2)
-			c.Source = infos[0]
-			c.Note = infos[1]
-			// Valeur globale du portefeuille au moment de la cession
-			// Il s’agit de la somme des valeurs, évaluées au moment de la cession
-			// imposable, des différents actifs numériques et droits s'y rapportant,
-			// détenus par le cédant avant de procéder à la cession, quel que soit
-			// leur support de conservation (plateformes d’échanges, y compris
-			// étrangères, serveurs personnels, dispositif de stockage hors-ligne,
-			// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
-			// imposable en application de l’article 150 VH bis du CGI.
-			globalWallet := global.GetWallets(tx.Timestamp, false, true)
-			globalWalletTotalValue, err := globalWallet.CalculateTotalValue(native)
-			if err != nil {
-				log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
-			}
-			// spew.Dump(globalWallet)
-			c.ValeurPortefeuille212 = globalWalletTotalValue.Amount
-			// Prix de cession
-			// Il correspond au prix réel perçu ou à la valeur de la contrepartie
-			// obtenue par le cédant lors de la cession.
-			if tx.Items["To"][0].Code == native {
-				c.PrixNetDeFrais215 = tx.Items["To"][0].Amount
-			} else {
-				rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
-				if err == nil {
-					c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
-				} else {
-					log.Println("Rate missing : CashOut integration into Prix213", spew.Sdump(tx, c))
+		if len(tx.Items["To"]) > 0 {
+			if tx.Items["To"][0].IsFiat() { // CashOut
+				c := Cession{Date211: tx.Timestamp}
+				infos := strings.SplitN(tx.Note, ":", 2)
+				c.Source = infos[0]
+				c.Note = infos[1]
+				// Valeur globale du portefeuille au moment de la cession
+				// Il s’agit de la somme des valeurs, évaluées au moment de la cession
+				// imposable, des différents actifs numériques et droits s'y rapportant,
+				// détenus par le cédant avant de procéder à la cession, quel que soit
+				// leur support de conservation (plateformes d’échanges, y compris
+				// étrangères, serveurs personnels, dispositif de stockage hors-ligne,
+				// etc.). Cette valorisation doit s’effectuer au moment de chaque cession
+				// imposable en application de l’article 150 VH bis du CGI.
+				globalWallet := global.GetWallets(tx.Timestamp, false, true)
+				globalWalletTotalValue, err := globalWallet.CalculateTotalValue(native)
+				if err != nil {
+					log.Println("Error Calculating Global Wallet at", tx.Timestamp, err)
 				}
-			}
-			// Prix de cession - Frais
-			// Il est réduit, sur justificatifs, des frais supportés par le cédant à
-			// l’occasion de cette cession. Ces frais s'entendent, notamment, de
-			// ceux perçus à l’occasion de l’opération imposable par les plateformes
-			// où s'effectuent les cessions à titre onéreux d'actifs numériques ou
-			// de droits s'y rapportant ainsi que de ceux perçus par les membres du
-			// réseau (appelés "mineurs") chargés de vérifier et valider les
-			// transactions qui s'y opèrent. Le paiement de ces frais de transaction
-			// perçus par les plateformes ou les "mineurs" peut s'effectuer au moyen
-			// d'actifs numériques. Or, dans ce cas, ce paiement est la contrepartie
-			// d'un service fourni au cédant et constitue une opération imposable au
-			// sens du I de l'article 150 VH bis du CGI. A titre de mesure de
-			// simplification, il est toutefois admis que la cession en tant que
-			// telle et les différentes prestations de services rendues en
-			// contrepartie des frais perçus par les plateformes et les "mineurs"
-			// soient assimilées à une seule et même opération de cession pour
-			// l'application de l'article 150 VH bis du CGI, pour laquelle le
-			// contribuable détermine une seule plus ou moins-value, en déduisant
-			// ces frais du prix de cession.
-			for _, f := range tx.Items["Fee"] {
-				if f.Code == native {
-					c.Frais214 = c.Frais214.Add(f.Amount)
+				// spew.Dump(globalWallet)
+				c.ValeurPortefeuille212 = globalWalletTotalValue.Amount
+				// Prix de cession
+				// Il correspond au prix réel perçu ou à la valeur de la contrepartie
+				// obtenue par le cédant lors de la cession.
+				if tx.Items["To"][0].Code == native {
+					c.PrixNetDeFrais215 = tx.Items["To"][0].Amount
 				} else {
-					rate, err := f.GetExchangeRate(tx.Timestamp, native)
+					rate, err := tx.Items["To"][0].GetExchangeRate(tx.Timestamp, native)
 					if err == nil {
-						c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
+						c.PrixNetDeFrais215 = tx.Items["To"][0].Amount.Mul(rate)
 					} else {
-						log.Println("Rate missing : CashOut integration into Frais214", spew.Sdump(tx, c))
+						log.Println("Rate missing : CashOut integration into Prix213", spew.Sdump(tx, c))
 					}
 				}
+				// Prix de cession - Frais
+				// Il est réduit, sur justificatifs, des frais supportés par le cédant à
+				// l’occasion de cette cession. Ces frais s'entendent, notamment, de
+				// ceux perçus à l’occasion de l’opération imposable par les plateformes
+				// où s'effectuent les cessions à titre onéreux d'actifs numériques ou
+				// de droits s'y rapportant ainsi que de ceux perçus par les membres du
+				// réseau (appelés "mineurs") chargés de vérifier et valider les
+				// transactions qui s'y opèrent. Le paiement de ces frais de transaction
+				// perçus par les plateformes ou les "mineurs" peut s'effectuer au moyen
+				// d'actifs numériques. Or, dans ce cas, ce paiement est la contrepartie
+				// d'un service fourni au cédant et constitue une opération imposable au
+				// sens du I de l'article 150 VH bis du CGI. A titre de mesure de
+				// simplification, il est toutefois admis que la cession en tant que
+				// telle et les différentes prestations de services rendues en
+				// contrepartie des frais perçus par les plateformes et les "mineurs"
+				// soient assimilées à une seule et même opération de cession pour
+				// l'application de l'article 150 VH bis du CGI, pour laquelle le
+				// contribuable détermine une seule plus ou moins-value, en déduisant
+				// ces frais du prix de cession.
+				for _, f := range tx.Items["Fee"] {
+					if f.Code == native {
+						c.Frais214 = c.Frais214.Add(f.Amount)
+					} else {
+						rate, err := f.GetExchangeRate(tx.Timestamp, native)
+						if err == nil {
+							c.Frais214 = c.Frais214.Add(f.Amount.Mul(rate))
+						} else {
+							log.Println("Rate missing : CashOut integration into Frais214", spew.Sdump(tx, c))
+						}
+					}
+				}
+				// Prix de cession - Soultes
+				// Le prix de cession doit être majoré de la soulte que le cédant a
+				// reçue lors de la cession ou minoré de la soulte qu’il a versée lors
+				// de cette même cession.
+				// c.SoulteRecueOuVersee216 = ???
+				c.PrixTotalAcquisition220 = c2086.ptafifo.PrixTotalAcquisition
+				// Fractions de capital initial
+				// Il s’agit de la fraction de capital contenue dans la valeur ou le
+				// prix de chacune des différentes cessions d'actifs numériques à titre
+				// gratuit ou onéreux réalisées antérieurement, hors opérations d’échange
+				// ayant bénéficié du sursis d’imposition sans soulte.
+				c.FractionDeCapital221 = fractionCapital
+				// Soulte reçue en cas d’échanges antérieurs à la cession
+				// Lorsqu’un ou plusieurs échanges avec soulte reçue par le cédant ont été
+				// réalisés antérieurement à la cession imposable, le prix total d’acquisition
+				// est minoré du montant des soultes. Indiquez donc les montants reçus.
+				// c.SoulteRecueEnCasDechangeAnterieur222 = ???
+				c.Calculate() // to have 217 and 223
+				c2086.cs = append(c2086.cs, c)
+				// Les frais déductibles, quels qu'ils soient, ne viennent pas en
+				// diminution du prix de cession pour la détermination du quotient du
+				// prix de cession sur la valeur globale du portefeuille (ils doivent
+				// seulement être déduits du prix de cession qui constitue le premier
+				// terme de la différence prévue dans la formule de calcul mentionnée
+				// ci-dessus).
+				coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
+				fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
+				fractionCapital = fractionCapital.Add(fractionAcquisition)
 			}
-			// Prix de cession - Soultes
-			// Le prix de cession doit être majoré de la soulte que le cédant a
-			// reçue lors de la cession ou minoré de la soulte qu’il a versée lors
-			// de cette même cession.
-			// c.SoulteRecueOuVersee216 = ???
-			c.PrixTotalAcquisition220 = c2086.ptafifo.PrixTotalAcquisition
-			// Fractions de capital initial
-			// Il s’agit de la fraction de capital contenue dans la valeur ou le
-			// prix de chacune des différentes cessions d'actifs numériques à titre
-			// gratuit ou onéreux réalisées antérieurement, hors opérations d’échange
-			// ayant bénéficié du sursis d’imposition sans soulte.
-			c.FractionDeCapital221 = fractionCapital
-			// Soulte reçue en cas d’échanges antérieurs à la cession
-			// Lorsqu’un ou plusieurs échanges avec soulte reçue par le cédant ont été
-			// réalisés antérieurement à la cession imposable, le prix total d’acquisition
-			// est minoré du montant des soultes. Indiquez donc les montants reçus.
-			// c.SoulteRecueEnCasDechangeAnterieur222 = ???
-			c.Calculate() // to have 217 and 223
-			c2086.cs = append(c2086.cs, c)
-			// Les frais déductibles, quels qu'ils soient, ne viennent pas en
-			// diminution du prix de cession pour la détermination du quotient du
-			// prix de cession sur la valeur globale du portefeuille (ils doivent
-			// seulement être déduits du prix de cession qui constitue le premier
-			// terme de la différence prévue dans la formule de calcul mentionnée
-			// ci-dessus).
-			coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
-			fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
-			fractionCapital = fractionCapital.Add(fractionAcquisition)
-		} else if tx.Items["From"][0].IsFiat() { // CashIn
-			// Prix total d’acquisition du portefeuille
-			// Le prix total d'acquisition du portefeuille d'actifs numériques est
-			// égal à la somme de tous les prix acquittés en monnaie ayant cours
-			// légal à l'occasion de l'ensemble des acquisitions d’actifs numériques
-			// (sauf opérations d'échange ayant bénéficié du sursis d'imposition)
-			// réalisées avant la cession, et de la valeur des biens ou services,
-			// comprenant le cas échéant les soultes versées, fournis en
-			// contrepartie de ces acquisitions.
-			if tx.Items["From"][0].Code == native {
-				c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
-			} else {
-				rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
-				if err == nil {
-					c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
+		} else if len(tx.Items["From"]) > 0 {
+			if tx.Items["From"][0].IsFiat() { // CashIn
+				// Prix total d’acquisition du portefeuille
+				// Le prix total d'acquisition du portefeuille d'actifs numériques est
+				// égal à la somme de tous les prix acquittés en monnaie ayant cours
+				// légal à l'occasion de l'ensemble des acquisitions d’actifs numériques
+				// (sauf opérations d'échange ayant bénéficié du sursis d'imposition)
+				// réalisées avant la cession, et de la valeur des biens ou services,
+				// comprenant le cas échéant les soultes versées, fournis en
+				// contrepartie de ces acquisitions.
+				if tx.Items["From"][0].Code == native {
+					c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
 				} else {
-					log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
+					rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
+					if err == nil {
+						c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
+					} else {
+						log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
+					}
 				}
 			}
 		} else {
