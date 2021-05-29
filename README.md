@@ -189,6 +189,10 @@ Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH,
 
 - GIFT : va catégoriser la TX en don `Gifts`. Utile si vous offrez des cryptos à un ami pour lui montrer comment cela fonctionne lors de son anniversaire.
 
+- INT : va catégoriser la TX en intérêt `Interests`.
+
+- AIR : va catégoriser la TX en `AirDrops`.
+
 - FEE : va associer toutes les TXs dont les Hash sont concaténées entre eux avec un point virgule ";" et fournis dans `Description` à la TX dont le Hash est donné dans `TXID`. Utile pour faire le ménage dans la catégorie `Fees`.
 
 - SHIT : va ignorer la TX donc aucune catégorisation. Utile si vous avez des Shitcoins dont vous ne voulez pas.

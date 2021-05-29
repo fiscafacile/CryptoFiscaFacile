@@ -91,7 +91,12 @@ func (uh *Uphold) ParseCSV(reader io.Reader, cat category.Category, account stri
 					if !tx.FeeAmount.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
 					}
-					uh.TXsByCategory["Deposits"] = append(uh.TXsByCategory["Deposits"], t)
+					if is, desc := cat.IsTxInterest(t.ID); is {
+						t.Note += " interest " + desc
+						uh.TXsByCategory["Interests"] = append(uh.TXsByCategory["Interests"], t)
+					} else {
+						uh.TXsByCategory["Deposits"] = append(uh.TXsByCategory["Deposits"], t)
+					}
 				} else if tx.Type == "out" {
 					t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Status}
 					t.Items = make(map[string]wallet.Currencies)

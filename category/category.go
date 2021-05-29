@@ -92,6 +92,18 @@ func (cat Category) IsTxAirDrop(txid string) (is bool, desc string) {
 	return
 }
 
+func (cat Category) IsTxInterest(txid string) (is bool, desc string) {
+	is = false
+	for _, a := range cat.csvCategories {
+		if a.txID == txid && a.kind == "INT" {
+			is = true
+			desc = a.description
+			return
+		}
+	}
+	return
+}
+
 func (cat Category) IsTxShit(txid string) (is bool, desc string, val decimal.Decimal, curr string) {
 	is = false
 	for _, a := range cat.csvCategories {
