@@ -587,7 +587,7 @@ func main() {
 		global.FindCashInOut(config.Options.Native)
 		fmt.Println("Finished")
 	}
-	global.SortTXsByDate(true)
+	global.SortByDate(true)
 	if config.Options.Stats {
 		global.PrintStats(config.Options.Native)
 	}

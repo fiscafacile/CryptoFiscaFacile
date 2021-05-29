@@ -46,6 +46,7 @@ type TX struct {
 	Items     map[string]Currencies
 	Nfts      map[string]Nfts
 	Note      string
+	used      bool
 }
 
 type TXs []TX
@@ -337,7 +338,9 @@ func (txs TXs) ApplyFromReversal() TXs {
 				for i, tc := range toCancel {
 					if c.Code == tc.Code &&
 						c.Amount.Equal(tc.Amount) {
-						toCancel[i] = toCancel[len(toCancel)-1]
+						if len(toCancel) > 1 {
+							toCancel[i] = toCancel[len(toCancel)-1]
+						}
 						toCancel = toCancel[:len(toCancel)-1]
 						break
 					}
@@ -509,110 +512,89 @@ func (txs TXsByCategory) AddUniq(a TXsByCategory) {
 }
 
 func (txs TXsByCategory) FindTransfers() TXsByCategory {
-	var realDeposits TXs
-	var realWithdrawals TXs
 	similarTimeDelta := 12 * time.Hour
-	for _, depTX := range txs["Deposits"] {
-		found := false
-		var depFees decimal.Decimal
-		if _, ok := depTX.Items["Fee"]; ok {
-			for _, f := range depTX.Items["Fee"] {
-				depFees = depFees.Add(f.Amount)
-			}
-		}
-		for _, witTX := range txs["Withdrawals"] {
-			if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
-				depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
-				strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
-				var witFees decimal.Decimal
-				if _, ok := witTX.Items["Fee"]; ok {
-					for _, f := range witTX.Items["Fee"] {
-						witFees = witFees.Add(f.Amount)
-					}
-				}
-				// log.Println("Here")
-				// depTX.Println("")
-				// witTX.Println("")
-				if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) ||
-					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
-					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
-					found = true
-					t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
-					if witTX.ID != "" {
-						t.ID = witTX.ID
-					} else if depTX.ID != "" {
-						t.ID = depTX.ID
-					}
-					t.Items = make(map[string]Currencies)
-					t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
-					t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
-					if _, ok := witTX.Items["Fee"]; ok {
-						t.Items["Fee"] = append(t.Items["Fee"], witTX.Items["Fee"]...)
-					}
-					if _, ok := depTX.Items["Fee"]; ok {
-						for _, df := range depTX.Items["Fee"] {
-							missing := true
-							for _, f := range t.Items["Fee"] {
-								if f.Code == df.Code &&
-									f.Amount.Equal(df.Amount) {
-									missing = false
-								}
-							}
-							if missing {
-								t.Items["Fee"] = append(t.Items["Fee"], df)
-							}
-						}
-					}
-					if _, ok := witTX.Items["Lost"]; ok {
-						t.Items["Lost"] = append(t.Items["Lost"], witTX.Items["Lost"]...)
-					}
-					if _, ok := depTX.Items["Lost"]; ok {
-						t.Items["Lost"] = append(t.Items["Lost"], depTX.Items["Lost"]...)
-					}
-					txs["Transfers"] = append(txs["Transfers"], t)
-					break
-					// } else {
-					// 	spew.Dump(depTX)
-					// 	spew.Dump(witTX)
-				}
-			}
-		}
-		if !found {
-			realDeposits = append(realDeposits, depTX)
-		}
-	}
-	for _, witTX := range txs["Withdrawals"] {
-		found := false
-		var witFees decimal.Decimal
-		if _, ok := witTX.Items["Fee"]; ok {
-			for _, f := range witTX.Items["Fee"] {
-				witFees = witFees.Add(f.Amount)
-			}
-		}
-		for _, depTX := range txs["Deposits"] {
+	txs["Deposits"].SortByDate(true)
+	txs["Withdrawals"].SortByDate(true)
+	for di, depTX := range txs["Deposits"] {
+		if !depTX.used {
 			var depFees decimal.Decimal
 			if _, ok := depTX.Items["Fee"]; ok {
 				for _, f := range depTX.Items["Fee"] {
 					depFees = depFees.Add(f.Amount)
 				}
 			}
-			if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
-				depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
-				strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
-				if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) ||
-					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
-					depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
-					found = true
-					break
+			for wi, witTX := range txs["Withdrawals"] {
+				if !witTX.used {
+					if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
+						depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
+						strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
+						var witFees decimal.Decimal
+						if _, ok := witTX.Items["Fee"]; ok {
+							for _, f := range witTX.Items["Fee"] {
+								witFees = witFees.Add(f.Amount)
+							}
+						}
+						// log.Println("Here")
+						// depTX.Println("")
+						// witTX.Println("")
+						if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) ||
+							depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
+							depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
+							txs["Deposits"][di].used = true
+							txs["Withdrawals"][wi].used = true
+							t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
+							t.ID = witTX.ID + "-" + depTX.ID
+							t.Items = make(map[string]Currencies)
+							t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
+							t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
+							if _, ok := witTX.Items["Fee"]; ok {
+								t.Items["Fee"] = append(t.Items["Fee"], witTX.Items["Fee"]...)
+							}
+							if _, ok := depTX.Items["Fee"]; ok {
+								for _, df := range depTX.Items["Fee"] {
+									missing := true
+									for _, f := range t.Items["Fee"] {
+										if f.Code == df.Code &&
+											f.Amount.Equal(df.Amount) {
+											missing = false
+										}
+									}
+									if missing {
+										t.Items["Fee"] = append(t.Items["Fee"], df)
+									}
+								}
+							}
+							if _, ok := witTX.Items["Lost"]; ok {
+								t.Items["Lost"] = append(t.Items["Lost"], witTX.Items["Lost"]...)
+							}
+							if _, ok := depTX.Items["Lost"]; ok {
+								t.Items["Lost"] = append(t.Items["Lost"], depTX.Items["Lost"]...)
+							}
+							txs["Transfers"] = append(txs["Transfers"], t)
+							break
+						}
+					}
 				}
 			}
 		}
-		if !found {
-			realWithdrawals = append(realWithdrawals, witTX)
+	}
+	// Purge used TXs
+	for di, depTX := range txs["Deposits"] {
+		if depTX.used {
+			if len(txs["Deposits"]) > 1 {
+				txs["Deposits"][di] = txs["Deposits"][len(txs["Deposits"])-1]
+			}
+			txs["Deposits"] = txs["Deposits"][:len(txs["Deposits"])-1]
 		}
 	}
-	txs["Deposits"] = realDeposits
-	txs["Withdrawals"] = realWithdrawals
+	for wi, witTX := range txs["Withdrawals"] {
+		if witTX.used {
+			if len(txs["Withdrawals"]) > 1 {
+				txs["Withdrawals"][wi] = txs["Withdrawals"][len(txs["Withdrawals"])-1]
+			}
+			txs["Withdrawals"] = txs["Withdrawals"][:len(txs["Withdrawals"])-1]
+		}
+	}
 	return txs
 }
 
@@ -675,7 +657,7 @@ func (txs TXsByCategory) RemoveDelistedCoins(coin string) {
 	lastTx.Note += " Force balance to 0 for " + coin + " as it has been delisted"
 }
 
-func (txs TXsByCategory) SortTXsByDate(chrono bool) {
+func (txs TXsByCategory) SortByDate(chrono bool) {
 	for k := range txs {
 		txs[k].SortByDate(chrono)
 	}
