@@ -349,7 +349,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 			coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
 			fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
 			fractionCapital = fractionCapital.Add(fractionAcquisition)
-		} else { // CashIn
+		} else if tx.Items["From"][0].IsFiat() { // CashIn
 			// Prix total d’acquisition du portefeuille
 			// Le prix total d'acquisition du portefeuille d'actifs numériques est
 			// égal à la somme de tous les prix acquittés en monnaie ayant cours
@@ -368,6 +368,8 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 					log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
 				}
 			}
+		} else {
+			log.Println("Malformated TX :", tx)
 		}
 	}
 	return
