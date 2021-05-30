@@ -517,29 +517,29 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	txs["Withdrawals"].SortByDate(true)
 	for di, depTX := range txs["Deposits"] {
 		if !depTX.used && len(depTX.Items["To"]) > 0 {
-			var depFees decimal.Decimal
-			if _, ok := depTX.Items["Fee"]; ok {
-				for _, f := range depTX.Items["Fee"] {
-					depFees = depFees.Add(f.Amount)
-				}
-			}
+			// var depFees decimal.Decimal
+			// if _, ok := depTX.Items["Fee"]; ok {
+			// 	for _, f := range depTX.Items["Fee"] {
+			// 		depFees = depFees.Add(f.Amount)
+			// 	}
+			// }
 			for wi, witTX := range txs["Withdrawals"] {
 				if !witTX.used && len(witTX.Items["From"]) > 0 {
 					if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
 						depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
 						strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
-						var witFees decimal.Decimal
-						if _, ok := witTX.Items["Fee"]; ok {
-							for _, f := range witTX.Items["Fee"] {
-								witFees = witFees.Add(f.Amount)
-							}
-						}
+						// var witFees decimal.Decimal
+						// if _, ok := witTX.Items["Fee"]; ok {
+						// 	for _, f := range witTX.Items["Fee"] {
+						// 		witFees = witFees.Add(f.Amount)
+						// 	}
+						// }
 						// log.Println("Here")
 						// depTX.Println("")
 						// witTX.Println("")
-						if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) ||
-							depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
-							depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
+						if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) {
+							// depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
+							// depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
 							txs["Deposits"][di].used = true
 							txs["Withdrawals"][wi].used = true
 							t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
