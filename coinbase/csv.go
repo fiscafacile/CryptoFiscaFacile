@@ -63,7 +63,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 					log.Println(SOURCE, "Error Parsing Timestamp : ", r[0])
 				}
 				tx.Type = r[1]
-				tx.Asset = r[2]
+				tx.Asset = ReplaceAssets(r[2])
 				tx.Quantity, err = decimal.NewFromString(r[3])
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Quantity : ", r[3])
