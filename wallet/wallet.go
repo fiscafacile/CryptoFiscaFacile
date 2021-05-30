@@ -516,7 +516,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	txs["Deposits"].SortByDate(true)
 	txs["Withdrawals"].SortByDate(true)
 	for di, depTX := range txs["Deposits"] {
-		if !depTX.used && len(depTX.Items["From"]) > 0 {
+		if !depTX.used && len(depTX.Items["To"]) > 0 {
 			var depFees decimal.Decimal
 			if _, ok := depTX.Items["Fee"]; ok {
 				for _, f := range depTX.Items["Fee"] {
