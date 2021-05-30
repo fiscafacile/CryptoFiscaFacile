@@ -1,7 +1,9 @@
 package coinbase
 
 import (
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
 	"io"
 	"log"
 	"os"
@@ -15,6 +17,7 @@ import (
 
 type CsvTX struct {
 	Timestamp time.Time
+	ID        string
 	Type      string
 	Asset     string
 	Quantity  decimal.Decimal
@@ -62,6 +65,8 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Timestamp : ", r[0])
 				}
+				hash := sha256.Sum256([]byte(SOURCE + tx.Timestamp.String()))
+				tx.ID = hex.EncodeToString(hash[:])
 				tx.Type = r[1]
 				tx.Asset = ReplaceAssets(r[2])
 				tx.Quantity, err = decimal.NewFromString(r[3])
@@ -100,12 +105,12 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 				}
 				// Fill TXsByCategory
 				if tx.Type == "Receive" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					cb.TXsByCategory["Deposits"] = append(cb.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "Send" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					if !tx.Fees.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
@@ -113,7 +118,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity.Sub(tx.Fees)})
 					cb.TXsByCategory["Withdrawals"] = append(cb.TXsByCategory["Withdrawals"], t)
 				} else if tx.Type == "Sell" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
@@ -122,7 +127,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 					}
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Buy" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: fiat, Amount: tx.Subtotal})
@@ -131,7 +136,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 					}
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Convert" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					notes := strings.Split(tx.Notes, " ")
@@ -142,7 +147,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 					}
 					cb.TXsByCategory["Exchanges"] = append(cb.TXsByCategory["Exchanges"], t)
 				} else if tx.Type == "Coinbase Earn" {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					// if !tx.Fee.IsZero() {
