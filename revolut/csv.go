@@ -47,7 +47,7 @@ func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 				tx := CsvTX{}
 				tx.Timestamp, err = time.Parse("2 Jan 2006", f2e(r[0]))
 				if err != nil {
-					tx.Timestamp, err = time.Parse("Jan 2, 2006", r[0])
+					tx.Timestamp, err = time.Parse("Jan 2,2006", r[0])
 					if err != nil {
 						log.Println(SOURCE, "Error Parsing Timestamp :", r[0])
 					}
