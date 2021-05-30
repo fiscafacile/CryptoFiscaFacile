@@ -77,14 +77,14 @@ type BuyingPrice struct {
 	Montant                 decimal.Decimal
 }
 
-type TotalBuyingPriceFIFO struct {
-	PrixAcquisition      map[string]BuyingPrice
+type TotalBuyingPrice struct {
+	Acquisitions         map[string]BuyingPrice
 	PrixTotalAcquisition decimal.Decimal
 }
 
-func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, native string, loc *time.Location) (err error) {
-	if ptafifo.PrixAcquisition == nil {
-		ptafifo.PrixAcquisition = make(map[string]BuyingPrice)
+func (pta *TotalBuyingPrice) CalculateFIFO(global wallet.TXsByCategory, native string, loc *time.Location) (err error) {
+	if pta.Acquisitions == nil {
+		pta.Acquisitions = make(map[string]BuyingPrice)
 	}
 	// source Bofip
 	// RPPM - Plus-values sur biens meubles et taxe forfaitaire sur les objets précieux
@@ -187,11 +187,11 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 					}
 				}
 				if !amountToFind.IsPositive() {
-					ptafifo.PrixAcquisition[crypto] = BuyingPrice{
+					pta.Acquisitions[crypto] = BuyingPrice{
 						TransactionsValiorisees: valuedTXs,
 						Montant:                 fifoValue,
 					}
-					ptafifo.PrixTotalAcquisition = ptafifo.PrixTotalAcquisition.Add(fifoValue)
+					pta.PrixTotalAcquisition = pta.PrixTotalAcquisition.Add(fifoValue)
 					break
 				}
 			}
@@ -204,9 +204,9 @@ func (ptafifo *TotalBuyingPriceFIFO) Calculate(global wallet.TXsByCategory, nati
 }
 
 type Cerfa2086 struct {
-	cs      Cessions
-	ptafifo TotalBuyingPriceFIFO
-	bnc     map[int]wallet.WalletCurrencies
+	cs  Cessions
+	pta TotalBuyingPrice
+	bnc map[int]wallet.WalletCurrencies
 }
 
 func New2086() Cerfa2086 {
@@ -217,7 +217,7 @@ func New2086() Cerfa2086 {
 
 func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string, loc *time.Location, cashInBNC cfg.FiscalYear) (err error) {
 	// Calculate initial PTA
-	err = c2086.ptafifo.Calculate(global, native, loc)
+	err = c2086.pta.CalculateFIFO(global, native, loc)
 	if err != nil {
 		return err
 	}
@@ -327,7 +327,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 				// reçue lors de la cession ou minoré de la soulte qu’il a versée lors
 				// de cette même cession.
 				// c.SoulteRecueOuVersee216 = ???
-				c.PrixTotalAcquisition220 = c2086.ptafifo.PrixTotalAcquisition
+				c.PrixTotalAcquisition220 = c2086.pta.PrixTotalAcquisition
 				// Fractions de capital initial
 				// Il s’agit de la fraction de capital contenue dans la valeur ou le
 				// prix de chacune des différentes cessions d'actifs numériques à titre
@@ -362,13 +362,13 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 				// comprenant le cas échéant les soultes versées, fournis en
 				// contrepartie de ces acquisitions.
 				if tx.Items["From"][0].Code == native {
-					c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
+					c2086.pta.PrixTotalAcquisition = c2086.pta.PrixTotalAcquisition.Add(tx.Items["From"][0].Amount)
 				} else {
 					rate, err := tx.Items["From"][0].GetExchangeRate(tx.Timestamp, native)
 					if err == nil {
-						c2086.ptafifo.PrixTotalAcquisition = c2086.ptafifo.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
+						c2086.pta.PrixTotalAcquisition = c2086.pta.PrixTotalAcquisition.Add(rate.Mul(tx.Items["From"][0].Amount))
 					} else {
-						log.Println("Rate missing : CashIn integration into c2086.ptafifo.PrixTotalAcquisition", spew.Sdump(tx))
+						log.Println("Rate missing : CashIn integration into c2086.pta.PrixTotalAcquisition", spew.Sdump(tx))
 					}
 				}
 			}
@@ -422,7 +422,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 	f.SetCellValue(sheet, "F1", "Valeur "+native)
 	f.SetCellValue(sheet, "G1", "Note")
 	row := 2
-	for crypto, buyPrice := range c2086.ptafifo.PrixAcquisition {
+	for crypto, buyPrice := range c2086.pta.Acquisitions {
 		for _, vtx := range buyPrice.TransactionsValiorisees {
 			f.SetCellValue(sheet, "A"+strconv.Itoa(row), vtx.TX.Timestamp.Format("02/01/2006 15:04:05"))
 			f.SetCellValue(sheet, "B"+strconv.Itoa(row), crypto)
@@ -448,7 +448,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 	f.SetColWidth(sheet, "C", "C", 17)
 	f.SetColWidth(sheet, "D", "E", 15)
 	f.SetColWidth(sheet, "G", "G", 50)
-	// c2086.ptafifo.PrixTotalAcquisition
+	// c2086.pta.PrixTotalAcquisition
 	for year := 2019; year < time.Now().Year(); year++ {
 		sheet = strconv.Itoa(year)
 		f.NewSheet(sheet)
