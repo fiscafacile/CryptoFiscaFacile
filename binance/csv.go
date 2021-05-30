@@ -75,22 +75,40 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "The Easiest Way to Trade" {
 					found := false
 					for i, ex := range b.TXsByCategory["Exchanges"] {
-						if ex.SimilarDate(2*time.Second, tx.Time) {
-							found = true
-							if b.TXsByCategory["Exchanges"][i].Items == nil {
-								b.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
-							}
+						if ex.SimilarDate(time.Minute, tx.Time) {
+							symbolsMatch := true
 							if tx.Change.IsPositive() {
-								b.TXsByCategory["Exchanges"][i].Items["To"] = append(b.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
+								if len(ex.Items["To"]) > 0 {
+									if ex.Items["To"][0].Code != tx.Coin {
+										symbolsMatch = false
+									}
+								}
 							} else {
-								if tx.Operation == "Fee" {
-									b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
-								} else {
-									b.TXsByCategory["Exchanges"][i].Items["From"] = append(b.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+								if tx.Operation != "Fee" {
+									if len(ex.Items["From"]) > 0 {
+										if ex.Items["From"][0].Code != tx.Coin {
+											symbolsMatch = false
+										}
+									}
 								}
 							}
-							if !tx.Fee.IsZero() {
-								b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
+							if symbolsMatch {
+								found = true
+								if b.TXsByCategory["Exchanges"][i].Items == nil {
+									b.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
+								}
+								if tx.Change.IsPositive() {
+									b.TXsByCategory["Exchanges"][i].Items["To"] = append(b.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
+								} else {
+									if tx.Operation == "Fee" {
+										b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+									} else {
+										b.TXsByCategory["Exchanges"][i].Items["From"] = append(b.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Coin, Amount: tx.Change.Neg()})
+									}
+								}
+								if !tx.Fee.IsZero() {
+									b.TXsByCategory["Exchanges"][i].Items["Fee"] = append(b.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Coin, Amount: tx.Fee})
+								}
 							}
 						}
 					}
