@@ -138,7 +138,8 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "DeFi Staking Interest" ||
 					tx.Operation == "Savings Interest" ||
 					tx.Operation == "Launchpool Interest" ||
-					tx.Operation == "Commission History" {
+					tx.Operation == "Commission History" ||
+					tx.Operation == "Commission Fee Shared With You" {
 					t := wallet.TX{Timestamp: tx.Time, Note: "Binance CSV : " + tx.Operation + " " + tx.Remark}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Coin, Amount: tx.Change})
@@ -154,7 +155,8 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 						b.TXsByCategory["Minings"] = append(b.TXsByCategory["Minings"], t)
 					} else if tx.Operation == "Savings Interest" {
 						b.TXsByCategory["Interests"] = append(b.TXsByCategory["Interests"], t)
-					} else if tx.Operation == "Commission History" {
+					} else if tx.Operation == "Commission History" ||
+						tx.Operation == "Commission Fee Shared With You" {
 						b.TXsByCategory["Referrals"] = append(b.TXsByCategory["Referrals"], t)
 					} else {
 						b.TXsByCategory["Deposits"] = append(b.TXsByCategory["Deposits"], t)
