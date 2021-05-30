@@ -679,7 +679,8 @@ func (txs TXsByCategory) CheckConsistency(loc *time.Location) {
 	fmt.Println("--------------------------------------------------------")
 	fmt.Println("| List of Unjustified Withdrawals (after 2019 Jan 1st) |")
 	for _, tx := range txs["Withdrawals"] {
-		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) {
+		if tx.Timestamp.After(time.Date(2018, time.December, 31, 23, 59, 59, 999, loc)) &&
+			len(tx.Items["From"]) > 0 {
 			fmt.Println("--------------------------------------------------------")
 			tx.Println("")
 		}
