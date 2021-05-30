@@ -188,7 +188,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Coinbase CSV file:", err)
 		}
-		err = cb.ParseCSV(recordFile, config.Exchanges.Coinbase.Account)
+		err = cb.ParseCSV(recordFile, *categ, config.Exchanges.Coinbase.Account)
 		if err != nil {
 			log.Fatal("Error parsing Coinbase CSV file:", err)
 		}

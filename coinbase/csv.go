@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
@@ -28,7 +29,7 @@ type CsvTX struct {
 	Notes     string
 }
 
-func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
+func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, cat category.Category, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Coinbase CSV :"
@@ -116,7 +117,12 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, account string) (err error) {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
 					}
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity.Sub(tx.Fees)})
-					cb.TXsByCategory["Withdrawals"] = append(cb.TXsByCategory["Withdrawals"], t)
+					if is, desc := cat.IsTxGift(t.ID); is {
+						t.Note += " " + desc
+						cb.TXsByCategory["Gifts"] = append(cb.TXsByCategory["Gifts"], t)
+					} else {
+						cb.TXsByCategory["Withdrawals"] = append(cb.TXsByCategory["Withdrawals"], t)
+					}
 				} else if tx.Type == "Sell" {
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
