@@ -114,7 +114,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, cat category.Category, accoun
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					if !tx.Fees.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fees})
 					}
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity.Sub(tx.Fees)})
 					if is, desc := cat.IsTxGift(t.ID); is {
