@@ -516,7 +516,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 	txs["Deposits"].SortByDate(true)
 	txs["Withdrawals"].SortByDate(true)
 	for di, depTX := range txs["Deposits"] {
-		if !depTX.used {
+		if !depTX.used && len(depTX.Items["From"]) > 0 {
 			var depFees decimal.Decimal
 			if _, ok := depTX.Items["Fee"]; ok {
 				for _, f := range depTX.Items["Fee"] {
@@ -524,7 +524,7 @@ func (txs TXsByCategory) FindTransfers() TXsByCategory {
 				}
 			}
 			for wi, witTX := range txs["Withdrawals"] {
-				if !witTX.used {
+				if !witTX.used && len(witTX.Items["From"]) > 0 {
 					if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
 						depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
 						strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
