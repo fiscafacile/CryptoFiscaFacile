@@ -348,7 +348,12 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 					// seulement être déduits du prix de cession qui constitue le premier
 					// terme de la différence prévue dans la formule de calcul mentionnée
 					// ci-dessus).
-					coefCession := c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
+					var coefCession decimal.Decimal
+					if !c.ValeurPortefeuille212.IsZero() {
+						coefCession = c.PrixNetDeSoulte217.Div(c.ValeurPortefeuille212)
+					} else {
+						log.Println("Erreur : Valeur du PF nul après", spew.Sdump(tx))
+					}
 					fractionAcquisition := coefCession.Mul(c.PrixTotalAcquisitionNet223)
 					fractionCapital = fractionCapital.Add(fractionAcquisition)
 				}
@@ -371,7 +376,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 						if err == nil {
 							c2086.pta.PrixTotalAcquisition = c2086.pta.PrixTotalAcquisition.Add(rate.Mul(from.Amount))
 						} else {
-							log.Println("Rate missing : CashIn integration into c2086.pta.PrixTotalAcquisition", spew.Sdump(tx))
+							log.Println("Rate missing during CashIn integration into PrixTotalAcquisition", spew.Sdump(tx))
 						}
 					}
 				}
