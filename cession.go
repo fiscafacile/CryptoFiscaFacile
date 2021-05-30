@@ -358,7 +358,8 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 					fractionCapital = fractionCapital.Add(fractionAcquisition)
 				}
 			}
-		} else if len(tx.Items["From"]) > 0 {
+		}
+		if len(tx.Items["From"]) > 0 {
 			for _, from := range tx.Items["From"] {
 				if from.IsFiat() { // CashIn
 					// Prix total d’acquisition du portefeuille

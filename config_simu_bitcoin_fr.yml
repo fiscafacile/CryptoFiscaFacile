@@ -1,0 +1,27 @@
+---
+exchanges:
+  kraken:
+    csv:
+      all:
+        - Inputs/Kraken/simulation-bitcoin-fr.csv
+options:
+  bcd: no
+  bch: no
+  binance-extended: no
+  btg: no
+  cashin-bnc:
+    2019: no
+    2020: no
+  export-2086: yes
+  lbtc: no
+  location: Europe/Paris
+  native: EUR
+  stats: yes
+  txs-categ: # Inputs/TXS_Categ.csv
+tools:
+  coinapi:
+    # key: <votre api_key ici>
+  coinlayer:
+    # key: <votre api_key ici>
+  etherscan:
+    # key: <votre api_key ici>
