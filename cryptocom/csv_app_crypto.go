@@ -195,7 +195,11 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					}
 					if tx.Kind == "crypto_payment" ||
 						tx.Kind == "crypto_viban_exchange" {
-						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
+						if tx.NativeAmount.IsPositive() {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount})
+						} else {
+							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
+						}
 						cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
 					} else if tx.Kind == "card_cashback_reverted" ||
 						tx.Kind == "transfer_cashback_reverted" ||
