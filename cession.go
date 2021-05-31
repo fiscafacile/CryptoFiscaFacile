@@ -254,9 +254,6 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	// Calculate PV starting on 2019 Jan 1st
 	var fractionCapital decimal.Decimal
 	for _, tx := range cashInOut {
-		if len(tx.Items["To"]) > 1 || len(tx.Items["From"]) > 1 {
-			log.Println("Will be missing values :", spew.Sdump(tx))
-		}
 		if len(tx.Items["To"]) > 0 {
 			for _, to := range tx.Items["To"] {
 				if to.IsFiat() { // CashOut
