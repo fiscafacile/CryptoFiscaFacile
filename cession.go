@@ -256,7 +256,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	for _, tx := range cashInOut {
 		if len(tx.Items["To"]) > 0 {
 			for _, to := range tx.Items["To"] {
-				if to.IsFiat() { // CashOut
+				if to.IsFiat() && to.Amount.GreaterThanOrEqual(decimal.NewFromInt(1)) { // CashOut
 					c := Cession{Date211: tx.Timestamp}
 					infos := strings.SplitN(tx.Note, ":", 2)
 					c.Source = infos[0]
@@ -459,7 +459,7 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 	}
 	// c2086.pta.PrixTotalAcquisition
 	for year := 2019; year < time.Now().Year(); year++ {
-		sheet = strconv.Itoa(year)
+		sheet := strconv.Itoa(year)
 		f.NewSheet(sheet)
 		f.SetCellValue(sheet, "A2", 211)
 		f.SetCellValue(sheet, "A3", 212)
