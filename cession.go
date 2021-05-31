@@ -419,42 +419,44 @@ func (c2086 Cerfa2086) Println(native string) {
 
 func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 	f := excelize.NewFile()
-	sheet := "Prix Total Acquisition PEPS"
-	f.NewSheet(sheet)
-	f.SetCellValue(sheet, "A1", "Date")
-	f.SetCellValue(sheet, "B1", "Crypto")
-	f.SetCellValue(sheet, "C1", "Quantité à Trouver")
-	f.SetCellValue(sheet, "D1", "Quantité Entrée")
-	f.SetCellValue(sheet, "E1", "Quantité Sortie")
-	f.SetCellValue(sheet, "F1", "Valeur "+native)
-	f.SetCellValue(sheet, "G1", "Note")
-	row := 2
-	for crypto, buyPrice := range c2086.pta.Acquisitions {
-		for _, vtx := range buyPrice.TransactionsValiorisees {
-			f.SetCellValue(sheet, "A"+strconv.Itoa(row), vtx.TX.Timestamp.Format("02/01/2006 15:04:05"))
-			f.SetCellValue(sheet, "B"+strconv.Itoa(row), crypto)
-			toFind, _ := vtx.QtyToFind.Float64()
-			f.SetCellValue(sheet, "C"+strconv.Itoa(row), toFind)
-			if !vtx.QtyIn.IsZero() {
-				in, _ := vtx.QtyIn.Float64()
-				f.SetCellValue(sheet, "D"+strconv.Itoa(row), in)
+	if len(c2086.pta.Acquisitions) > 0 {
+		sheet := "Prix Total Acquisition PEPS"
+		f.NewSheet(sheet)
+		f.SetCellValue(sheet, "A1", "Date")
+		f.SetCellValue(sheet, "B1", "Crypto")
+		f.SetCellValue(sheet, "C1", "Quantité à Trouver")
+		f.SetCellValue(sheet, "D1", "Quantité Entrée")
+		f.SetCellValue(sheet, "E1", "Quantité Sortie")
+		f.SetCellValue(sheet, "F1", "Valeur "+native)
+		f.SetCellValue(sheet, "G1", "Note")
+		row := 2
+		for crypto, buyPrice := range c2086.pta.Acquisitions {
+			for _, vtx := range buyPrice.TransactionsValiorisees {
+				f.SetCellValue(sheet, "A"+strconv.Itoa(row), vtx.TX.Timestamp.Format("02/01/2006 15:04:05"))
+				f.SetCellValue(sheet, "B"+strconv.Itoa(row), crypto)
+				toFind, _ := vtx.QtyToFind.Float64()
+				f.SetCellValue(sheet, "C"+strconv.Itoa(row), toFind)
+				if !vtx.QtyIn.IsZero() {
+					in, _ := vtx.QtyIn.Float64()
+					f.SetCellValue(sheet, "D"+strconv.Itoa(row), in)
+				}
+				if !vtx.QtyOut.IsZero() {
+					out, _ := vtx.QtyOut.Float64()
+					f.SetCellValue(sheet, "E"+strconv.Itoa(row), out)
+				}
+				val, _ := vtx.NativeValue.RoundBank(2).Float64()
+				f.SetCellValue(sheet, "F"+strconv.Itoa(row), val)
+				f.SetCellValue(sheet, "G"+strconv.Itoa(row), vtx.TX.Note)
+				// vtx.ValeurPEPS
+				row += 1
 			}
-			if !vtx.QtyOut.IsZero() {
-				out, _ := vtx.QtyOut.Float64()
-				f.SetCellValue(sheet, "E"+strconv.Itoa(row), out)
-			}
-			val, _ := vtx.NativeValue.RoundBank(2).Float64()
-			f.SetCellValue(sheet, "F"+strconv.Itoa(row), val)
-			f.SetCellValue(sheet, "G"+strconv.Itoa(row), vtx.TX.Note)
-			// vtx.ValeurPEPS
-			row += 1
+			// buyPrice.Montant
 		}
-		// buyPrice.Montant
+		f.SetColWidth(sheet, "A", "A", 19)
+		f.SetColWidth(sheet, "C", "C", 17)
+		f.SetColWidth(sheet, "D", "E", 15)
+		f.SetColWidth(sheet, "G", "G", 50)
 	}
-	f.SetColWidth(sheet, "A", "A", 19)
-	f.SetColWidth(sheet, "C", "C", 17)
-	f.SetColWidth(sheet, "D", "E", 15)
-	f.SetColWidth(sheet, "G", "G", 50)
 	// c2086.pta.PrixTotalAcquisition
 	for year := 2019; year < time.Now().Year(); year++ {
 		sheet = strconv.Itoa(year)
