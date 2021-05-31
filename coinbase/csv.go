@@ -146,7 +146,7 @@ func (cb *Coinbase) ParseCSV(reader io.ReadSeeker, cat category.Category, accoun
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Quantity})
 					notes := strings.Split(tx.Notes, " ")
-					amount, _ := decimal.NewFromString(notes[len(notes)-2])
+					amount, _ := decimal.NewFromString(strings.ReplaceAll(notes[len(notes)-2], ",", "."))
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: notes[len(notes)-1], Amount: amount})
 					if !tx.Fees.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: fiat, Amount: tx.Fees})
