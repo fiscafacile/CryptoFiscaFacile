@@ -3,6 +3,7 @@ package binance
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -27,8 +28,10 @@ func (api *api) getAssetDividendTXs(loc *time.Location) {
 			fmt.Print(".")
 			assDiv, err := api.getAssetDividend(y, t, loc)
 			if err != nil {
-				api.doneSpotTra <- err
-				return
+				// api.doneAssDiv <- err
+				// return
+				log.Println(err)
+				break
 			}
 			for _, div := range assDiv.Rows {
 				tx := assetDividendTX{}

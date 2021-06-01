@@ -3,6 +3,7 @@ package binance
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -27,8 +28,10 @@ func (api *api) getDepositsTXs(loc *time.Location) {
 			fmt.Print(".")
 			depoHist, err := api.getDepositHistory(y, t, loc)
 			if err != nil {
-				api.doneDep <- err
-				return
+				// api.doneDep <- err
+				// return
+				log.Println(err)
+				break
 			}
 			for _, dep := range depoHist {
 				tx := depositTX{}

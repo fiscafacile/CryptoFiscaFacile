@@ -28,8 +28,10 @@ func (api *api) getWithdrawalsTXs(loc *time.Location) {
 			fmt.Print(".")
 			withHist, err := api.getWithdrawalHistory(y, t, loc)
 			if err != nil {
-				api.doneWit <- err
-				return
+				// api.doneWit <- err
+				// return
+				log.Println(err)
+				break
 			}
 			for _, wit := range withHist {
 				tx := withdrawalTX{}
