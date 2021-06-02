@@ -103,8 +103,10 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 							ex.Note[:5] == tx.Kind[:5] {
 							found = true
 							if is, desc, val, curr := cat.IsTxShit(tx.ID); is {
-								cdc.TXsByCategory["Exchanges"][i].Note += " " + desc
-								cdc.TXsByCategory["Exchanges"][i].Items["Lost"] = append(cdc.TXsByCategory["Exchanges"][i].Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+								if len(cdc.TXsByCategory["Exchanges"][i].Items["Lost"]) == 0 {
+									cdc.TXsByCategory["Exchanges"][i].Note += " " + desc
+									cdc.TXsByCategory["Exchanges"][i].Items["Lost"] = append(cdc.TXsByCategory["Exchanges"][i].Items["Lost"], wallet.Currency{Code: curr, Amount: val})
+								}
 							}
 							if tx.Amount.IsPositive() {
 								cdc.TXsByCategory["Exchanges"][i].Items["To"] = append(cdc.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
