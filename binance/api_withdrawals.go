@@ -99,7 +99,7 @@ func (api *api) getWithdrawalHistory(year, trimester int, loc *time.Location) (w
 	}
 	if end_ts.After(now) {
 		end_ts = now
-		period += "-" + strconv.FormatInt(end_ts.Unix(), 10)
+		// period += "-" + strconv.FormatInt(end_ts.Unix(), 10)
 	}
 	useCache := true
 	db, err := scribble.New("./Cache", nil)
