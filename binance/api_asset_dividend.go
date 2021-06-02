@@ -23,8 +23,8 @@ type assetDividendTX struct {
 func (api *api) getAssetDividendTXs(loc *time.Location) {
 	today := time.Now()
 	thisYear := today.Year()
-	for y := thisYear; y > 2017; y-- {
-		for t := 6; t > 0; t-- {
+	for y := 2018; y <= thisYear; y++ {
+		for t := 1; t < 7; t++ {
 			fmt.Print(".")
 			assDiv, err := api.getAssetDividend(y, t, loc)
 			if err != nil {
