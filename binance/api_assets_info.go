@@ -4,6 +4,8 @@ import (
 	"errors"
 	"strconv"
 	"time"
+
+	scribble "github.com/nanobox-io/golang-scribble"
 )
 
 type Symbols struct {
@@ -58,18 +60,34 @@ type GetExchangeInfoResp struct {
 }
 
 func (api *api) getExchangeInfo() (exchangeInfo GetExchangeInfoResp, err error) {
-	method := "api/v3/exchangeInfo"
-	resp, err := api.clientExInfo.R().
-		SetResult(&GetExchangeInfoResp{}).
-		SetError(&ErrorResp{}).
-		Get(api.basePath + method)
+	useCache := true
+	db, err := scribble.New("./Cache", nil)
 	if err != nil {
-		return exchangeInfo, errors.New("Binance API Deposits : Error Requesting exchangeInfo")
+		useCache = false
 	}
-	if resp.StatusCode() > 300 {
-		return exchangeInfo, errors.New("Binance API Deposits : Error StatusCode " + strconv.Itoa(resp.StatusCode()))
+	if useCache {
+		err = db.Read("Binance/api/v3", "exchangeInfo", &exchangeInfo)
 	}
-	exchangeInfo = *resp.Result().(*GetExchangeInfoResp)
+	if !useCache || err != nil {
+		method := "api/v3/exchangeInfo"
+		resp, err := api.clientExInfo.R().
+			SetResult(&GetExchangeInfoResp{}).
+			SetError(&ErrorResp{}).
+			Get(api.basePath + method)
+		if err != nil {
+			return exchangeInfo, errors.New("Binance API ExchangeInfo : Error Requesting")
+		}
+		if resp.StatusCode() > 300 {
+			return exchangeInfo, errors.New("Binance API ExchangeInfo : Error StatusCode " + strconv.Itoa(resp.StatusCode()))
+		}
+		exchangeInfo = *resp.Result().(*GetExchangeInfoResp)
+		if useCache {
+			err = db.Write("Binance/api/v3", "exchangeInfo", exchangeInfo)
+			if err != nil {
+				return exchangeInfo, errors.New("Binance API ExchangeInfo : Error Caching")
+			}
+		}
+	}
 	api.symbols = exchangeInfo.Symbols
 	for _, r := range exchangeInfo.Ratelimits {
 		if r.Ratelimittype == "REQUEST_WEIGHT" {
