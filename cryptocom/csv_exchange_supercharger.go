@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -16,12 +17,14 @@ type csvSupercharger struct {
 
 type csvExSuperchargerTX struct {
 	Time        time.Time
+	ID          string
 	Currency    string
 	Amount      decimal.Decimal
 	Description string
 }
 
 func (cdc *CryptoCom) ParseCSVExchangeSupercharger(reader io.Reader) (err error) {
+	const SOURCE = "Crypto.com Exchange SuperCharger CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -32,6 +35,7 @@ func (cdc *CryptoCom) ParseCSVExchangeSupercharger(reader io.Reader) (err error)
 				if err != nil {
 					log.Println("Error Parsing Time : ", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Time.String())
 				tx.Currency = r[1]
 				tx.Amount, err = decimal.NewFromString(r[2])
 				if err != nil {
@@ -39,7 +43,7 @@ func (cdc *CryptoCom) ParseCSVExchangeSupercharger(reader io.Reader) (err error)
 				}
 				tx.Description = r[3]
 				cdc.csvExSuperchargerTXs = append(cdc.csvExSuperchargerTXs, tx)
-				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange SuperCharger CSV : " + tx.Description}
+				t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Description}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 				cdc.csvSupercharger.txsByCategory["Minings"] = append(cdc.csvSupercharger.txsByCategory["Minings"], t)

@@ -1,22 +1,21 @@
 package cryptocom
 
 import (
-	"crypto/sha256"
 	"encoding/csv"
-	"encoding/hex"
 	"io"
 	"log"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type csvAppCryptoTX struct {
-	ID              string
 	Timestamp       time.Time
+	ID              string
 	Description     string
 	Currency        string
 	Amount          decimal.Decimal
@@ -46,6 +45,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Timestamp", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String())
 				tx.Description = r[1]
 				tx.Currency = r[2]
 				tx.Amount, err = decimal.NewFromString(r[3])
@@ -64,8 +64,6 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					log.Println(SOURCE, "Error Parsing NativeAmountUSD", r[8])
 				}
 				tx.Kind = r[9]
-				hash := sha256.Sum256([]byte(SOURCE + tx.Timestamp.String()))
-				tx.ID = hex.EncodeToString(hash[:])
 				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
 				if tx.Timestamp.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Timestamp

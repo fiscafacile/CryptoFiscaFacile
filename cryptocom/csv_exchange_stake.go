@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -16,6 +17,7 @@ type csvStake struct {
 
 type csvExStakeTX struct {
 	Time     time.Time
+	ID       string
 	Stake    wallet.Currency
 	Apr      string
 	Interest wallet.Currency
@@ -23,6 +25,7 @@ type csvExStakeTX struct {
 }
 
 func (cdc *CryptoCom) ParseCSVExchangeStake(reader io.Reader) (err error) {
+	const SOURCE = "Crypto.com Exchange Stake CSV :"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
@@ -33,6 +36,7 @@ func (cdc *CryptoCom) ParseCSVExchangeStake(reader io.Reader) (err error) {
 				if err != nil {
 					log.Println("Error Parsing Time : ", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Time.String())
 				tx.Stake.Code = r[1]
 				tx.Stake.Amount, err = decimal.NewFromString(r[2])
 				if err != nil {
@@ -46,7 +50,7 @@ func (cdc *CryptoCom) ParseCSVExchangeStake(reader io.Reader) (err error) {
 				}
 				tx.Status = r[6]
 				cdc.csvExStakeTXs = append(cdc.csvExStakeTXs, tx)
-				t := wallet.TX{Timestamp: tx.Time, Note: "Crypto.com Exchange Stake CSV : " + tx.Stake.Amount.String() + " " + tx.Stake.Code + " " + tx.Apr}
+				t := wallet.TX{Timestamp: tx.Time, ID: tx.ID, Note: SOURCE + " " + tx.Stake.Amount.String() + " " + tx.Stake.Code + " " + tx.Apr}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], tx.Interest)
 				cdc.csvStake.txsByCategory["Interests"] = append(cdc.csvStake.txsByCategory["Interests"], t)

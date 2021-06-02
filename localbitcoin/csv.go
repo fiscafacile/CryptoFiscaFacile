@@ -4,17 +4,17 @@ import (
 	"encoding/csv"
 	"io"
 	"log"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type CsvTXTrade struct {
-	ID                    int
+	ID                    string
 	CreatedAt             time.Time
 	Buyer                 string
 	Seller                string
@@ -35,7 +35,7 @@ type CsvTXTrade struct {
 }
 
 type CsvTXTransfer struct {
-	ID       int
+	ID       string
 	Created  time.Time
 	Received decimal.Decimal
 	Sent     decimal.Decimal
@@ -59,12 +59,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader, account string) (err err
 				curr = strings.ToUpper(curr)
 			} else {
 				tx := CsvTXTrade{}
-				id, err := strconv.Atoi(r[0])
-				if err != nil {
-					log.Println(SOURCE, "Error Parsing ID : ", r[0])
-				} else {
-					tx.ID = id
-				}
+				tx.ID = r[0]
 				tx.CreatedAt, err = time.Parse("2006-01-02 15:04:05+00:00", r[1])
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing CreatedAt : ", r[1])
@@ -124,7 +119,7 @@ func (lb *LocalBitcoin) ParseTradeCSV(reader io.Reader, account string) (err err
 				}
 				// Fill TXsByCategory
 				if tx.TradeType == "ONLINE_SELL" {
-					t := wallet.TX{Timestamp: tx.TransactionReleasedAt, Note: SOURCE + " " + tx.Seller + " " + tx.Buyer + " " + tx.TradeType + " " + tx.OnlineProvider + " " + tx.Reference}
+					t := wallet.TX{Timestamp: tx.TransactionReleasedAt, ID: tx.ID, Note: SOURCE + " " + tx.Seller + " " + tx.Buyer + " " + tx.TradeType + " " + tx.OnlineProvider + " " + tx.Reference}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.Amount})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.FiatCurrency, Amount: tx.FiatAmount})
@@ -167,17 +162,14 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader, account string) (err 
 		for _, r := range records {
 			if r[0] != "TXID" {
 				tx := CsvTXTransfer{}
-				if r[0] != "" {
-					id, err := strconv.Atoi(r[0])
-					if err != nil {
-						log.Println(SOURCE, "Error Parsing ID : ", r[0])
-					} else {
-						tx.ID = id
-					}
-				}
 				tx.Created, err = time.Parse("2006-01-02T15:04:05+00:00", r[1])
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Created : ", r[1])
+				}
+				if r[0] != "" {
+					tx.ID = r[0]
+				} else {
+					utils.GetUniqueID(SOURCE + tx.Created.String())
 				}
 				if r[2] != "" {
 					tx.Received, err = decimal.NewFromString(r[2])
@@ -203,7 +195,7 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader, account string) (err 
 				}
 				// Fill TXsByCategory
 				if tx.Type == "Send to address" {
-					t := wallet.TX{Timestamp: tx.Created, Note: SOURCE + " " + tx.Type + " " + tx.Desc + " " + tx.Notes}
+					t := wallet.TX{Timestamp: tx.Created, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Desc + " " + tx.Notes}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.Sent})
 					lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)
@@ -217,7 +209,7 @@ func (lb *LocalBitcoin) ParseTransferCSV(reader io.Reader, account string) (err 
 						}
 					}
 					if !found {
-						t := wallet.TX{Timestamp: tx.Created, Note: SOURCE + " " + tx.Type + " " + tx.Desc + " " + tx.Notes}
+						t := wallet.TX{Timestamp: tx.Created, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Desc + " " + tx.Notes}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: curr, Amount: tx.Sent})
 						lb.TXsByCategory["Withdrawals"] = append(lb.TXsByCategory["Withdrawals"], t)

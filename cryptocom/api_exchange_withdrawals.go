@@ -7,12 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
 )
 
 type withdrawalTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Currency    string
 	Amount      decimal.Decimal
@@ -20,6 +22,7 @@ type withdrawalTX struct {
 }
 
 func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
+	const SOURCE = "Crypto.com Exchange API Withdrawals :"
 	for y := 2019; y <= time.Now().Year(); y++ {
 		for q := 1; q < 5; q++ {
 			fmt.Print(".")
@@ -33,6 +36,7 @@ func (api *apiEx) getWithdrawalsTXs(loc *time.Location) {
 			for _, wit := range withHist.Result.WithdrawalList {
 				tx := withdrawalTX{}
 				tx.Timestamp = time.Unix(wit.UpdateTime/1000, 0)
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String())
 				tx.Description = "to " + wit.Address
 				tx.Currency = wit.Currency
 				tx.Amount = decimal.NewFromFloat(wit.Amount)
@@ -68,6 +72,7 @@ type GetWithdrawalHistoryResp struct {
 }
 
 func (api *apiEx) getWithdrawalHistory(year, quarter int, loc *time.Location) (withHist GetWithdrawalHistoryResp, err error) {
+	const SOURCE = "Crypto.com Exchange API Withdrawals :"
 	var start_month time.Month
 	var end_month time.Month
 	end_year := year
@@ -86,7 +91,7 @@ func (api *apiEx) getWithdrawalHistory(year, quarter int, loc *time.Location) (w
 		end_month = time.January
 		end_year = year + 1
 	} else {
-		err = errors.New("Crypto.com Exchange API Withdrawals : Invalid Quarter" + period)
+		err = errors.New(SOURCE + " Invalid Quarter" + period)
 		return
 	}
 	start_ts := time.Date(year, start_month, 1, 0, 0, 0, 0, loc)
@@ -125,16 +130,16 @@ func (api *apiEx) getWithdrawalHistory(year, quarter int, loc *time.Location) (w
 			SetError(&ErrorResp{}).
 			Post(api.basePath + method)
 		if err != nil {
-			return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error Requesting" + period)
+			return withHist, errors.New(SOURCE + " Error Requesting" + period)
 		}
 		if resp.StatusCode() > 300 {
-			return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
+			return withHist, errors.New(SOURCE + " Error StatusCode" + strconv.Itoa(resp.StatusCode()) + " for " + period)
 		}
 		withHist = *resp.Result().(*GetWithdrawalHistoryResp)
 		if useCache {
 			err = db.Write("Crypto.com/Exchange/private/get-withdrawal-history", period, withHist)
 			if err != nil {
-				return withHist, errors.New("Crypto.com Exchange API Withdrawals : Error Caching" + period)
+				return withHist, errors.New(SOURCE + " Error Caching" + period)
 			}
 		}
 		time.Sleep(api.timeBetweenReq)

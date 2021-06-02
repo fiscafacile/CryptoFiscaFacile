@@ -171,7 +171,7 @@ func (api *api) categorize() {
 		}
 	}
 	for _, tx := range api.assetDividendTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: "Binance API : Asset Dividend " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: "Binance API : Asset Dividend " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 		if tx.Description == "BNB Vault" ||

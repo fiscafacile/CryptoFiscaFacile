@@ -10,12 +10,14 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type CsvTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Rate        decimal.Decimal
 	PaidOut     decimal.Decimal
@@ -52,6 +54,7 @@ func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 						log.Println(SOURCE, "Error Parsing Timestamp :", r[0])
 					}
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String())
 				tx.Description = strings.ReplaceAll(r[1], "\u00a0", "")
 				fields := strings.Split(tx.Description, " ")
 				for i := 0; i < len(fields); i++ {
@@ -96,13 +99,13 @@ func (revo *Revolut) ParseCSV(reader io.Reader, account string) (err error) {
 				}
 				// Fill TXsByCategory
 				if !tx.PaidIn.IsZero() {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: tx.PaidIn})
 					t.Items["From"] = append(t.Items["From"], tx.ExchangeOut)
 					revo.TXsByCategory["Exchanges"] = append(revo.TXsByCategory["Exchanges"], t)
 				} else if !tx.PaidOut.IsZero() {
-					t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " " + tx.Description}
+					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: tx.PaidOut})
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "EUR", Amount: tx.PaidOut.Mul(tx.Rate)})

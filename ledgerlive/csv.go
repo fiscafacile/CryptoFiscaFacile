@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type CsvTX struct {
 	Date        time.Time
+	ID          string
 	Currency    string
 	Type        string
 	Amount      decimal.Decimal
@@ -35,6 +37,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 				if err != nil {
 					log.Println(SOURCE, ": Error Parsing Date", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Date.String())
 				tx.Currency = r[1]
 				tx.Type = r[2]
 				tx.Amount, err = decimal.NewFromString(r[3])
@@ -56,7 +59,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 		for _, tx := range ll.CsvTXs {
 			// Fill TXsByCategory
 			if tx.Type == "IN" {
-				t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.AccountName + " : " + tx.Hash + " -> " + tx.AccountXpub}
+				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.Hash + " -> " + tx.AccountXpub}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 				if !tx.Fees.IsZero() {
@@ -71,7 +74,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 				}
 			} else if tx.Type == "OUT" {
 				if !tx.Fees.Equal(tx.Amount) { // ignore Fee associated to other OUT, will be found later
-					t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
+					t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
 					t.Items = make(map[string]wallet.Currencies)
 					if !tx.Fees.IsZero() {
 						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
@@ -93,7 +96,7 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 					}
 				}
 			} else if tx.Type == "FEES" {
-				t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
+				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
 				ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)

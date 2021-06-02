@@ -83,7 +83,7 @@ func (api *apiEx) categorize() {
 	const SOURCE = "Crypto.com Exchange API :"
 	alreadyAsked := []string{}
 	for _, tx := range api.withdrawalTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Withdrawal " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " Withdrawal " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 		if !tx.Fee.IsZero() {
@@ -98,7 +98,7 @@ func (api *apiEx) categorize() {
 		}
 	}
 	for _, tx := range api.depositTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Deposit " + tx.Description}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " Deposit " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 		if !tx.Fee.IsZero() {
@@ -113,7 +113,7 @@ func (api *apiEx) categorize() {
 		}
 	}
 	for _, tx := range api.spotTradeTXs {
-		t := wallet.TX{Timestamp: tx.Timestamp, Note: SOURCE + " Exchange " + tx.Description, ID: tx.ID}
+		t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " Exchange " + tx.Description}
 		t.Items = make(map[string]wallet.Currencies)
 		curr := strings.Split(tx.Pair, "_")
 		if !tx.Fee.IsZero() {

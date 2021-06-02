@@ -7,12 +7,14 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
 
 type csvDepositsTX struct {
 	Date     time.Time
+	ID       string
 	Currency string
 	Amount   decimal.Decimal
 	Address  string
@@ -33,6 +35,7 @@ func (pl *Poloniex) ParseDepositsCSV(reader io.Reader, account string) (err erro
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Date", r[0])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Date.String())
 				tx.Currency = r[1]
 				tx.Amount, err = decimal.NewFromString(r[2])
 				if err != nil {
@@ -48,7 +51,7 @@ func (pl *Poloniex) ParseDepositsCSV(reader io.Reader, account string) (err erro
 					lastTimeUsed = tx.Date
 				}
 				// Fill TXsByCategory
-				t := wallet.TX{Timestamp: tx.Date, Note: SOURCE + " " + tx.Address + " " + tx.Status}
+				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Address + " " + tx.Status}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
 				pl.TXsByCategory["Deposits"] = append(pl.TXsByCategory["Deposits"], t)

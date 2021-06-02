@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -15,6 +16,7 @@ import (
 type csvTX struct {
 	Type      string
 	DateTime  time.Time
+	ID        string
 	Account   string
 	Amount    decimal.Decimal
 	Symbol    string
@@ -42,6 +44,7 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader, account string) (err error) {
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Date", r[1])
 				}
+				tx.ID = utils.GetUniqueID(SOURCE + tx.DateTime.String())
 				tx.Account = r[2]
 				curr := strings.Split(r[3], " ")
 				tx.Amount, err = decimal.NewFromString(curr[0])
@@ -69,7 +72,7 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader, account string) (err error) {
 				tx.SubType = r[7]
 				bs.csvTXs = append(bs.csvTXs, tx)
 				// Fill TXsByCategory
-				t := wallet.TX{Timestamp: tx.DateTime, Note: SOURCE + " " + tx.Type + " " + tx.SubType}
+				t := wallet.TX{Timestamp: tx.DateTime, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.SubType}
 				t.Items = make(map[string]wallet.Currencies)
 				if !tx.Fee.IsZero() && tx.FeeSymbol != "" {
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeSymbol, Amount: tx.Fee})

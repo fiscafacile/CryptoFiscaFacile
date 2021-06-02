@@ -7,12 +7,14 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/nanobox-io/golang-scribble"
 	"github.com/shopspring/decimal"
 )
 
 type depositTX struct {
 	Timestamp   time.Time
+	ID          string
 	Description string
 	Currency    string
 	Amount      decimal.Decimal
@@ -20,6 +22,7 @@ type depositTX struct {
 }
 
 func (api *apiEx) getDepositsTXs(loc *time.Location) {
+	const SOURCE = "Crypto.com Exchange API Deposits :"
 	for y := 2019; y <= time.Now().Year(); y++ {
 		for q := 1; q < 5; q++ {
 			fmt.Print(".")
@@ -33,6 +36,7 @@ func (api *apiEx) getDepositsTXs(loc *time.Location) {
 			for _, dep := range depoHist.Result.DepositList {
 				tx := depositTX{}
 				tx.Timestamp = time.Unix(dep.UpdateTime/1000, 0)
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String())
 				tx.Description = "from " + dep.Address
 				tx.Currency = dep.Currency
 				tx.Amount = decimal.NewFromFloat(dep.Amount)

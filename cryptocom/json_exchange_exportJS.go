@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
+	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -248,6 +249,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 		for _, cs := range exch.Cros.HistoryList {
 			if cs.StatusText == "Completed" {
 				t := wallet.TX{Timestamp: time.Unix(cs.CreatedAtTime/1000, 0), Note: SOURCE + " CRO Stake Interest " + cs.StakeAmount + " " + cs.CoinSymbol + " at " + strconv.FormatFloat(cs.Apr*100, 'f', 1, 64) + "%"}
+				t.ID = utils.GetUniqueID(SOURCE + t.Timestamp.String())
 				t.Items = make(map[string]wallet.Currencies)
 				amount, err := decimal.NewFromString(cs.InterestAmount)
 				if err != nil {
@@ -286,6 +288,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 		for _, r := range exch.Rebs.HistoryList {
 			if r.StatusText == "Completed" {
 				t := wallet.TX{Timestamp: time.Unix(r.CreatedAtTime/1000, 0), Note: SOURCE + " Rebate on Fee paid " + r.FeePaid + " " + r.CoinSymbol + " at " + strconv.FormatFloat(r.RebatePercentage*100, 'f', 1, 64) + "%"}
+				t.ID = utils.GetUniqueID(SOURCE + t.Timestamp.String())
 				t.Items = make(map[string]wallet.Currencies)
 				amount, err := decimal.NewFromString(r.RebateAmount)
 				if err != nil {
@@ -335,6 +338,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 		}
 		for _, s := range exch.Sup.HistoryList {
 			t := wallet.TX{Timestamp: time.Unix(s.CreatedAt/1000, 0), Note: SOURCE + " Supercharger Reward"}
+			t.ID = utils.GetUniqueID(SOURCE + t.Timestamp.String())
 			t.Items = make(map[string]wallet.Currencies)
 			amount, err := decimal.NewFromString(s.RewardAmount)
 			if err != nil {
@@ -394,6 +398,7 @@ func (cdc *CryptoCom) ParseJSONExchangeExportJS(reader io.Reader, account string
 				log.Println(SOURCE, "Error Parsing SignupBonusCreatedAt", exch.Rew.SignupBonusCreatedAt)
 			}
 			t := wallet.TX{Timestamp: time.Unix(signupBonusCreatedAt/1000, 0), Note: SOURCE + " Signup Bonus"}
+			t.ID = utils.GetUniqueID(SOURCE + t.Timestamp.String())
 			t.Items = make(map[string]wallet.Currencies)
 			amount, err := decimal.NewFromString(exch.Rew.SignupBonus)
 			if err != nil {
