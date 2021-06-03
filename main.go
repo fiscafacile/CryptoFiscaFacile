@@ -413,7 +413,7 @@ func main() {
 	}
 	// Wait for API access to finish
 	if config.Exchanges.Binance.API.Key != "" && config.Exchanges.Binance.API.Secret != "" {
-		err := b.WaitFinish(config.Exchanges.Bitstamp.Account)
+		err := b.WaitFinish(config.Exchanges.Binance.Account)
 		if err != nil {
 			log.Fatal("Error getting Binance API TXs:", err)
 		}

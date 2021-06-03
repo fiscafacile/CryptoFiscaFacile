@@ -228,25 +228,24 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	var cashInOut wallet.TXs
 	cashInOut = append(cashInOut, global["CashIn"].After(jan1st2019)...)
 	cashInOut = append(cashInOut, global["CashOut"].After(jan1st2019)...)
+	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native)...)
+	cashInOut = append(cashInOut, global["CommercialRebates"].After(jan1st2019).AddFromNativeValue(native)...)
+	cashInOut = append(cashInOut, global["Referrals"].After(jan1st2019).AddFromNativeValue(native)...)
 	if cashInBNC.Y2019 {
-		fmt.Print("Conversion des AirDrops/CommercialRebates/Interests/Minings/Referrals en CashIn pour les transactions de 2019...")
+		fmt.Print("Conversion des AirDrops/Interests/Minings en CashIn pour les transactions de 2019...")
 		var cashInOut2019 wallet.TXs
 		cashInOut2019 = append(cashInOut2019, global["AirDrops"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
-		cashInOut2019 = append(cashInOut2019, global["CommercialRebates"].After(jan1st2019).Before(jan1st2020).ApplyFromReversal().AddFromNativeValue(native)...)
 		cashInOut2019 = append(cashInOut2019, global["Interests"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		cashInOut2019 = append(cashInOut2019, global["Minings"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
-		cashInOut2019 = append(cashInOut2019, global["Referrals"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
 		c2086.bnc[2019] = cashInOut2019.GetBalances(true, false)
 		cashInOut = append(cashInOut, cashInOut2019...)
 	}
 	if cashInBNC.Y2020 {
-		fmt.Print("Conversion des AirDrops/CommercialRebates/Interests/Minings/Referrals en CashIn pour les transactions de 2020...")
+		fmt.Print("Conversion des AirDrops/Interests/Minings en CashIn pour les transactions de 2020...")
 		var cashInOut2020 wallet.TXs
 		cashInOut2020 = append(cashInOut2020, global["AirDrops"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
-		cashInOut2020 = append(cashInOut2020, global["CommercialRebates"].After(jan1st2020).Before(jan1st2021).ApplyFromReversal().AddFromNativeValue(native)...)
 		cashInOut2020 = append(cashInOut2020, global["Interests"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		cashInOut2020 = append(cashInOut2020, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
-		cashInOut2020 = append(cashInOut2020, global["Referrals"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		c2086.bnc[2020] = cashInOut2020.GetBalances(true, false)
 		cashInOut = append(cashInOut, cashInOut2020...)
 	}
@@ -529,6 +528,19 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interests/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
 			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
 			f.SetCellValue(sheet, "A20", "Pour information les cryptos recues par ces opérations sont :")
+			/*
+			   Voici votre récapitulatif de l'année fiscale 20xx :
+			   - Airdrops : 00 €
+			   - Remises commerciales (cashback, etc) : 00 €
+			   - Intérets (lending, etc) : 00 €
+			   - Revenus de récompenses (staking, mining, Aidrops_contrepartie,etc) : 00 €
+			   - Revenus de parrainage : 00€
+
+			   Voici donc vos obligations déclaratives :
+			   - case 5KU du formulaire 2042_ (j'ai pas vérifié si c’était le _C_PRO) = [parrainage+récompenses]
+			   - case 2TR du formulaire 2047 et à reporter sur la déclaration principale = [intérets]
+			   Pour rappel, vous avez un total de [airdrops+CommercialRebates+?Gifts?] non imposable.
+			*/
 			count := 0
 			for k, v := range c2086.bnc[year] {
 				if k != native {
