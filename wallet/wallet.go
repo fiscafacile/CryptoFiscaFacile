@@ -358,12 +358,31 @@ func (txs TXs) ApplyFromReversal() TXs {
 func (txs TXs) AddFromNativeValue(native string) TXs {
 	for i, t := range txs {
 		for _, c := range t.Items["To"] {
-			fmt.Print(".")
-			rate, err := c.GetExchangeRate(t.Timestamp, native)
-			if err != nil {
-				log.Println(err)
-			} else {
-				txs[i].Items["From"] = append(txs[i].Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
+			if !c.IsFiat() {
+				fmt.Print(".")
+				rate, err := c.GetExchangeRate(t.Timestamp, native)
+				if err != nil {
+					log.Println(err)
+				} else {
+					txs[i].Items["From"] = append(txs[i].Items["From"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
+				}
+			}
+		}
+	}
+	return txs
+}
+
+func (txs TXs) AddToNativeValue(native string) TXs {
+	for i, t := range txs {
+		for _, c := range t.Items["From"] {
+			if !c.IsFiat() {
+				fmt.Print(".")
+				rate, err := c.GetExchangeRate(t.Timestamp, native)
+				if err != nil {
+					log.Println(err)
+				} else {
+					txs[i].Items["To"] = append(txs[i].Items["To"], Currency{Code: native, Amount: c.Amount.Mul(rate)})
+				}
 			}
 		}
 	}

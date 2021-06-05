@@ -10,7 +10,6 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/davecgh/go-spew/spew"
-	"github.com/fiscafacile/CryptoFiscaFacile/cfg"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/shopspring/decimal"
 )
@@ -204,18 +203,28 @@ func (pta *TotalBuyingPrice) CalculateFIFO(global wallet.TXsByCategory, native s
 }
 
 type Cerfa2086 struct {
-	cs  Cessions
-	pta TotalBuyingPrice
-	bnc map[int]wallet.WalletCurrencies
+	cs                Cessions
+	pta               TotalBuyingPrice
+	cashInBNC         map[int]bool
+	airdrops          map[int]wallet.WalletCurrencies
+	commercialRebates map[int]wallet.WalletCurrencies
+	interests         map[int]wallet.WalletCurrencies
+	minings           map[int]wallet.WalletCurrencies
+	referrals         map[int]wallet.WalletCurrencies
 }
 
 func New2086() Cerfa2086 {
 	var c Cerfa2086
-	c.bnc = make(map[int]wallet.WalletCurrencies)
+	c.cashInBNC = make(map[int]bool)
+	c.airdrops = make(map[int]wallet.WalletCurrencies)
+	c.commercialRebates = make(map[int]wallet.WalletCurrencies)
+	c.interests = make(map[int]wallet.WalletCurrencies)
+	c.minings = make(map[int]wallet.WalletCurrencies)
+	c.referrals = make(map[int]wallet.WalletCurrencies)
 	return c
 }
 
-func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string, loc *time.Location, cashInBNC cfg.FiscalYear) (err error) {
+func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string, loc *time.Location) (err error) {
 	// Calculate initial PTA
 	err = c2086.pta.CalculateFIFO(global, native, loc)
 	if err != nil {
@@ -228,26 +237,43 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	var cashInOut wallet.TXs
 	cashInOut = append(cashInOut, global["CashIn"].After(jan1st2019)...)
 	cashInOut = append(cashInOut, global["CashOut"].After(jan1st2019)...)
-	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native)...)
-	cashInOut = append(cashInOut, global["CommercialRebates"].After(jan1st2019).AddFromNativeValue(native)...)
-	cashInOut = append(cashInOut, global["Referrals"].After(jan1st2019).AddFromNativeValue(native)...)
-	if cashInBNC.Y2019 {
-		fmt.Print("Conversion des AirDrops/Interests/Minings en CashIn pour les transactions de 2019...")
-		var cashInOut2019 wallet.TXs
-		cashInOut2019 = append(cashInOut2019, global["AirDrops"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
-		cashInOut2019 = append(cashInOut2019, global["Interests"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
-		cashInOut2019 = append(cashInOut2019, global["Minings"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
-		c2086.bnc[2019] = cashInOut2019.GetBalances(true, false)
-		cashInOut = append(cashInOut, cashInOut2019...)
+	var airdrops wallet.TXs
+	airdrops = append(airdrops, global["AirDrops"].After(jan1st2019).AddFromNativeValue(native)...)
+	c2086.airdrops[2019] = airdrops.Before(jan1st2020).GetBalances(true, false)
+	c2086.airdrops[2020] = airdrops.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	cashInOut = append(cashInOut, airdrops...)
+	var commercialRebates wallet.TXs
+	commercialRebates = append(commercialRebates, global["CommercialRebates"].After(jan1st2019).AddFromNativeValue(native)...)
+	c2086.commercialRebates[2019] = commercialRebates.Before(jan1st2020).GetBalances(true, false)
+	c2086.commercialRebates[2020] = commercialRebates.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	cashInOut = append(cashInOut, commercialRebates...)
+	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native).AddToNativeValue(native)...)
+	var referrals wallet.TXs
+	referrals = append(referrals, global["Referrals"].After(jan1st2019).AddFromNativeValue(native)...)
+	c2086.referrals[2019] = referrals.Before(jan1st2020).GetBalances(true, false)
+	c2086.referrals[2020] = referrals.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	cashInOut = append(cashInOut, referrals...)
+	if c2086.cashInBNC[2019] {
+		fmt.Print("Conversion des Interests/Minings en CashIn pour les transactions de 2019...")
+		var interests wallet.TXs
+		interests = append(interests, global["Interests"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		c2086.interests[2019] = interests.GetBalances(true, false)
+		cashInOut = append(cashInOut, interests...)
+		var minings wallet.TXs
+		minings = append(minings, global["Minings"].After(jan1st2019).Before(jan1st2020).AddFromNativeValue(native)...)
+		c2086.minings[2019] = minings.GetBalances(true, false)
+		cashInOut = append(cashInOut, minings...)
 	}
-	if cashInBNC.Y2020 {
-		fmt.Print("Conversion des AirDrops/Interests/Minings en CashIn pour les transactions de 2020...")
-		var cashInOut2020 wallet.TXs
-		cashInOut2020 = append(cashInOut2020, global["AirDrops"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
-		cashInOut2020 = append(cashInOut2020, global["Interests"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
-		cashInOut2020 = append(cashInOut2020, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
-		c2086.bnc[2020] = cashInOut2020.GetBalances(true, false)
-		cashInOut = append(cashInOut, cashInOut2020...)
+	if c2086.cashInBNC[2020] {
+		fmt.Print("Conversion des Interests/Minings en CashIn pour les transactions de 2020...")
+		var interests wallet.TXs
+		interests = append(interests, global["Interests"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		c2086.interests[2020] = interests.GetBalances(true, false)
+		cashInOut = append(cashInOut, interests...)
+		var minings wallet.TXs
+		minings = append(minings, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
+		c2086.minings[2020] = minings.GetBalances(true, false)
+		cashInOut = append(cashInOut, minings...)
 	}
 	cashInOut.SortByDate(true)
 	// Calculate PV starting on 2019 Jan 1st
@@ -403,15 +429,18 @@ func (c2086 Cerfa2086) Println(native string) {
 			}
 		}
 		fmt.Println("224 Plus-value ou moins-value globale :", plusMoinsValueGlobale.RoundBank(0))
-		if !c2086.bnc[year][native].IsZero() {
-			fmt.Println("Pendant celle année fiscale, les AirDrops/CommercialRebates/Interests/Minings/Referrals ont été convertis en CashIn pour une valeur totale de", c2086.bnc[year][native].Neg().RoundBank(2), native, "il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
-			fmt.Println("Pour information les cryptos recues par ces opérations sont :")
-			for k, v := range c2086.bnc[year] {
-				if k != native {
-					fmt.Println("  -", v, k)
-				}
-			}
+		fmt.Println("Voici votre récapitulatif par catégorie de l'année fiscale " + strconv.Itoa(year) + " :")
+		fmt.Println("- Airdrops fortuits : " + c2086.airdrops[year][native].Neg().RoundBank(2).String() + " " + native)
+		fmt.Println("- Remises commerciales (cashback, etc) : " + c2086.commercialRebates[year][native].Neg().RoundBank(2).String() + " " + native)
+		fmt.Println("- Intérêts (lending, etc) : " + c2086.interests[year][native].Neg().RoundBank(2).String() + " " + native)
+		fmt.Println("- Revenus de récompenses (staking, mining, aidrops avec contrepartie, etc) : " + c2086.minings[year][native].Neg().RoundBank(2).String() + " " + native)
+		fmt.Println("- Revenus de parrainage : " + c2086.referrals[year][native].Neg().RoundBank(2).String() + " " + native)
+		if c2086.cashInBNC[year] {
+			fmt.Println("Voici donc vos obligations déclaratives :")
+			fmt.Println("- case 5KU du formulaire 2042-C-PRO : " + c2086.referrals[year][native].Add(c2086.minings[year][native]).Neg().RoundBank(0).String() + " " + native + " (parrainage + récompenses)")
+			fmt.Println("- case 2TR du formulaire 2047 et à reporter sur la déclaration principale : " + c2086.interests[year][native].Neg().RoundBank(0).String() + " " + native + " (intérêts)")
 		}
+		fmt.Println("Pour rappel, vous avez un total de " + c2086.airdrops[year][native].Add(c2086.commercialRebates[year][native]).Neg().RoundBank(0).String() + " " + native + " non imposable (airdrops fortuits + remises commerciales).")
 		fmt.Println("-------------------------")
 	}
 }
@@ -524,31 +553,20 @@ func (c2086 Cerfa2086) ToXlsx(filename, native string) {
 			}
 		}
 		f.SetCellValue(sheet, "C16", plusMoinsValueGlobale.RoundBank(0).IntPart())
-		if !c2086.bnc[year][native].IsZero() {
-			f.SetCellValue(sheet, "A18", "Pendant celle année fiscale, les AirDrops/CommercialRebates/Interests/Minings/Referrals ont été convertis en CashIn pour une valeur totale de "+c2086.bnc[year][native].Neg().RoundBank(2).String()+" "+native)
-			f.SetCellValue(sheet, "A19", "Il convient donc de les ajouter à la case 5KU de votre 2042-C-PRO.")
-			f.SetCellValue(sheet, "A20", "Pour information les cryptos recues par ces opérations sont :")
-			/*
-			   Voici votre récapitulatif de l'année fiscale 20xx :
-			   - Airdrops : 00 €
-			   - Remises commerciales (cashback, etc) : 00 €
-			   - Intérets (lending, etc) : 00 €
-			   - Revenus de récompenses (staking, mining, Aidrops_contrepartie,etc) : 00 €
-			   - Revenus de parrainage : 00€
-
-			   Voici donc vos obligations déclaratives :
-			   - case 5KU du formulaire 2042_ (j'ai pas vérifié si c’était le _C_PRO) = [parrainage+récompenses]
-			   - case 2TR du formulaire 2047 et à reporter sur la déclaration principale = [intérets]
-			   Pour rappel, vous avez un total de [airdrops+CommercialRebates+?Gifts?] non imposable.
-			*/
-			count := 0
-			for k, v := range c2086.bnc[year] {
-				if k != native {
-					f.SetCellValue(sheet, "A"+strconv.Itoa(21+count), v.String()+" "+k)
-					count += 1
-				}
-			}
+		f.SetCellValue(sheet, "A18", "Voici votre récapitulatif par catégorie de l'année fiscale "+sheet+" :")
+		f.SetCellValue(sheet, "A19", "- Airdrops fortuits : "+c2086.airdrops[year][native].Neg().RoundBank(2).String()+" "+native)
+		f.SetCellValue(sheet, "A20", "- Remises commerciales (cashback, etc) : "+c2086.commercialRebates[year][native].Neg().RoundBank(2).String()+" "+native)
+		f.SetCellValue(sheet, "A21", "- Intérêts (lending, etc) : "+c2086.interests[year][native].Neg().RoundBank(2).String()+" "+native)
+		f.SetCellValue(sheet, "A22", "- Revenus de récompenses (staking, mining, aidrops avec contrepartie, etc) : "+c2086.minings[year][native].Neg().RoundBank(2).String()+" "+native)
+		f.SetCellValue(sheet, "A23", "- Revenus de parrainage : "+c2086.referrals[year][native].Neg().RoundBank(2).String()+" "+native)
+		next := "A25"
+		if c2086.cashInBNC[year] {
+			f.SetCellValue(sheet, "A25", "Voici donc vos obligations déclaratives :")
+			f.SetCellValue(sheet, "A26", "- case 5KU du formulaire 2042-C-PRO : "+c2086.referrals[year][native].Add(c2086.minings[year][native]).Neg().RoundBank(0).String()+" "+native+" (parrainage + récompenses)")
+			f.SetCellValue(sheet, "A27", "- case 2TR du formulaire 2047 et à reporter sur la déclaration principale : "+c2086.interests[year][native].Neg().RoundBank(0).String()+" "+native+" (intérêts)")
+			next = "A29"
 		}
+		f.SetCellValue(sheet, next, "Pour rappel, vous avez un total de "+c2086.airdrops[year][native].Add(c2086.commercialRebates[year][native]).Neg().RoundBank(0).String()+" "+native+" non imposable (airdrops fortuits + remises commerciales).")
 	}
 	f.DeleteSheet("Sheet1")
 	if err := f.SaveAs(filename); err != nil {
