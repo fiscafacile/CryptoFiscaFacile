@@ -10,11 +10,13 @@ import (
 type CryptoCom struct {
 	apiEx                apiEx
 	jsonEx               jsonEx
+	csvSpotTrade         csvSpotTrade
 	csvStake             csvStake
 	csvSupercharger      csvSupercharger
 	csvTransfer          csvTransfer
 	csvAppCryptoTXs      []csvAppCryptoTX
 	csvExTransferTXs     []csvExTransferTX
+	csvExSpotTradeTXs    []csvExSpotTradeTX
 	csvExStakeTXs        []csvExStakeTX
 	csvExSuperchargerTXs []csvExSuperchargerTX
 	done                 chan error
@@ -26,6 +28,11 @@ func New() *CryptoCom {
 	cdc := &CryptoCom{}
 	cdc.done = make(chan error)
 	cdc.TXsByCategory = make(wallet.TXsByCategory)
+	cdc.jsonEx.txsByCategory = make(wallet.TXsByCategory)
+	cdc.csvSpotTrade.txsByCategory = make(wallet.TXsByCategory)
+	cdc.csvStake.txsByCategory = make(wallet.TXsByCategory)
+	cdc.csvSupercharger.txsByCategory = make(wallet.TXsByCategory)
+	cdc.csvTransfer.txsByCategory = make(wallet.TXsByCategory)
 	cdc.Sources = make(source.Sources)
 	return cdc
 }
@@ -45,6 +52,7 @@ func (cdc *CryptoCom) MergeTXs() {
 	cdc.TXsByCategory.AddUniq(cdc.apiEx.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.csvStake.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.csvSupercharger.txsByCategory)
+	cdc.TXsByCategory.AddUniq(cdc.csvSpotTrade.txsByCategory)
 	cdc.TXsByCategory.AddUniq(cdc.csvTransfer.txsByCategory)
 }
 

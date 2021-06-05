@@ -324,12 +324,16 @@ Cette méthode vous permet de récupérer les `Deposits` et `Withdrawals`, les `
 
 - Exchange avec CSV:
 ```
+  --cdc-ex-spot-trade
+        Crypto.com Exchange Spot Trade CSV file
   --cdc-ex-transfer
         Crypto.com Exchange Deposit/Withdrawal CSV file
 ```
 Il faut fournir les CSV récupérés dans l'Exchange Crypto.com.
 
 Préférez la methode JS+JSON ci dessus, elle est plus complète.
+
+Les colones du CSV de l'Exchange Spot Trade doivent être : `account_type,order_id,trade_id,create_time_utc,symbol,side,liquditiy_indicator,traded_price,traded_quantity,fee,fee_currency`
 
 Les colones du CSV de l'Exchange Transfer doivent être : `create_time_utc,currency,amount,fee,address,status`
 

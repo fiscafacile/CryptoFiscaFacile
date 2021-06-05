@@ -213,6 +213,7 @@ func LoadConfig() (*Config, error) {
 	pflag.StringVar(&config.Exchanges.CdcEx.API.Secret, "cdc-ex-api-secret", config.Exchanges.CdcEx.API.Secret, "Crypto.com Exchange Secret Key")
 	pflag.StringVar(&config.Exchanges.CdcEx.JSON, "cdc-ex-exportjs", config.Exchanges.CdcEx.JSON, "Crypto.com Exchange JSON file from json-exporter.js")
 	pflag.StringSliceVar(&config.Exchanges.CdcEx.CSV.Transfers, "cdc-ex-transfer", config.Exchanges.CdcEx.CSV.Transfers, "Crypto.com Exchange Deposit/Withdrawal CSV file")
+	pflag.StringSliceVar(&config.Exchanges.CdcEx.CSV.Trades, "cdc-ex-spot-trade", config.Exchanges.CdcEx.CSV.Trades, "Crypto.com Exchange Spot Trade CSV file")
 	// pflag.StringSliceVar(&config.Exchanges.CdcEx.CSV.Staking, "cdc-ex-stake", config.Exchanges.CdcEx.CSV.Staking, "Crypto.com Exchange Stake CSV file")
 	// pflag.StringSliceVar(&config.Exchanges.CdcEx.CSV.Supercharger, "cdc-ex-supercharger", config.Exchanges.CdcEx.CSV.Supercharger, "Crypto.com Exchange Supercharger CSV file")
 	pflag.StringVar(&config.Exchanges.Kraken.API.Key, "kraken-api-key", config.Exchanges.Kraken.API.Key, "Kraken API key")

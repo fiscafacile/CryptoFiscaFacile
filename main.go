@@ -254,6 +254,16 @@ func main() {
 			log.Fatal("Error parsing Crypto.com Exchange Stake CSV file:", err)
 		}
 	}
+	for _, file := range config.Exchanges.CdcEx.CSV.Trades {
+		recordFile, err := os.Open(file)
+		if err != nil {
+			log.Fatal("Error opening Crypto.com Exchange Spot Trade CSV file:", err)
+		}
+		err = cdc.ParseCSVExchangeSpotTrade(recordFile)
+		if err != nil {
+			log.Fatal("Error parsing Crypto.com Exchange Spot Trade CSV file:", err)
+		}
+	}
 	for _, file := range config.Exchanges.CdcEx.CSV.Supercharger {
 		recordFile, err := os.Open(file)
 		if err != nil {
