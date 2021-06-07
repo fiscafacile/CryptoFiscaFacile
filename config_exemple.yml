@@ -83,6 +83,9 @@ exchanges:
     api:
       # key: <votre api_key ici>
       # secret: <votre api_secret ici>
+    csv:
+      trades:
+        # - Inputs/Crypto.Com/SpotTrades.csv
     json: # Inputs/Crypto.Com/exchange/CdC_Ex_ExportJS.json
   hitbtc:
     account: email@domain.com
