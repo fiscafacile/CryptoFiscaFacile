@@ -195,6 +195,8 @@ Ce CSV identifie une TX par son `TxID` (identifiant dans la blockchain BTC, ETH,
 
 - FEE : va associer toutes les TXs dont les Hash sont concaténées entre eux avec un point virgule ";" et fournis dans `Description` à la TX dont le Hash est donné dans `TXID`. Utile pour faire le ménage dans la catégorie `Fees`.
 
+- TRANS : va associer la TX dont l'ID est fournis dans `Description` à la TX dont l'ID est donné dans `TXID`. Utile pour force l'association d'un dépôt avec un retrait même si l'un des deux a des frais non dissocié du montant. Dans le cas d'un forcage de `Deposits` et `Withdrawals` en `Transfers` avec TRANS, pour respecter la balance nulle hors frais, la différence de montant entre les deux TX initiales sera déduite du montant le plus grand et ajouté en tant que `Fee` dans la TX de `Transfers` résultante.
+
 - SHIT : va ignorer la TX donc aucune catégorisation. Utile si vous avez des Shitcoins dont vous ne voulez pas.
 
 - CUS : va retrancher une partie du montant de `From` ou `To` comme si vous en aviez la gestion mais qu'ils ne vous appartenaient pas (Custody), ils ne seront donc pas consiédérés dans votre portefeuille global. Utile si vous avez acheté des cryptos pour votre grand-père, mais attention, il devra lui aussi les déclarer.

@@ -141,3 +141,15 @@ func (cat Category) IsTxFee(txid string) (is bool, fee string) {
 	}
 	return
 }
+
+func (cat Category) IsTxTransfer(txid string) (is bool, transid string) {
+	is = false
+	for _, a := range cat.csvCategories {
+		if a.txID == txid && a.kind == "TRANS" {
+			is = true
+			transid = a.description
+			return
+		}
+	}
+	return
+}

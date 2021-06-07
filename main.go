@@ -587,7 +587,7 @@ func main() {
 	global.Add(btc.TXsByCategory)
 	global.Add(bc.TXsByCategory)
 	fmt.Print("Merging Deposits with Withdrawals into Transfers...")
-	global.FindTransfers()
+	global.FindTransfers(*categ)
 	fmt.Println("Finished")
 	if config.Options.ExportStock {
 		global.StockToXlsx("stock.xlsx")

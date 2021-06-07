@@ -201,14 +201,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					tx.Kind == "crypto_viban_exchange" {
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
-					if tx.Kind == "crypto_withdrawal" &&
-						tx.Description == "Withdraw BTC" {
-						fee := decimal.New(3, -4) // 0.0003, is it always the case ? I have only one occurence
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: fee})
-						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg().Sub(fee)})
-					} else {
-						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
-					}
+					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
 					if tx.Kind == "crypto_payment" ||
 						tx.Kind == "crypto_viban_exchange" {
 						if tx.NativeAmount.IsPositive() {

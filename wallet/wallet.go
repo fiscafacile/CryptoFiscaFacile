@@ -12,6 +12,7 @@ import (
 
 	"github.com/360EntSecGroup-Skylar/excelize"
 	"github.com/davecgh/go-spew/spew"
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/shopspring/decimal"
 )
 
@@ -530,42 +531,46 @@ func (txs TXsByCategory) AddUniq(a TXsByCategory) {
 	}
 }
 
-func (txs TXsByCategory) FindTransfers() TXsByCategory {
+func (txs TXsByCategory) FindTransfers(cat category.Category) TXsByCategory {
 	similarTimeDelta := 12 * time.Hour
 	txs["Deposits"].SortByDate(true)
 	txs["Withdrawals"].SortByDate(true)
 	for di, depTX := range txs["Deposits"] {
 		if !depTX.used && len(depTX.Items["To"]) > 0 {
-			// var depFees decimal.Decimal
-			// if _, ok := depTX.Items["Fee"]; ok {
-			// 	for _, f := range depTX.Items["Fee"] {
-			// 		depFees = depFees.Add(f.Amount)
-			// 	}
-			// }
+			depIsTransfer, forcedWitID := cat.IsTxTransfer(depTX.ID)
 			for wi, witTX := range txs["Withdrawals"] {
 				if !witTX.used && len(witTX.Items["From"]) > 0 {
+					witIsTransfer, forcedDepID := cat.IsTxTransfer(witTX.ID)
 					if depTX.Items["To"][0].Code == witTX.Items["From"][0].Code &&
 						depTX.SimilarDate(similarTimeDelta, witTX.Timestamp) &&
 						strings.Split(depTX.Note, ":")[0] != strings.Split(witTX.Note, ":")[0] {
-						// var witFees decimal.Decimal
-						// if _, ok := witTX.Items["Fee"]; ok {
-						// 	for _, f := range witTX.Items["Fee"] {
-						// 		witFees = witFees.Add(f.Amount)
-						// 	}
-						// }
-						// log.Println("Here")
-						// depTX.Println("")
-						// witTX.Println("")
-						if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) {
-							// depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(witFees)) ||
-							// depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount.Sub(depFees)) {
+						if depTX.Items["To"][0].Amount.Equal(witTX.Items["From"][0].Amount) ||
+							(depIsTransfer && forcedWitID == witTX.ID) ||
+							(witIsTransfer && forcedDepID == depTX.ID) {
 							txs["Deposits"][di].used = true
 							txs["Withdrawals"][wi].used = true
 							t := TX{Timestamp: witTX.Timestamp, Note: witTX.Note + " => " + depTX.Note}
 							t.ID = witTX.ID + "-" + depTX.ID
 							t.Items = make(map[string]Currencies)
-							t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
-							t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
+							fee := depTX.Items["To"][0].Amount.Sub(witTX.Items["From"][0].Amount)
+							if fee.IsPositive() {
+								cur := depTX.Items["To"][0]
+								cur.Amount = cur.Amount.Sub(fee)
+								t.Items["To"] = append(t.Items["To"], cur)
+								cur.Amount = fee
+								t.Items["Fee"] = append(t.Items["Fee"], cur)
+								t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
+							} else if fee.IsNegative() {
+								t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
+								cur := witTX.Items["From"][0]
+								cur.Amount = cur.Amount.Add(fee)
+								t.Items["From"] = append(t.Items["From"], cur)
+								cur.Amount = fee.Neg()
+								t.Items["Fee"] = append(t.Items["Fee"], cur)
+							} else {
+								t.Items["To"] = append(t.Items["To"], depTX.Items["To"]...)
+								t.Items["From"] = append(t.Items["From"], witTX.Items["From"]...)
+							}
 							if _, ok := witTX.Items["Fee"]; ok {
 								t.Items["Fee"] = append(t.Items["Fee"], witTX.Items["Fee"]...)
 							}
