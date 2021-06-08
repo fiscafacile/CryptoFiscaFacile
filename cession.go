@@ -124,7 +124,9 @@ func (pta *TotalBuyingPrice) CalculateFIFO(global wallet.TXsByCategory, native s
 	// Consolidate all knowns TXs
 	var allTXs wallet.TXs
 	for k := range global {
+		// if k != "Transfers" { // Transfers are not compatible with CUS
 		allTXs = append(allTXs, global[k]...)
+		// }
 	}
 	allTXs.SortByDate(false)
 	for crypto, quantity := range globalWallet2019Jan1.Currencies {

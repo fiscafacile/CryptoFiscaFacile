@@ -167,7 +167,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Error opening Bitstamp CSV file:", err)
 		}
-		err = bs.ParseCSV(recordFile, config.Exchanges.Bitstamp.Account)
+		err = bs.ParseCSV(recordFile, *categ, config.Options.Native, config.Exchanges.Bitstamp.Account)
 		if err != nil {
 			log.Fatal("Error parsing Bitstamp CSV file:", err)
 		}

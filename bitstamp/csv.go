@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/source"
 	"github.com/fiscafacile/CryptoFiscaFacile/utils"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
@@ -28,7 +29,7 @@ type csvTX struct {
 	SubType   string
 }
 
-func (bs *Bitstamp) ParseCSV(reader io.Reader, account string) (err error) {
+func (bs *Bitstamp) ParseCSV(reader io.Reader, cat category.Category, native, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2019, time.November, 14, 0, 0, 0, 0, time.UTC)
 	const SOURCE = "Bitstamp CSV :"
@@ -81,8 +82,25 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader, account string) (err error) {
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Symbol, Amount: tx.Amount})
 					bs.TXsByCategory["Deposits"] = append(bs.TXsByCategory["Deposits"], t)
 				} else if tx.Type == "Withdrawal" {
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Symbol, Amount: tx.Amount})
-					bs.TXsByCategory["Withdrawals"] = append(bs.TXsByCategory["Withdrawals"], t)
+					from := wallet.Currency{Code: tx.Symbol, Amount: tx.Amount}
+					t.Items["From"] = append(t.Items["From"], from)
+					if is, desc, val, curr := cat.IsTxCashOut(t.ID); is {
+						t.Note += " crypto_payment " + desc
+						c := wallet.Currency{Code: curr, Amount: val}
+						if c.IsFiat() {
+							t.Items["To"] = append(t.Items["To"], c)
+						} else {
+							rate, err := from.GetExchangeRate(t.Timestamp, native)
+							if err != nil {
+								log.Println(SOURCE, "Error getting rate for", t)
+							} else {
+								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: native, Amount: tx.Amount.Mul(rate)})
+							}
+						}
+						bs.TXsByCategory["CashOut"] = append(bs.TXsByCategory["CashOut"], t)
+					} else {
+						bs.TXsByCategory["Withdrawals"] = append(bs.TXsByCategory["Withdrawals"], t)
+					}
 				} else if tx.Type == "Market" {
 					if tx.SubType == "Buy" {
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Symbol, Amount: tx.Amount})
