@@ -89,15 +89,17 @@ func (bs *Bitstamp) ParseCSV(reader io.Reader, cat category.Category, native, ac
 						c := wallet.Currency{Code: curr, Amount: val}
 						if c.IsFiat() {
 							t.Items["To"] = append(t.Items["To"], c)
+							bs.TXsByCategory["CashOut"] = append(bs.TXsByCategory["CashOut"], t)
 						} else {
 							rate, err := from.GetExchangeRate(t.Timestamp, native)
 							if err != nil {
 								log.Println(SOURCE, "Error getting rate for", t)
+								bs.TXsByCategory["Withdrawals"] = append(bs.TXsByCategory["Withdrawals"], t)
 							} else {
 								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: native, Amount: tx.Amount.Mul(rate)})
+								bs.TXsByCategory["CashOut"] = append(bs.TXsByCategory["CashOut"], t)
 							}
 						}
-						bs.TXsByCategory["CashOut"] = append(bs.TXsByCategory["CashOut"], t)
 					} else {
 						bs.TXsByCategory["Withdrawals"] = append(bs.TXsByCategory["Withdrawals"], t)
 					}
