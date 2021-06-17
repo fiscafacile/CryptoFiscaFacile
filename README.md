@@ -240,11 +240,11 @@ Les colones du CSV d'origine doivent être : `#,DESCRIPTION,CURRENCY,AMOUNT,BALA
 
 ```
   --bitstamp
-        Bittrex CSV file
+        Bitstamp CSV file
   --bitstamp-api-key
-        Bittrex API key
+        Bitstamp API key
   --bitstamp-api-secret
-        Bittrex API secret
+        Bitstamp API secret
 ```
 Il faut fournir les fichiers CSV récupérés dans Bitstamp.
 
