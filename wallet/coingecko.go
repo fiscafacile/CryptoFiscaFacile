@@ -82,7 +82,7 @@ func (api *CoinGeckoAPI) GetExchangeRates(date time.Time, coin string) (rates Ex
 			}
 		}
 		if coinID != "" {
-			for len(api.reqTime) > 100 {
+			for len(api.reqTime) > 1200 {
 				api.garbageOldReqTime()
 			}
 			api.reqTime = append(api.reqTime, time.Now())
