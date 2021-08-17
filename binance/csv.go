@@ -180,7 +180,9 @@ func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err
 					tx.Operation == "Savings purchase" ||
 					tx.Operation == "Savings Principal redemption" ||
 					tx.Operation == "DeFi Staking purchase" ||
-					tx.Operation == "DeFi Staking redemption" {
+					tx.Operation == "DeFi Staking redemption" ||
+					tx.Operation == "Liquid Swap add" ||
+					tx.Operation == "Liquid Swap remove" {
 					// Don't care
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
