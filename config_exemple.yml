@@ -22,6 +22,10 @@ exchanges:
         # - Inputs/Binance/All_Statements_2020_Q2.csv
         # - Inputs/Binance/All_Statements_2020_Q3.csv
         # - Inputs/Binance/All_Statements_2020_Q4.csv
+        # - Inputs/Binance/All_Statements_2021_Q1.csv
+        # - Inputs/Binance/All_Statements_2021_Q2.csv
+        # - Inputs/Binance/All_Statements_2021_Q3.csv
+        # - Inputs/Binance/All_Statements_2021_Q4.csv
   bitfinex:
     account: email@domain.com
     csv:
@@ -30,6 +34,7 @@ exchanges:
         # - Inputs/Bitfinex/2018.csv
         # - Inputs/Bitfinex/2019.csv
         # - Inputs/Bitfinex/2020.csv
+        # - Inputs/Bitfinex/2021.csv
   bitstamp:
     account: email@domain.com
     api:
@@ -41,6 +46,7 @@ exchanges:
         # - Inputs/Bitstamp/All_Statements_2020_Q2.csv
         # - Inputs/Bitstamp/All_Statements_2020_Q3.csv
         # - Inputs/Bitstamp/All_Statements_2020_Q4.csv
+        # - Inputs/Bitstamp/All_Statements_2021_Q4.csv
   bittrex:
     account: email@domain.com
     api:
@@ -52,6 +58,7 @@ exchanges:
         # - Inputs/Bittrex/2018.csv
         # - Inputs/Bittrex/2019.csv
         # - Inputs/Bittrex/2020.csv
+        # - Inputs/Bittrex/2021.csv
     delisted-coins:
       # - GLD
       # - TRST
@@ -63,21 +70,25 @@ exchanges:
         # - Inputs/Coinbase/2018.csv
         # - Inputs/Coinbase/2019.csv
         # - Inputs/Coinbase/2020.csv
+        # - Inputs/Coinbase/2021.csv
   coinbasepro:
     account: email@domain.com
     csv:
       trades:
         # - Inputs/CoinbasePro/2019_fills.csv
         # - Inputs/CoinbasePro/2020_fills.csv
+        # - Inputs/CoinbasePro/2021_fills.csv
       transfers:
         # - Inputs/CoinbasePro/2019_account.csv
         # - Inputs/CoinbasePro/2020_account.csv
+        # - Inputs/CoinbasePro/2021_account.csv
   cdc-app:
     account: email@domain.com
     csv:
       all:
         # - Inputs/Crypto.com/app/2019.csv
         # - Inputs/Crypto.com/app/2020.csv
+        # - Inputs/Crypto.com/app/2021.csv
   cdc-exchange:
     account: email@domain.com
     api:
@@ -96,9 +107,11 @@ exchanges:
       trades:
         # - Inputs/HitBTC/2019_Trades.csv
         # - Inputs/HitBTC/2020_Trades.csv
+        # - Inputs/HitBTC/2021_Trades.csv
       transfers:
         # - Inputs/HitBTC/2019_Transactions.csv
         # - Inputs/HitBTC/2020_Transactions.csv
+        # - Inputs/HitBTC/2021_Transactions.csv
   kraken:
     account: email@domain.com
     api:
@@ -110,42 +123,51 @@ exchanges:
         # - Inputs/Kraken/2018.csv
         # - Inputs/Kraken/2019.csv
         # - Inputs/Kraken/2020.csv
+        # - Inputs/Kraken/2021.csv
   localbitcoin:
     account: email@domain.com
     csv:
       trades:
         # - Inputs/LocalBitcoin/2019_Trades.csv
         # - Inputs/LocalBitcoin/2020_Trades.csv
+        # - Inputs/LocalBitcoin/2021_Trades.csv
       transfers:
         # - Inputs/LocalBitcoin/2019_Transfers.csv
         # - Inputs/LocalBitcoin/2020_Transfers.csv
+        # - Inputs/LocalBitcoin/2021_Transfers.csv
   poloniex:
     account: email@domain.com
     csv:
       trades:
         # - Inputs/Poloniex/2019_Trades.csv
         # - Inputs/Poloniex/2020_Trades.csv
+        # - Inputs/Poloniex/2021_Trades.csv
       deposits:
         # - Inputs/Poloniex/2019_Deposits.csv
         # - Inputs/Poloniex/2020_Deposits.csv
+        # - Inputs/Poloniex/2021_Deposits.csv
       withdrawals:
         # - Inputs/Poloniex/2019_Withdrawals.csv
         # - Inputs/Poloniex/2020_Withdrawals.csv
+        # - Inputs/Poloniex/2021_Withdrawals.csv
       distributions:
         # - Inputs/Poloniex/2019_Distributions.csv
         # - Inputs/Poloniex/2020_Distributions.csv
+        # - Inputs/Poloniex/2021_Distributions.csv
   revolut:
     account: email@domain.com
     csv:
       all:
         # - Inputs/Revolut/2019.csv
         # - Inputs/Revolut/2020.csv
+        # - Inputs/Revolut/2021.csv
   uphold:
     account: email@domain.com
     csv:
       all:
         # - Inputs/Uphold/2019.csv
         # - Inputs/Uphold/2020.csv
+        # - Inputs/Uphold/2021.csv
 options:
   bcd: yes
   bch: yes
@@ -154,6 +176,7 @@ options:
   cashin-bnc:
     2019: no
     2020: yes
+    2021: yes
   lbtc: no
   location: Europe/Paris
   native: EUR

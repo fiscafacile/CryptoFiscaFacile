@@ -12,6 +12,7 @@ options:
   cashin-bnc:
     2019: no
     2020: no
+    2021: no
   export-2086: yes
   lbtc: no
   location: Europe/Paris
