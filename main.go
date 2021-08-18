@@ -634,6 +634,7 @@ func main() {
 		c2086 := New2086()
 		c2086.cashInBNC[2019] = config.Options.CashInBNC.Y2019
 		c2086.cashInBNC[2020] = config.Options.CashInBNC.Y2020
+		c2086.cashInBNC[2021] = config.Options.CashInBNC.Y2021
 		fmt.Print("Début du calcul pour le 2086...")
 		err = c2086.CalculatePVMV(global, config.Options.Native, loc)
 		fmt.Println("Fini")

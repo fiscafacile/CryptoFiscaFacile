@@ -235,6 +235,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	jan1st2019 := time.Date(2019, time.January, 1, 0, 0, 0, 0, loc)
 	jan1st2020 := time.Date(2020, time.January, 1, 0, 0, 0, 0, loc)
 	jan1st2021 := time.Date(2021, time.January, 1, 0, 0, 0, 0, loc)
+	jan1st2022 := time.Date(2022, time.January, 1, 0, 0, 0, 0, loc)
 	// Consolidate all CashIn/CashOut TXs
 	var cashInOut wallet.TXs
 	cashInOut = append(cashInOut, global["CashIn"].After(jan1st2019)...)
@@ -243,17 +244,20 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 	airdrops = append(airdrops, global["AirDrops"].After(jan1st2019).AddFromNativeValue(native)...)
 	c2086.airdrops[2019] = airdrops.Before(jan1st2020).GetBalances(true, false)
 	c2086.airdrops[2020] = airdrops.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	c2086.airdrops[2021] = airdrops.After(jan1st2021).Before(jan1st2022).GetBalances(true, false)
 	cashInOut = append(cashInOut, airdrops...)
 	var commercialRebates wallet.TXs
 	commercialRebates = append(commercialRebates, global["CommercialRebates"].After(jan1st2019).AddFromNativeValue(native)...)
 	c2086.commercialRebates[2019] = commercialRebates.Before(jan1st2020).GetBalances(true, false)
 	c2086.commercialRebates[2020] = commercialRebates.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	c2086.commercialRebates[2021] = commercialRebates.After(jan1st2021).Before(jan1st2022).GetBalances(true, false)
 	cashInOut = append(cashInOut, commercialRebates...)
 	cashInOut = append(cashInOut, global["Gifts"].After(jan1st2019).AddFromNativeValue(native)...)
 	var referrals wallet.TXs
 	referrals = append(referrals, global["Referrals"].After(jan1st2019).AddFromNativeValue(native)...)
 	c2086.referrals[2019] = referrals.Before(jan1st2020).GetBalances(true, false)
 	c2086.referrals[2020] = referrals.After(jan1st2020).Before(jan1st2021).GetBalances(true, false)
+	c2086.referrals[2021] = referrals.After(jan1st2021).Before(jan1st2022).GetBalances(true, false)
 	cashInOut = append(cashInOut, referrals...)
 	if c2086.cashInBNC[2019] {
 		fmt.Print("Conversion des Interests/Minings en CashIn pour les transactions de 2019...")
@@ -275,6 +279,17 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 		var minings wallet.TXs
 		minings = append(minings, global["Minings"].After(jan1st2020).Before(jan1st2021).AddFromNativeValue(native)...)
 		c2086.minings[2020] = minings.GetBalances(true, false)
+		cashInOut = append(cashInOut, minings...)
+	}
+	if c2086.cashInBNC[2021] {
+		fmt.Print("Conversion des Interests/Minings en CashIn pour les transactions de 2021...")
+		var interests wallet.TXs
+		interests = append(interests, global["Interests"].After(jan1st2021).Before(jan1st2022).AddFromNativeValue(native)...)
+		c2086.interests[2021] = interests.GetBalances(true, false)
+		cashInOut = append(cashInOut, interests...)
+		var minings wallet.TXs
+		minings = append(minings, global["Minings"].After(jan1st2021).Before(jan1st2022).AddFromNativeValue(native)...)
+		c2086.minings[2021] = minings.GetBalances(true, false)
 		cashInOut = append(cashInOut, minings...)
 	}
 	cashInOut.SortByDate(true)
@@ -414,7 +429,7 @@ func (c2086 *Cerfa2086) CalculatePVMV(global wallet.TXsByCategory, native string
 }
 
 func (c2086 Cerfa2086) Println(native string) {
-	for year := 2019; year < time.Now().Year(); year++ {
+	for year := 2019; year <= time.Now().Year(); year++ {
 		var plusMoinsValueGlobale decimal.Decimal
 		fmt.Println("-------------------------")
 		fmt.Println("| Cerfa 2086 année " + strconv.Itoa(year) + " |")

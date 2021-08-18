@@ -67,6 +67,7 @@ type Exchanges struct {
 type FiscalYear struct {
 	Y2019 bool `yaml:"2019"`
 	Y2020 bool `yaml:"2020"`
+	Y2021 bool `yaml:"2021"`
 }
 
 // Options
@@ -171,6 +172,7 @@ func LoadConfig() (*Config, error) {
 	pflag.BoolVarP(&config.Options.Debug, "debug", "d", config.Options.Debug, "Debug Mode (only for devs)")
 	pflag.BoolVar(&config.Options.CashInBNC.Y2019, "cashin-bnc-2019", config.Options.CashInBNC.Y2019, "Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2019's Txs in 2086")
 	pflag.BoolVar(&config.Options.CashInBNC.Y2020, "cashin-bnc-2020", config.Options.CashInBNC.Y2020, "Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2020's Txs in 2086")
+	pflag.BoolVar(&config.Options.CashInBNC.Y2021, "cashin-bnc-2021", config.Options.CashInBNC.Y2021, "Convert AirDrops/CommercialRebates/Interests/Minings/Referrals into CashIn for 2021's Txs in 2086")
 	pflag.BoolVarP(&config.Options.Check, "check", "c", config.Options.Check, "Check and Display consistency")
 	pflag.StringVarP(&config.Options.CurrencyFilter, "currency-filter", "f", config.Options.CurrencyFilter, "Currencies to be filtered in Transactions Display (comma separated list)")
 	pflag.StringVar(&config.Options.LogFile, "log", config.Options.LogFile, "Log file")
