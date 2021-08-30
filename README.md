@@ -14,17 +14,23 @@ Tout pull request est le bienvenu, j'essayerai de les intégrer le plus vite pos
 
 Enfin, le code actuel est en constante évolution, il se peut donc que la documentation ci dessous ne soit pas précise, mais elle vous fournira une bonne base pour utiliser cet outil.
 
-## Installation / Compilation / Mise à jour
+## Installation / Mise à jour
 
 Vous aurez besoin de Go dont voici la [doc officelle d'installation](https://golang.org/doc/install).
 
+Une fois Go installé sur votre système, ouvrez un terminal (cmd.exe/PowerShell sous Windows, Terminal sous MacOS, un shell sous Linux) et tappez cette commande :
+
 ```bash
-$ go get -u github.com/fiscafacile/CryptoFiscaFacile
+$ go install github.com/fiscafacile/CryptoFiscaFacile
 ```
 
 Le binaire de l'outil sera généré sur votre PC, vous pourrez le lancer en ligne de commande (donc dans un terminal) avec les [Options](#configuration) nécessaires à vos besoins.
 
-Pour mettre à jour, il suffit de relancer la commande :
+```bash
+$ CryptoFiscaFacile --help
+```
+
+Pour mettre à jour, il suffit de relancer la commande (pas trop sur de cela) :
 
 ```bash
 $ go get -u github.com/fiscafacile/CryptoFiscaFacile
