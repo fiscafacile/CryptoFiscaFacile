@@ -6,6 +6,8 @@
 
 Cet outil veut vous aider à déclarer vos cryptos aux impôts !
 
+Attention néanmoins : les développeurs de CryptoFiscaFacile ne peuvent pas être tenus pour responsables des éventuelles erreurs ou imprécisions qui pourraient survenir dans vos déclarations fiscales suite à d'éventuels bugs de l'outil. En cas d'erreurs, l'entière responsabilité de ces erreurs vous incombe.
+
 Gardez en tête que la loi n'étant pas encore définie sur tous les points, cet outil peut différer de votre point de vue, c'est pour cela qu'il est en open-source : à vous de modifier (ou faire modifier) à vos besoins.
 
 Gardez aussi en tête le fait qu'il ne supporte pas toutes les plateformes existantes, mais un guide vous est fourni pour vous aider à développer votre propre module.
