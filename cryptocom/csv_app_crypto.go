@@ -167,11 +167,13 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					tx.Kind == "mco_stake_reward" ||
 					tx.Kind == "supercharger_withdrawal" ||
 					tx.Kind == "crypto_purchase" ||
-					tx.Kind == "staking_reward" {
+					tx.Kind == "staking_reward" ||
+					tx.Kind == "recurring_buy_order" {
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
-					if tx.Kind == "crypto_purchase" {
+					if tx.Kind == "crypto_purchase" ||
+						tx.Kind == "recurring_buy_order" {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount})
 						cdc.TXsByCategory["CashIn"] = append(cdc.TXsByCategory["CashIn"], t)
 					} else if tx.Kind == "referral_card_cashback" ||
