@@ -32,7 +32,10 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 )
 
+var version string
+
 func main() {
+	fmt.Println("CryptoFiscaFacile", version)
 	// Configuration
 	config, err := cfg.LoadConfig()
 	if err != nil {
