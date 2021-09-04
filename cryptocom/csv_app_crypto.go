@@ -168,7 +168,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					tx.Kind == "supercharger_withdrawal" ||
 					tx.Kind == "crypto_purchase" ||
 					tx.Kind == "staking_reward" ||
-					tx.Kind == "recurring_buy_order" {
+					tx.Kind == "recurring_buy_order" ||
+					tx.Kind == "campaign_reward" {
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -181,7 +182,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 						tx.Kind == "reimbursement" ||
 						tx.Kind == "gift_card_reward" ||
 						tx.Kind == "referral_gift" ||
-						tx.Kind == "pay_checkout_reward" {
+						tx.Kind == "pay_checkout_reward" ||
+						tx.Kind == "campaign_reward" {
 						cdc.TXsByCategory["CommercialRebates"] = append(cdc.TXsByCategory["CommercialRebates"], t)
 					} else if tx.Kind == "crypto_earn_interest_paid" ||
 						tx.Kind == "crypto_earn_extra_interest_paid" ||
