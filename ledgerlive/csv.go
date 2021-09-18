@@ -58,7 +58,9 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 		}
 		for _, tx := range ll.CsvTXs {
 			// Fill TXsByCategory
-			if tx.Type == "IN" {
+			if tx.Type == "IN" ||
+				tx.Type == "REWARD_PAYOUT" ||
+				tx.Type == "REWARD" {
 				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.Hash + " -> " + tx.AccountXpub}
 				t.Items = make(map[string]wallet.Currencies)
 				t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -70,7 +72,12 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: curr, Amount: val})
 					ll.TXsByCategory["CashIn"] = append(ll.TXsByCategory["CashIn"], t)
 				} else {
-					ll.TXsByCategory["Deposits"] = append(ll.TXsByCategory["Deposits"], t)
+					if tx.Type == "REWARD_PAYOUT" ||
+						tx.Type == "REWARD" {
+						ll.TXsByCategory["Minings"] = append(ll.TXsByCategory["Minings"], t)
+					} else {
+						ll.TXsByCategory["Deposits"] = append(ll.TXsByCategory["Deposits"], t)
+					}
 				}
 			} else if tx.Type == "OUT" {
 				if !tx.Fees.Equal(tx.Amount) { // ignore Fee associated to other OUT, will be found later
@@ -95,11 +102,19 @@ func (ll *LedgerLive) ParseCSV(reader io.Reader, cat category.Category) (err err
 						ll.TXsByCategory["Withdrawals"] = append(ll.TXsByCategory["Withdrawals"], t)
 					}
 				}
-			} else if tx.Type == "FEES" {
-				t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
-				t.Items = make(map[string]wallet.Currencies)
-				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
-				ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)
+			} else if tx.Type == "FEES" ||
+				tx.Type == "NOMINATE" ||
+				tx.Type == "BOND" ||
+				tx.Type == "DELEGATE" ||
+				tx.Type == "REVEAL" ||
+				tx.Type == "VOTE" ||
+				tx.Type == "FREEZE" {
+				if !tx.Fees.IsZero() {
+					t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.AccountName + " : " + tx.AccountXpub + " -> " + tx.Hash}
+					t.Items = make(map[string]wallet.Currencies)
+					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Currency, Amount: tx.Fees})
+					ll.TXsByCategory["Fees"] = append(ll.TXsByCategory["Fees"], t)
+				}
 			} else {
 				alreadyAsked = wallet.AskForHelp(SOURCE+" : "+tx.Type, tx, alreadyAsked)
 			}
