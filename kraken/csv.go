@@ -84,13 +84,18 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 							if kr.TXsByCategory["Exchanges"][i].Items == nil {
 								kr.TXsByCategory["Exchanges"][i].Items = make(map[string]wallet.Currencies)
 							}
-							if tx.Amount.IsPositive() {
-								kr.TXsByCategory["Exchanges"][i].Items["To"] = append(kr.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-							} else {
-								kr.TXsByCategory["Exchanges"][i].Items["From"] = append(kr.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+							if !tx.Amount.IsZero() {
+								if tx.Amount.IsPositive() {
+									kr.TXsByCategory["Exchanges"][i].Items["To"] = append(kr.TXsByCategory["Exchanges"][i].Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+								} else {
+									kr.TXsByCategory["Exchanges"][i].Items["From"] = append(kr.TXsByCategory["Exchanges"][i].Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+								}
 							}
 							if !tx.Fee.IsZero() {
-								kr.TXsByCategory["Exchanges"][i].Items["Fee"] = append(kr.TXsByCategory["Exchanges"][i].Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+								fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+								if !fee.IsFiat() {
+									kr.TXsByCategory["Exchanges"][i].Items["Fee"] = append(kr.TXsByCategory["Exchanges"][i].Items["Fee"], fee)
+								}
 							}
 						}
 					}
@@ -102,14 +107,21 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 							t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 						}
 						if !tx.Fee.IsZero() {
-							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+							fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+							if !fee.IsFiat() {
+								t.Items["Fee"] = append(t.Items["Fee"], fee)
+							}
 						}
-						if tx.Amount.IsPositive() {
-							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
-						} else {
-							t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+						if !tx.Amount.IsZero() {
+							if tx.Amount.IsPositive() {
+								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+							} else {
+								t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
+							}
 						}
-						kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
+						if len(t.Items) > 0 {
+							kr.TXsByCategory["Exchanges"] = append(kr.TXsByCategory["Exchanges"], t)
+						}
 					}
 				} else if tx.Type == "deposit" {
 					t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
@@ -119,7 +131,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
 					if !tx.Fee.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+						fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+						if !fee.IsFiat() {
+							t.Items["Fee"] = append(t.Items["Fee"], fee)
+						}
 					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Deposits"] = append(kr.TXsByCategory["Deposits"], t)
@@ -133,7 +148,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount.Neg()})
 					}
 					if !tx.Fee.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+						fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+						if !fee.IsFiat() {
+							t.Items["Fee"] = append(t.Items["Fee"], fee)
+						}
 					}
 					if is, desc := cat.IsTxGift(t.ID); is {
 						t.Note += " gift " + desc
@@ -157,7 +175,10 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
 					if !tx.Fee.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+						fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+						if !fee.IsFiat() {
+							t.Items["Fee"] = append(t.Items["Fee"], fee)
+						}
 					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 					kr.TXsByCategory["Interests"] = append(kr.TXsByCategory["Interests"], t)
@@ -190,8 +211,11 @@ func (kr *Kraken) ParseCSV(reader io.Reader, cat category.Category, account stri
 					} else {
 						// Ignore non void subType transfer because it's a intra-account transfert
 						if !tx.Fee.IsZero() {
-							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
-							kr.TXsByCategory["Fees"] = append(kr.TXsByCategory["Fees"], t)
+							fee := wallet.Currency{Code: tx.Asset, Amount: tx.Fee}
+							if !fee.IsFiat() {
+								t.Items["Fee"] = append(t.Items["Fee"], fee)
+								kr.TXsByCategory["Fees"] = append(kr.TXsByCategory["Fees"], t)
+							}
 						}
 					}
 				} else {

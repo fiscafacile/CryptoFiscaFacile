@@ -82,36 +82,40 @@ func (uh *Uphold) ParseCSV(reader io.Reader, cat category.Category, account stri
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.DestinationCurrency, Amount: tx.DestinationAmount})
 					}
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.OriginCurrency, Amount: tx.OriginAmount})
+					if !tx.FeeAmount.IsZero() {
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
+					}
 					uh.TXsByCategory["Exchanges"] = append(uh.TXsByCategory["Exchanges"], t)
-				}
-				if tx.Type == "in" {
-					t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Status}
-					t.Items = make(map[string]wallet.Currencies)
-					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.DestinationCurrency, Amount: tx.DestinationAmount})
-					if !tx.FeeAmount.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
-					}
-					if is, desc := cat.IsTxInterest(t.ID); is {
-						t.Note += " interest " + desc
-						uh.TXsByCategory["Interests"] = append(uh.TXsByCategory["Interests"], t)
-					} else {
-						uh.TXsByCategory["Deposits"] = append(uh.TXsByCategory["Deposits"], t)
-					}
-				} else if tx.Type == "out" {
-					t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Status}
-					t.Items = make(map[string]wallet.Currencies)
-					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.DestinationCurrency, Amount: tx.DestinationAmount})
-					if !tx.FeeAmount.IsZero() {
-						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
-					}
-					if is, desc := cat.IsTxGift(t.ID); is {
-						t.Note += " gift " + desc
-						uh.TXsByCategory["Gifts"] = append(uh.TXsByCategory["Gifts"], t)
-					} else {
-						uh.TXsByCategory["Withdrawals"] = append(uh.TXsByCategory["Withdrawals"], t)
-					}
 				} else {
-					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
+					if tx.Type == "in" {
+						t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Status}
+						t.Items = make(map[string]wallet.Currencies)
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.DestinationCurrency, Amount: tx.DestinationAmount})
+						if !tx.FeeAmount.IsZero() {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
+						}
+						if is, desc := cat.IsTxInterest(t.ID); is {
+							t.Note += " interest " + desc
+							uh.TXsByCategory["Interests"] = append(uh.TXsByCategory["Interests"], t)
+						} else {
+							uh.TXsByCategory["Deposits"] = append(uh.TXsByCategory["Deposits"], t)
+						}
+					} else if tx.Type == "out" {
+						t := wallet.TX{Timestamp: tx.Date, ID: tx.ID, Note: SOURCE + " " + tx.Type + " " + tx.Status}
+						t.Items = make(map[string]wallet.Currencies)
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.DestinationCurrency, Amount: tx.DestinationAmount})
+						if !tx.FeeAmount.IsZero() {
+							t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.FeeCurrency, Amount: tx.FeeAmount})
+						}
+						if is, desc := cat.IsTxGift(t.ID); is {
+							t.Note += " gift " + desc
+							uh.TXsByCategory["Gifts"] = append(uh.TXsByCategory["Gifts"], t)
+						} else {
+							uh.TXsByCategory["Withdrawals"] = append(uh.TXsByCategory["Withdrawals"], t)
+						}
+					} else {
+						alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Type, tx, alreadyAsked)
+					}
 				}
 			}
 		}

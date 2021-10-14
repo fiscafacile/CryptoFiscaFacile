@@ -45,7 +45,6 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 				if err != nil {
 					log.Println(SOURCE, "Error Parsing Timestamp", r[0])
 				}
-				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String())
 				tx.Description = r[1]
 				tx.Currency = r[2]
 				tx.Amount, err = decimal.NewFromString(r[3])
@@ -64,6 +63,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					log.Println(SOURCE, "Error Parsing NativeAmountUSD", r[8])
 				}
 				tx.Kind = r[9]
+				tx.ID = utils.GetUniqueID(SOURCE + tx.Timestamp.String() + tx.Kind)
 				cdc.csvAppCryptoTXs = append(cdc.csvAppCryptoTXs, tx)
 				if tx.Timestamp.Before(firstTimeUsed) {
 					firstTimeUsed = tx.Timestamp
@@ -101,7 +101,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					for i, ex := range cdc.TXsByCategory["Exchanges"] {
 						if ex.SimilarDate(2*time.Second, tx.Timestamp) &&
 							ex.Note[:5] == tx.Kind[:5] {
-							found = true
+							// found = true
 							if is, desc, val, curr := cat.IsTxShit(tx.ID); is {
 								if len(cdc.TXsByCategory["Exchanges"][i].Items["Lost"]) == 0 {
 									cdc.TXsByCategory["Exchanges"][i].Note += " " + desc
@@ -150,7 +150,7 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					}
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.NativeCurrency, Amount: tx.NativeAmount.Neg()})
 					t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount.Neg()})
-					cdc.TXsByCategory["Exchanges"] = append(cdc.TXsByCategory["Exchanges"], t)
+					cdc.TXsByCategory["CashOut"] = append(cdc.TXsByCategory["CashOut"], t)
 				} else if tx.Kind == "crypto_deposit" ||
 					tx.Kind == "viban_deposit" ||
 					tx.Kind == "exchange_to_crypto_transfer" ||

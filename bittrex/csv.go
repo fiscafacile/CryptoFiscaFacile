@@ -103,15 +103,15 @@ func (btrx *Bittrex) ParseCSV(reader io.Reader, cat category.Category, account s
 						t.Note += " " + desc
 						t.Items["Lost"] = append(t.Items["Lost"], wallet.Currency{Code: curr, Amount: val})
 					}
-					if to.IsFiat() && from.IsFiat() {
-						//ignore
-					} else if to.IsFiat() {
-						btrx.TXsByCategory["CashOut"] = append(btrx.TXsByCategory["CashOut"], t)
-					} else if from.IsFiat() {
-						btrx.TXsByCategory["CashIn"] = append(btrx.TXsByCategory["CashIn"], t)
-					} else {
-						btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
-					}
+					// if to.IsFiat() && from.IsFiat() {
+					// ignore
+					// } else if to.IsFiat() {
+					// btrx.TXsByCategory["CashOut"] = append(btrx.TXsByCategory["CashOut"], t)
+					// } else if from.IsFiat() {
+					// btrx.TXsByCategory["CashIn"] = append(btrx.TXsByCategory["CashIn"], t)
+					// } else {
+					btrx.TXsByCategory["Exchanges"] = append(btrx.TXsByCategory["Exchanges"], t)
+					// }
 				} else {
 					alreadyAsked = wallet.AskForHelp(SOURCE+" "+tx.Operation, tx, alreadyAsked)
 				}

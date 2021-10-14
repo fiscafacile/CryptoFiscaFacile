@@ -26,7 +26,7 @@ type csvTX struct {
 func (b *Binance) ParseCSV(reader io.Reader, extended bool, account string) (err error) {
 	firstTimeUsed := time.Now()
 	lastTimeUsed := time.Date(2009, time.January, 1, 0, 0, 0, 0, time.UTC)
-	const SOURCE = "Binance CSV :"
+	const SOURCE = "Binance CSV"
 	csvReader := csv.NewReader(reader)
 	records, err := csvReader.ReadAll()
 	if err == nil {
