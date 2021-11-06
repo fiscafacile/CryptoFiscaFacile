@@ -106,6 +106,14 @@ func (api *api) categorize() {
 			}
 			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
 			api.txsByCategory["Deposits"] = append(api.txsByCategory["Deposits"], t)
+		} else if tx.Type == "staking" {
+			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
+			t.Items = make(map[string]wallet.Currencies)
+			if !tx.Fee.IsZero() {
+				t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: tx.Asset, Amount: tx.Fee})
+			}
+			t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Asset, Amount: tx.Amount})
+			api.txsByCategory["Minings"] = append(api.txsByCategory["Minings"], t)
 		} else if tx.Type == "withdrawal" {
 			t := wallet.TX{Timestamp: tx.Time, ID: tx.TxId + "-" + tx.RefId, Note: SOURCE + " " + tx.Type}
 			t.Items = make(map[string]wallet.Currencies)
