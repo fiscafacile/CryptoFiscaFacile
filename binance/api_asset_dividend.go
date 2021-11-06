@@ -15,7 +15,6 @@ type assetDividendTX struct {
 	Timestamp   time.Time
 	Description string
 	Asset       string
-	Price       decimal.Decimal
 	Amount      decimal.Decimal
 	ID          string
 }

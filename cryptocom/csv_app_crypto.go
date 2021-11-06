@@ -169,7 +169,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 					tx.Kind == "crypto_purchase" ||
 					tx.Kind == "staking_reward" ||
 					tx.Kind == "recurring_buy_order" ||
-					tx.Kind == "campaign_reward" {
+					tx.Kind == "campaign_reward" ||
+					tx.Kind == "supercharger_reward_to_app_credited" {
 					t := wallet.TX{Timestamp: tx.Timestamp, ID: tx.ID, Note: SOURCE + " " + tx.Kind + " " + tx.Description}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.Currency, Amount: tx.Amount})
@@ -192,6 +193,8 @@ func (cdc *CryptoCom) ParseCSVAppCrypto(reader io.Reader, cat category.Category,
 						cdc.TXsByCategory["Interests"] = append(cdc.TXsByCategory["Interests"], t)
 					} else if tx.Kind == "referral_bonus" {
 						cdc.TXsByCategory["Referrals"] = append(cdc.TXsByCategory["Referrals"], t)
+					} else if tx.Kind == "supercharger_reward_to_app_credited" {
+						cdc.TXsByCategory["Minings"] = append(cdc.TXsByCategory["Minings"], t)
 					} else {
 						cdc.TXsByCategory["Deposits"] = append(cdc.TXsByCategory["Deposits"], t)
 					}
