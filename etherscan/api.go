@@ -352,9 +352,6 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
 					if tx.To == tx.From {
-						if !tx.Value.IsZero() {
-							alreadyAsked = wallet.AskForHelp("Etherscan API NonZero Self TX", tx, alreadyAsked)
-						}
 						api.txsByCategory["Fees"] = append(api.txsByCategory["Fees"], t)
 						api.normalTXs[i].used = true
 					} else {
