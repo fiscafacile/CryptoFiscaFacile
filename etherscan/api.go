@@ -9,6 +9,7 @@ import (
 	"github.com/fiscafacile/CryptoFiscaFacile/category"
 	"github.com/fiscafacile/CryptoFiscaFacile/wallet"
 	"github.com/go-resty/resty/v2"
+	"github.com/shopspring/decimal"
 )
 
 type api struct {
@@ -129,7 +130,21 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 				api.tokenTXs[i].used = true
 			} else {
 				if api.ownAddress(tx.To, addresses) && api.ownAddress(tx.From, addresses) {
-					alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", tx, alreadyAsked)
+					found := false
+					for _, tr := range api.txsByCategory["Transfers"] {
+						if tx.Hash == tr.ID {
+							found = true
+						}
+					}
+					if !found {
+						t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
+						t.Items = make(map[string]wallet.Currencies)
+						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
+						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: tx.TokenSymbol, Amount: tx.Value})
+						t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
+						api.txsByCategory["Transfers"] = append(api.txsByCategory["Transfers"], t)
+					}
+					api.tokenTXs[i].used = true
 				} else if api.ownAddress(tx.To, addresses) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
@@ -194,7 +209,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 								if ttx.Hash == tx.Hash {
 									api.tokenTXs[j].used = true
 									if api.ownAddress(ttx.To, addresses) && api.ownAddress(ttx.From, addresses) {
-										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", ttx, alreadyAsked)
+										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self1 TX", ttx, alreadyAsked)
 									} else if api.ownAddress(ttx.To, addresses) {
 										t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
 									} else if api.ownAddress(ttx.From, addresses) {
@@ -256,7 +271,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 								if !ttx.used && ttx.Hash == tx.Hash {
 									api.tokenTXs[j].used = true
 									if api.ownAddress(ttx.To, addresses) && api.ownAddress(ttx.From, addresses) {
-										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self TX", ttx, alreadyAsked)
+										alreadyAsked = wallet.AskForHelp("Etherscan API ERC20 Self2 TX", ttx, alreadyAsked)
 									} else if api.ownAddress(ttx.To, addresses) {
 										found = true
 										t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: ttx.TokenSymbol, Amount: ttx.Value})
@@ -351,7 +366,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " "}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
-					if tx.To == tx.From {
+					if tx.To == tx.From || tx.IsError != 0 {
 						api.txsByCategory["Fees"] = append(api.txsByCategory["Fees"], t)
 						api.normalTXs[i].used = true
 					} else {
@@ -368,7 +383,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 						}
 					}
 				} else if api.ownAddress(tx.To, addresses) {
-					if !tx.Value.IsZero() {
+					if !tx.Value.IsZero() && tx.IsError == 0 {
 						t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.From}
 						t.Items = make(map[string]wallet.Currencies)
 						t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "ETH", Amount: tx.Value})
@@ -385,7 +400,7 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 					t := wallet.TX{Timestamp: tx.TimeStamp, ID: tx.Hash, Note: "Etherscan API : " + strconv.Itoa(tx.BlockNumber) + " " + tx.To}
 					t.Items = make(map[string]wallet.Currencies)
 					t.Items["Fee"] = append(t.Items["Fee"], wallet.Currency{Code: "ETH", Amount: tx.GasPrice.Mul(tx.GasUsed)})
-					if !tx.Value.IsZero() {
+					if !tx.Value.IsZero() && tx.IsError == 0 {
 						t.Items["From"] = append(t.Items["From"], wallet.Currency{Code: "ETH", Amount: tx.Value})
 						// Is declared Exchanges
 						if is, desc, val, curr := cat.IsTxExchange(tx.Hash); is {
@@ -393,10 +408,12 @@ func (api *api) categorize(addresses []string, cat category.Category) {
 							t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: curr, Amount: val})
 							api.txsByCategory["Exchanges"] = append(api.txsByCategory["Exchanges"], t)
 						} else {
-							// Special Case WETH
-							if tx.To == "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" {
+							if tx.To == "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" { // Special Case WETH
 								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "WETH", Amount: tx.Value})
-								api.txsByCategory["Swaps"] = append(api.txsByCategory["Swaps"], t)
+								api.txsByCategory["Wraps"] = append(api.txsByCategory["Wraps"], t)
+							} else if tx.To == "0xf786c34106762ab4eeb45a51b42a62470e9d5332" { // Special Case fETH
+								t.Items["To"] = append(t.Items["To"], wallet.Currency{Code: "fETH", Amount: tx.Value.Mul(decimal.New(99, -2))})
+								api.txsByCategory["Wraps"] = append(api.txsByCategory["Wraps"], t)
 							} else {
 								api.txsByCategory["Withdrawals"] = append(api.txsByCategory["Withdrawals"], t)
 							}

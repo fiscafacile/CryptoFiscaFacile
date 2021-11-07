@@ -38,30 +38,28 @@ func (api *api) getNormalTXs(addresses []string) {
 			return
 		}
 		for _, norTX := range accTXList.Result {
-			if norTX.IsError == 0 {
-				tx := normalTX{
-					used:              false,
-					BlockNumber:       norTX.BlockNumber,
-					TimeStamp:         time.Unix(norTX.TimeStamp, 0),
-					Hash:              norTX.Hash,
-					Nonce:             norTX.Nonce,
-					BlockHash:         norTX.BlockHash,
-					TransactionIndex:  norTX.TransactionIndex,
-					From:              norTX.From,
-					To:                norTX.To,
-					Value:             decimal.NewFromBigInt(norTX.Value.Int(), -18),
-					Gas:               norTX.Gas,
-					GasPrice:          decimal.NewFromBigInt(norTX.GasPrice.Int(), -18),
-					IsError:           norTX.IsError,
-					TxReceiptStatus:   norTX.TxReceiptStatus,
-					Input:             norTX.Input,
-					ContractAddress:   norTX.ContractAddress,
-					CumulativeGasUsed: norTX.CumulativeGasUsed,
-					GasUsed:           decimal.NewFromInt(norTX.GasUsed),
-					Confirmations:     norTX.Confirmations,
-				}
-				api.normalTXs = append(api.normalTXs, tx)
+			tx := normalTX{
+				used:              false,
+				BlockNumber:       norTX.BlockNumber,
+				TimeStamp:         time.Unix(norTX.TimeStamp, 0),
+				Hash:              norTX.Hash,
+				Nonce:             norTX.Nonce,
+				BlockHash:         norTX.BlockHash,
+				TransactionIndex:  norTX.TransactionIndex,
+				From:              norTX.From,
+				To:                norTX.To,
+				Value:             decimal.NewFromBigInt(norTX.Value.Int(), -18),
+				Gas:               norTX.Gas,
+				GasPrice:          decimal.NewFromBigInt(norTX.GasPrice.Int(), -18),
+				IsError:           norTX.IsError,
+				TxReceiptStatus:   norTX.TxReceiptStatus,
+				Input:             norTX.Input,
+				ContractAddress:   norTX.ContractAddress,
+				CumulativeGasUsed: norTX.CumulativeGasUsed,
+				GasUsed:           decimal.NewFromInt(norTX.GasUsed),
+				Confirmations:     norTX.Confirmations,
 			}
+			api.normalTXs = append(api.normalTXs, tx)
 		}
 	}
 	api.doneNor <- nil
