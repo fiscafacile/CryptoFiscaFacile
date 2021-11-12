@@ -607,9 +607,13 @@ Cela vous génère automatiquement une fiche de stock de tous vos coins !
 
 Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un nom de domaine et payer un hébergement par exemple :
 
-![Donate with Bitcoin](https://img.shields.io/static/v1?label=BTC&message=bc1qlmsx8vtk03jwcuafe7vzvddjzg4nsfvflgs4k9&color=f2a900&logo=bitcoin)
+![Donate with Bitcoin](https://img.shields.io/static/v1?label=BTC&message=bc1q760y8ynwuf6ckfndtuasnhatcv6ewfrk3wy8wm&color=f2a900&logo=bitcoin)
 
-![Donate with Crytpo.org Chain](https://img.shields.io/static/v1?label=CRO&message=cro1mj85k6v20ppnegpftxeyh3ne4gsqap4q0hpe89&color=002d74&logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NSA0NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuMyAwTDAgMTEuMlYzMy41TDE5LjMgNDQuN0wzOC42IDMzLjVWMTEuMkwxOS4zIDBaTTMyLjkgMzAuMkwxOS4zIDM4TDUuNyAzMC4yVjE0LjVMMTkuMyA2LjZMMzIuOSAxNC41VjMwLjJaIiBmaWxsPSIjMDAyZDc0Ii8+PHBhdGggZD0iTTI4LjQwMDggMjcuNDk4NEwxOS4zMDA4IDMyLjY5ODRMMTAuMzAwOCAyNy40OTg0VjE3LjA5ODRMMTkuMzAwOCAxMS44OTg0TDI4LjQwMDggMTcuMDk4NFYyNy40OTg0WiIgZmlsbD0iIzAwMmQ3NCIvPjwvc3ZnPg==)
+![Donate with Ethereum](https://img.shields.io/static/v1?label=ETH&message=0x5e69c2cf20f80a6622f83f779010d077ea3f3c52&color=c99d66&logo=ethereum)
+
+![Donate with Crytpo.org Chain](https://img.shields.io/static/v1?label=CRO&message=cro1e0ch6yemdletz44k74wvf9pmg3yv0lkrs9dlrv&color=002d74&logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIHZpZXdCb3g9IjAgMCA0NSA0NSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJNMTkuMyAwTDAgMTEuMlYzMy41TDE5LjMgNDQuN0wzOC42IDMzLjVWMTEuMkwxOS4zIDBaTTMyLjkgMzAuMkwxOS4zIDM4TDUuNyAzMC4yVjE0LjVMMTkuMyA2LjZMMzIuOSAxNC41VjMwLjJaIiBmaWxsPSIjMDAyZDc0Ii8+PHBhdGggZD0iTTI4LjQwMDggMjcuNDk4NEwxOS4zMDA4IDMyLjY5ODRMMTAuMzAwOCAyNy40OTg0VjE3LjA5ODRMMTkuMzAwOCAxMS44OTg0TDI4LjQwMDggMTcuMDk4NFYyNy40OTg0WiIgZmlsbD0iIzAwMmQ3NCIvPjwvc3ZnPg==)
+
+![Donate with Litecoin](https://img.shields.io/static/v1?label=LTC&message=ltc1qyk50t590ztuzclut3tm2s9ktne4kal8qjdyk7u&color=lightgrey&logo=litecoin)
 
 ## Support
 
