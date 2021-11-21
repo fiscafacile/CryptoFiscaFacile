@@ -3,6 +3,9 @@
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/fiscafacile/CryptoFiscaFacile/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg "PRs Welcome")](https://github.com/fiscafacile/CryptoFiscaFacile/pulls)
+[![Telegram CryptoFiscaFacile](https://img.shields.io/badge/Telegram-CryptoFiscaFacile-32AFED?logo=telegram)](https://telegram.me/cryptofiscafacile)
+[![Discord CryptoFiscaFacile](https://img.shields.io/badge/Discord-CryptoFiscaFacile-5865f2?logo=discord)](https://discord.gg/PndJKReU9E)
 
 Cet outil veut vous aider à déclarer vos cryptos aux impôts !
 
@@ -589,7 +592,7 @@ Il y a deux façons de considérer les AirDrops/CommercialRebates/Interests/Mini
 
 Pour activer la seconde méthode d'intégration, vous pouvez utiliser les options `--cashin-bnc-2019` et/ou `--cashin-bnc-2020`.
 
-En attendant que la loi soit plus claire à ce sujet, nous vous laissons le choix. Vous pouvez venir demander de l'aide à ce sujet sur le groupe [![Fiscalité crypto FR](https://img.shields.io/badge/Telegram-Fiscalité%20crypto%20FR-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNCAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS40MTcgMTUuMTgxLS4zOTcgNS41ODRjLjU2OCAwIC44MTQtLjI0NCAxLjEwOS0uNTM3bDIuNjYzLTIuNTQ1IDUuNTE4IDQuMDQxYzEuMDEyLjU2NCAxLjcyNS4yNjcgMS45OTgtLjkzMWwzLjYyMi0xNi45NzIuMDAxLS4wMDFjLjMyMS0xLjQ5Ni0uNTQxLTIuMDgxLTEuNTI3LTEuNzE0bC0yMS4yOSA4LjE1MWMtMS40NTMuNTY0LTEuNDMxIDEuMzc0LS4yNDcgMS43NDFsNS40NDMgMS42OTMgMTIuNjQzLTcuOTExYy41OTUtLjM5NCAxLjEzNi0uMTc2LjY5MS4yMTh6IiBmaWxsPSIjMDM5YmU1Ii8+PC9zdmc+)](https://telegram.me/fiscalitecryptofr).
+En attendant que la loi soit plus claire à ce sujet, nous vous laissons le choix. Vous pouvez venir demander de l'aide à ce sujet sur le groupe [![Fiscalité crypto FR](https://img.shields.io/badge/Telegram-Fiscalité%20crypto%20FR-32AFED?style=for-the-badge&logo=telegram)](https://telegram.me/fiscalitecryptofr).
 
 ```
   --3916
@@ -617,11 +620,20 @@ Si vous voulez faire un don à l'outil (pas à moi), cela permettra d'acheter un
 
 ## Support
 
-Si vous avec un problème d'utilisation ou pour le développement d'un module, et que cette doc ne vous apporte pas de réponse, venez me la poser dans le groupe officiel de support sur Telegram [![CryptoFiscaFacile](https://img.shields.io/badge/Telegram-CryptoFiscaFacile-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNCAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS40MTcgMTUuMTgxLS4zOTcgNS41ODRjLjU2OCAwIC44MTQtLjI0NCAxLjEwOS0uNTM3bDIuNjYzLTIuNTQ1IDUuNTE4IDQuMDQxYzEuMDEyLjU2NCAxLjcyNS4yNjcgMS45OTgtLjkzMWwzLjYyMi0xNi45NzIuMDAxLS4wMDFjLjMyMS0xLjQ5Ni0uNTQxLTIuMDgxLTEuNTI3LTEuNzE0bC0yMS4yOSA4LjE1MWMtMS40NTMuNTY0LTEuNDMxIDEuMzc0LS4yNDcgMS43NDFsNS40NDMgMS42OTMgMTIuNjQzLTcuOTExYy41OTUtLjM5NCAxLjEzNi0uMTc2LjY5MS4yMTh6IiBmaWxsPSIjMDM5YmU1Ii8+PC9zdmc+)](https://telegram.me/cryptofiscafacile)
+Si vous avez un problème d'utilisation ou pour le développement d'un module et que cette doc ne vous apporte pas de réponse, venez me la poser dans les groupes officiels de support sur :
+
+[![Telegram CryptoFiscaFacile](https://img.shields.io/badge/Telegram-CryptoFiscaFacile-32AFED?style=for-the-badge&logo=telegram&logoColor=white)](https://telegram.me/cryptofiscafacile)
+
+
+## Contribution
+
+Pour les développeurs :
+
+[![Discord CryptoFiscaFacile](https://img.shields.io/badge/Discord-CryptoFiscaFacile-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/PndJKReU9E)
 
 ## Remerciements
 
-Merci au groupe [![Fiscalité crypto FR](https://img.shields.io/badge/Telegram-Fiscalité%20crypto%20FR-blue?style=for-the-badge&logo=data:image/svg%2bxml;base64,PHN2ZyBlbmFibGUtYmFja2dyb3VuZD0ibmV3IDAgMCAyNCAyNCIgaGVpZ2h0PSI1MTIiIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjUxMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cGF0aCBkPSJtOS40MTcgMTUuMTgxLS4zOTcgNS41ODRjLjU2OCAwIC44MTQtLjI0NCAxLjEwOS0uNTM3bDIuNjYzLTIuNTQ1IDUuNTE4IDQuMDQxYzEuMDEyLjU2NCAxLjcyNS4yNjcgMS45OTgtLjkzMWwzLjYyMi0xNi45NzIuMDAxLS4wMDFjLjMyMS0xLjQ5Ni0uNTQxLTIuMDgxLTEuNTI3LTEuNzE0bC0yMS4yOSA4LjE1MWMtMS40NTMuNTY0LTEuNDMxIDEuMzc0LS4yNDcgMS43NDFsNS40NDMgMS42OTMgMTIuNjQzLTcuOTExYy41OTUtLjM5NCAxLjEzNi0uMTc2LjY5MS4yMTh6IiBmaWxsPSIjMDM5YmU1Ii8+PC9zdmc+)](https://telegram.me/fiscalitecryptofr) qui est une mine d'or d'informations pour essayer de comprendre comment cela fonctionne.
+Merci au groupe [![Fiscalité crypto FR](https://img.shields.io/badge/Telegram-Fiscalité%20crypto%20FR-32AFED?style=for-the-badge&logo=telegram)](https://telegram.me/fiscalitecryptofr) qui est une mine d'or d'informations pour essayer de comprendre comment cela fonctionne.
 
 ## Copyright & License
 
