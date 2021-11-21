@@ -4,8 +4,8 @@
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
 [![Open Source? Yes!](https://badgen.net/badge/Open%20Source%20%3F/Yes%21/blue?icon=github)](https://github.com/fiscafacile/CryptoFiscaFacile/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-blue.svg "PRs Welcome")](https://github.com/fiscafacile/CryptoFiscaFacile/pulls)
-[![Telegram CryptoFiscaFacile](https://img.shields.io/badge/Telegram-CryptoFiscaFacile-32AFED?logo=telegram)](https://telegram.me/cryptofiscafacile)
-[![Discord CryptoFiscaFacile](https://img.shields.io/badge/Discord-CryptoFiscaFacile-5865f2?logo=discord)](https://discord.gg/PndJKReU9E)
+[![Telegram CryptoFiscaFacile](https://img.shields.io/badge/Telegram-CryptoFiscaFacile%20(support%20utilisation)-32AFED?logo=telegram)](https://telegram.me/cryptofiscafacile)
+[![Discord CryptoFiscaFacile](https://img.shields.io/badge/Discord-CryptoFiscaFacile%20(développent%20v2)-5865f2?logo=discord)](https://discord.gg/PndJKReU9E)
 
 Cet outil veut vous aider à déclarer vos cryptos aux impôts !
 
@@ -627,7 +627,7 @@ Si vous avez un problème d'utilisation ou pour le développement d'un module et
 
 ## Contribution
 
-Pour les développeurs :
+Pour les développeurs de la v2 :
 
 [![Discord CryptoFiscaFacile](https://img.shields.io/badge/Discord-CryptoFiscaFacile-5865f2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/PndJKReU9E)
 
