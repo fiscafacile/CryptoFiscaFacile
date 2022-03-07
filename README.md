@@ -1,4 +1,15 @@
-# CryptoFiscaFacile
+# CryptoFiscaFacile v2
+
+Ce projet a évolué, une version 2 est disponible sur [Gitlab](https://gitlab.com/c1560/cryptofiscafacile).
+Dans la version 2 vous aurez :
+
+- une interface graphique (dans votre navigateur Web)
+- une disponibilité online sans même avoir à compiler soi même ! Et pourtant toutes vos infos personnelles resteront chez vous, dans votre navigateur !
+- d'autre nouveautés comme des graphiques de stats sur votre portefeuille global crypto
+
+Ce projet sur Github reste ici pour archive de l'historique, mais vous êtes tous invités à venir utiliser la v2 bien plus ergonomique !
+
+# CryptoFiscaFacile v1
 
 [![made-with-Go](https://img.shields.io/badge/Made%20with-Go-1f425f.svg)](http://golang.org)
 [![MIT license](https://img.shields.io/badge/License-MIT-blue.svg)](https://lbesson.mit-license.org/)
