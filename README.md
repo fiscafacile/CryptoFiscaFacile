@@ -1,6 +1,6 @@
 # CryptoFiscaFacile v2
 
-Ce projet a évolué, une version 2 est disponible sur [Gitlab](https://gitlab.com/c1560/cryptofiscafacile).
+Ce projet a évolué, une version 2 est disponible [en ligne](https://crypto.fiscafacile.com) et le code source est sur [Gitlab](https://gitlab.com/c1560/cryptofiscafacile).
 Dans la version 2 vous aurez :
 
 - une interface graphique (dans votre navigateur Web)
